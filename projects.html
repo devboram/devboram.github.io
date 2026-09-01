@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>프로젝트 — boram 의 작업노트</title>
+  <meta name="description" content="boram 이 만든 도구들.">
+  <link rel="icon" type="image/svg+xml" href="assets/icons/rabbit-looking-pleased.svg">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&family=Nanum+Gothic+Coding&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="index.html">boram 의 작업노트</a>
+    <nav class="site-nav" aria-label="주 메뉴">
+      <a href="posts.html">글</a>
+      <a href="projects.html" aria-current="page">프로젝트</a>
+      <a href="about.html">소개</a>
+      <a class="external" href="https://github.com/devboram" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+    </nav>
+  </header>
+
+  <main>
+    <div style="padding: 48px 0 4px 0; display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap;">
+      <h1 class="handwrite" style="font-size: 44px;">만든 도구들</h1>
+      <span class="pen" style="font-size: 20px;">두 번 반복한 일은 전부 여기로 왔다</span>
+    </div>
+
+    <div class="card-grid" style="margin-top: 26px;">
+      <article class="note-card" style="padding-top: 0;">
+        <div class="polaroid-wrap" style="margin: 0 0 4px 0; transform: rotate(-1.5deg);">
+          <div class="tape" style="position: absolute; top: -10px; left: 50%; width: 76px; height: 20px; background: var(--tape-blue); transform: translateX(-50%) rotate(-2deg); z-index: 2;"></div>
+          <figure class="polaroid" style="margin: 0;">
+            <div class="polaroid-slot" style="aspect-ratio: 16/10;">
+              <span style="font-size: 13px; color: var(--meta);">[대시보드 스크린샷]</span>
+            </div>
+          </figure>
+        </div>
+        <h3>agent-monitor</h3>
+        <p>Claude 세션·서브에이전트 진행 상태를 브라우저에서 3초 갱신으로 보여주는 로컬 모니터. 읽기 전용, 외부 통신 없음.</p>
+        <div class="meta" style="font-family: 'Nanum Gothic Coding', monospace;">python · vanilla-web</div>
+      </article>
+
+      <article class="note-card" style="padding-top: 0;">
+        <div class="polaroid-wrap" style="margin: 0 0 4px 0; transform: rotate(1.2deg);">
+          <div class="tape" style="position: absolute; top: -10px; left: 50%; width: 76px; height: 20px; background: var(--tape-sage); transform: translateX(-50%) rotate(2deg); z-index: 2;"></div>
+          <figure class="polaroid" style="margin: 0;">
+            <div class="polaroid-slot" style="aspect-ratio: 16/10;">
+              <span style="font-size: 13px; color: var(--meta);">[회의록 결과 스크린샷]</span>
+            </div>
+          </figure>
+        </div>
+        <h3>meeting-minutes</h3>
+        <p>녹음 → 전사 → 화자분리 → 회의록 초안까지 전부 로컬에서 도는 파이프라인. 회의 내용이 밖으로 나가지 않는다.</p>
+        <div class="meta" style="font-family: 'Nanum Gothic Coding', monospace;">whisper · pyannote · python</div>
+      </article>
+
+      <article class="note-card" style="padding-top: 0;">
+        <div class="polaroid-wrap" style="margin: 0 0 4px 0; transform: rotate(-0.8deg);">
+          <div class="tape" style="position: absolute; top: -10px; left: 50%; width: 76px; height: 20px; background: var(--tape-rose); transform: translateX(-50%) rotate(-1.5deg); z-index: 2;"></div>
+          <figure class="polaroid" style="margin: 0;">
+            <div class="polaroid-slot" style="aspect-ratio: 16/10;">
+              <span style="font-size: 13px; color: var(--meta);">[QA 리포트 스크린샷]</span>
+            </div>
+          </figure>
+        </div>
+        <h3>qa-runner</h3>
+        <p>Maestro 기반 앱 자동화 QA. 테스트 케이스를 Excel 로 관리하고 에뮬레이터·실기기에서 돌려 회차 리포트를 남긴다.</p>
+        <div class="meta" style="font-family: 'Nanum Gothic Coding', monospace;">maestro · python · excel</div>
+      </article>
+    </div>
+
+    <div style="margin-top: 40px; display: flex; justify-content: center; align-items: center; gap: 12px;">
+      <img src="assets/icons/rabbit-holding-lightbulb.svg" alt="전구를 들고 있는 토끼 캐릭터" width="76" height="76">
+      <span class="pen" style="font-size: 20px;">다음 도구는 뭐가 될까? 반복되는 일을 관찰하는 중...</span>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <span>© dev.boram</span>
+    <div class="footer-right">
+      <span>github.com/devboram</span>
+      <a href="bunny.html" aria-label="숨겨진 페이지로 이동">
+        <img src="assets/icons/rabbit-looking-pleased.svg" alt="" width="26" height="26">
+      </a>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>글 — boram 의 작업노트</title>
+  <meta name="description" content="boram 이 쓴 글 목록.">
+  <link rel="icon" type="image/svg+xml" href="assets/icons/rabbit-looking-pleased.svg">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&family=Nanum+Gothic+Coding&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="index.html">boram 의 작업노트</a>
+    <nav class="site-nav" aria-label="주 메뉴">
+      <a href="posts.html" aria-current="page">글</a>
+      <a href="projects.html">프로젝트</a>
+      <a href="about.html">소개</a>
+      <a class="external" href="https://github.com/devboram" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+    </nav>
+  </header>
+
+  <main>
+    <div style="padding: 44px 0 4px 0;">
+      <h1 class="handwrite" style="font-size: 40px;">글 모음</h1>
+      <p style="font-family: 'Nanum Gothic Coding', monospace; font-size: 13px; color: var(--meta);">posts/ · 3개</p>
+    </div>
+
+    <!-- 태그 칩: 이번 범위에서는 표시만(필터 미동작). 글 5편쯤 되면 JS 필터로 승격 예정. -->
+    <ul class="tag-row" style="list-style: none; padding: 0;">
+      <li><span class="tag-chip" aria-current="true">전체</span></li>
+      <li><span class="tag-chip">network</span></li>
+      <li><span class="tag-chip">automation</span></li>
+      <li><span class="tag-chip">compose</span></li>
+    </ul>
+
+    <article class="post-row">
+      <div class="date-col">
+        <div class="big">08.31</div>
+        <div class="tag">network</div>
+      </div>
+      <div>
+        <h3><a href="posts/ssl-handshake-to-ui.html">SSL 실패를 사용자 안내 문구까지 배선하기</a></h3>
+        <p>"네트워크를 확인해 주세요" 팝업의 진짜 원인은 기기 날짜 틀어짐이었다. 뭉개진 에러 코드를 전용 코드로 분리해 표시 계층까지 전달한 기록.</p>
+      </div>
+    </article>
+
+    <article class="post-row">
+      <div class="date-col">
+        <div class="big">08.27</div>
+        <div class="tag">automation</div>
+      </div>
+      <div>
+        <h3>로컬 녹음·화자분리 회의록 파이프라인</h3>
+        <p>whisper 와 pyannote 를 엮어 녹음부터 회의록 초안까지 전부 로컬에서 돌린다. 클라우드 없이 만든 이유와 삽질들.</p>
+      </div>
+    </article>
+
+    <article class="post-row">
+      <div class="date-col">
+        <div class="big">08.24</div>
+        <div class="tag">compose</div>
+      </div>
+      <div>
+        <h3>Compose 바텀시트 offset 보정 shell 내장기</h3>
+        <p>화면마다 복제되던 offset 수동 보정을 공용 shell 한 곳으로 옮겼다. "보정은 소비자 책임이 아니다"에 도달하기까지.</p>
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <span>© dev.boram</span>
+    <div class="footer-right">
+      <span>github.com/devboram</span>
+      <a href="bunny.html" aria-label="숨겨진 페이지로 이동">
+        <img src="assets/icons/rabbit-looking-pleased.svg" alt="" width="26" height="26">
+      </a>
+    </div>
+  </footer>
+</body>
+</html>

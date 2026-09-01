@@ -1,6 +1,287 @@
+/* ===== 토큰 ===== */
+:root {
+  --ink: #26282d;
+  --muted: #565b64;
+  --meta: #6b707a;
+  --paper: #fcfcfd;
+  --paper-line: rgba(96, 110, 140, 0.07);
+  --accent: #d1495b;
+  --highlight: #ffe873;
+  --tape-blue: rgba(196, 202, 212, 0.8);
+  --tape-sage: rgba(178, 208, 192, 0.85);
+  --tape-rose: rgba(244, 205, 214, 0.85);
+  --card-border: 1.8px solid var(--ink);
+  --card-shadow: 2px 3px 0 rgba(38, 40, 45, 0.10);
+}
+
+/* ===== 기본 ===== */
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
 body {
-  font-family: system-ui, sans-serif;
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+  margin: 0;
+  background-color: var(--paper);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--paper-line) 0px, var(--paper-line) 1px,
+    transparent 1px, transparent 32px
+  );
+  color: var(--ink);
+  font-family: 'Gowun Dodum', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a { color: var(--ink); text-decoration: none; }
+a:hover { color: var(--accent); }
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2.5px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.handwrite { font-family: 'Gaegu', cursive; font-weight: 700; }
+.pen { font-family: 'Gaegu', cursive; color: var(--accent); }
+
+.hl {
+  background: linear-gradient(to bottom,
+    transparent 58%, var(--highlight) 58%, var(--highlight) 94%, transparent 94%);
+}
+
+/* ===== 헤더 ===== */
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 40px;
+  border-bottom: var(--card-border);
+  flex-wrap: wrap;
+}
+
+.site-header .logo {
+  font-family: 'Gaegu', cursive;
+  font-weight: 700;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.site-header .logo img { width: 22px; height: 22px; }
+
+.site-nav {
+  display: flex;
+  gap: 26px;
+  align-items: center;
+  font-size: 15px;
+  flex-wrap: wrap;
+}
+.site-nav a[aria-current="page"] {
+  font-weight: 700;
+  background: linear-gradient(to bottom,
+    transparent 58%, var(--highlight) 58%, var(--highlight) 94%, transparent 94%);
+}
+.external {
+  border: var(--card-border);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  font-family: 'Gaegu', cursive;
+  font-size: 16px;
+  padding: 6px 16px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ===== 본문 컨테이너 ===== */
+main { flex-grow: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 0 40px 60px 40px; }
+
+/* ===== 히어로 ===== */
+.hero {
+  padding: 56px 0 40px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.hero-text { max-width: 560px; }
+.hero-text h1 { font-size: 44px; line-height: 1.4; margin: 0; }
+.hero-text p { margin-top: 16px; font-size: 16px; line-height: 1.9; color: var(--muted); }
+.hero img { width: 130px; height: auto; flex-shrink: 0; }
+
+/* ===== 섹션 제목 ===== */
+.section-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.section-title h2 { font-size: 24px; margin: 0; }
+.section-title .see-all { font-size: 14px; color: var(--muted); }
+
+/* ===== 노트 카드 (손그림 테두리) ===== */
+.note-card {
+  position: relative;
+  background: #ffffff;
+  border: var(--card-border);
+  padding: 24px 20px 18px 20px;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.note-card:nth-child(3n + 1) { border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px; transform: rotate(-0.6deg); }
+.note-card:nth-child(3n + 2) { border-radius: 15px 255px 15px 225px / 225px 15px 255px 15px; transform: rotate(0.5deg); }
+.note-card:nth-child(3n + 3) { border-radius: 225px 15px 255px 15px / 15px 255px 15px 225px; transform: rotate(-0.3deg); }
+
+.note-card .tape {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  width: 84px;
+  height: 22px;
+  transform: translateX(-50%) rotate(-2deg);
+}
+.note-card .meta { font-size: 12px; color: var(--meta); }
+.note-card h3 { font-size: 19px; margin: 0; line-height: 1.5; }
+.note-card p { font-size: 14px; line-height: 1.75; color: var(--muted); margin: 0; }
+.note-card a.card-link { color: inherit; }
+.note-card a.card-link:hover { color: var(--accent); }
+
+.card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+
+/* ===== 글 목록 행 ===== */
+.tag-row { display: flex; gap: 10px; margin: 20px 0 30px 0; flex-wrap: wrap; }
+.tag-chip {
+  font-family: 'Gaegu', cursive;
+  font-size: 17px;
+  border: var(--card-border);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  padding: 9px 20px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  background: #ffffff;
+}
+.tag-chip[aria-current="true"] { background: var(--highlight); }
+
+.post-row {
+  position: relative;
+  background: #ffffff;
+  border: var(--card-border);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  padding: 26px 28px;
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr);
+  gap: 24px;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 24px;
+}
+.post-row:nth-child(even) { transform: rotate(0.3deg); }
+.post-row:nth-child(odd) { transform: rotate(-0.35deg); }
+.post-row .date-col { border-right: 2px dashed #d8dbe1; padding-right: 16px; }
+.post-row .date-col .big { font-family: 'Gaegu', cursive; font-size: 28px; font-weight: 700; line-height: 1; }
+.post-row .date-col .tag { font-size: 12px; color: var(--meta); }
+.post-row h3 { font-size: 24px; margin: 0; line-height: 1.4; }
+.post-row p { font-size: 15px; line-height: 1.8; color: var(--muted); margin: 8px 0 0 0; }
+
+/* ===== 글 본문 시트 ===== */
+.sheet {
+  max-width: 700px;
+  margin: 40px auto;
+  background: var(--paper);
+  border: 1.8px solid var(--ink);
+  border-radius: 255px 18px 225px 18px / 18px 225px 18px 255px;
+  padding: 48px 52px;
+  box-shadow: 3px 4px 0 rgba(38, 40, 45, 0.10);
+}
+.sheet .back-link { font-size: 14px; color: var(--meta); }
+.sheet h1 { font-family: 'Gaegu', cursive; font-weight: 700; font-size: 36px; line-height: 1.4; margin: 16px 0 0 0; }
+.sheet .post-meta { display: flex; gap: 14px; align-items: center; font-size: 13px; color: var(--meta); margin-top: 12px; }
+.sheet .post-meta .tag { border: var(--card-border); border-radius: 50%; }
+.post-body { margin-top: 30px; font-size: 16.5px; line-height: 2.0; color: #3a3d44; }
+.post-body p { margin: 0 0 20px 0; }
+.post-body h2 { font-size: 22px; margin: 30px 0 14px 0; }
+.post-body code { font-family: 'Nanum Gothic Coding', monospace; font-size: 14.5px; background: #eef0f3; padding: 2px 6px; }
+.post-body pre {
+  background: var(--ink);
+  color: #e8eaef;
+  padding: 20px 22px;
+  font-family: 'Nanum Gothic Coding', monospace;
+  font-size: 13.5px;
+  line-height: 1.8;
+  overflow-x: auto;
+  margin: 0 0 20px 0;
+}
+.post-body pre code { background: none; padding: 0; }
+
+.post-stamp { display: flex; justify-content: flex-end; margin: -10px 0 10px 0; }
+.post-stamp svg { width: 108px; height: 108px; transform: rotate(-4deg); }
+
+.post-nav { display: flex; justify-content: space-between; align-items: center; border-top: 2px dashed #d8dbe1; padding-top: 22px; margin-top: 20px; font-size: 15px; }
+
+/* ===== 폴라로이드 ===== */
+.polaroid-wrap { position: relative; flex-shrink: 0; }
+.polaroid {
+  background: #ffffff;
+  border: 1px solid #d8dbe1;
+  padding: 12px 12px 40px 12px;
+  box-shadow: 3px 4px 8px rgba(38, 40, 45, 0.14);
+}
+.polaroid img, .polaroid .polaroid-slot {
+  width: 100%;
+  aspect-ratio: 1;
+  background: #eef0f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.polaroid figcaption { text-align: center; margin-top: 10px; font-family: 'Gaegu', cursive; font-size: 21px; }
+
+/* ===== 도장 ===== */
+.stamp-svg circle { fill: none; }
+
+/* ===== 이스터에그 캐릭터 애니메이션 ===== */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+.wiggle { animation: wiggle 2.2s ease-in-out infinite; transform-origin: 50% 90%; }
+
+/* ===== 푸터 ===== */
+.site-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: var(--card-border);
+  padding: 14px 40px;
+  font-size: 13px;
+  color: var(--meta);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.footer-right { display: flex; align-items: center; gap: 14px; }
+.footer-right a { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+.footer-right a img { width: 26px; height: 26px; }
+
+/* ===== 반응형 ===== */
+@media (max-width: 860px) {
+  .card-grid { grid-template-columns: 1fr; }
+  .hero { flex-direction: column-reverse; text-align: center; }
+  .hero-text { max-width: none; }
+}
+
+@media (max-width: 600px) {
+  .site-header, main, .site-footer { padding-left: 20px; padding-right: 20px; }
+  .hero-text h1 { font-size: 30px; }
+  .post-row { grid-template-columns: 1fr; }
+  .post-row .date-col { border-right: none; border-bottom: 2px dashed #d8dbe1; padding-right: 0; padding-bottom: 10px; }
+  .sheet { padding: 32px 22px; margin: 24px auto; }
+  .sheet h1 { font-size: 27px; }
+  .post-stamp svg { width: 82px; height: 82px; }
 }
