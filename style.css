@@ -285,3 +285,6 @@ main { flex-grow: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 0 
   .sheet h1 { font-size: 27px; }
   .post-stamp svg { width: 82px; height: 82px; }
 }
+
+/* 댓글·방명록 (giscus) 영역 — 글 본문과 점선으로 구분 */
+.comments { margin-top: 28px; border-top: 2px dashed #d8dbe1; padding-top: 22px; }

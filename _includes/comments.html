@@ -1,0 +1,25 @@
+{%- comment -%}
+giscus 댓글 영역. 글에서는 URL 경로(pathname)로, 방명록처럼 고정 스레드가 필요한 곳은
+mapping="specific" term="..." 으로 호출한다. 발급 ID 가 비어 있으면 안내 문구만 보여준다.
+{%- endcomment -%}
+<section class="comments" aria-label="댓글">
+{% if site.giscus.repo_id != "" %}
+  <script src="https://giscus.app/client.js"
+    data-repo="{{ site.giscus.repo }}"
+    data-repo-id="{{ site.giscus.repo_id }}"
+    data-category="{{ site.giscus.category }}"
+    data-category-id="{{ site.giscus.category_id }}"
+    data-mapping="{{ include.mapping | default: 'pathname' }}"
+    {% if include.term %}data-term="{{ include.term }}"{% endif %}
+    data-strict="0"
+    data-reactions-enabled="1"
+    data-emit-metadata="0"
+    data-input-position="top"
+    data-theme="light"
+    data-lang="ko"
+    crossorigin="anonymous"
+    async></script>
+{% else %}
+  <p class="pen">댓글창은 아직 준비 중이에요</p>
+{% endif %}
+</section>
