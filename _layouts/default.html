@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% if page.title %}{{ page.title | escape }} — {% endif %}{{ site.title }}</title>
+  <meta name="description" content="{{ page.description | default: site.description | escape }}">
+  <meta property="og:title" content="{% if page.title %}{{ page.title | escape }} — {% endif %}{{ site.title }}">
+  <meta property="og:description" content="{{ page.description | default: site.description | escape }}">
+  {% if page.noindex %}<meta name="robots" content="noindex">{% endif %}
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/rabbit-looking-pleased.svg">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&family=Nanum+Gothic+Coding&display=swap">
+  <link rel="stylesheet" href="/style.css">
+  {% feed_meta %}
+</head>
+<body>
+{% unless page.bare %}
+  <header class="site-header">
+    <a class="logo" href="/">{{ site.title }}</a>
+    <nav class="site-nav" aria-label="주 메뉴">
+      <a href="/posts.html"{% if page.nav == "posts" %} aria-current="page"{% endif %}>글</a>
+      <a href="/projects.html"{% if page.nav == "projects" %} aria-current="page"{% endif %}>프로젝트</a>
+      <a href="/about.html"{% if page.nav == "about" %} aria-current="page"{% endif %}>소개</a>
+      <a class="external" href="https://github.com/devboram" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+    </nav>
+  </header>
+{% endunless %}
+
+  <main{% if page.main_style %} style="{{ page.main_style }}"{% endif %}>
+{{ content }}
+  </main>
+
+{% unless page.bare %}
+  <footer class="site-footer">
+    <span>© dev.boram</span>
+    <div class="footer-right">
+      <span>github.com/devboram</span>
+      <a href="/bunny.html" aria-label="숨겨진 페이지로 이동">
+        <img src="/assets/icons/rabbit-looking-pleased.svg" alt="" width="26" height="26">
+      </a>
+    </div>
+  </footer>
+{% endunless %}
+</body>
+</html>

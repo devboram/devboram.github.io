@@ -1,0 +1,35 @@
+---
+layout: default
+---
+    <article class="sheet">
+      <a class="back-link" href="/posts.html">← 글 모음으로</a>
+      <h1><span class="hl">{{ page.title }}</span></h1>
+      <div class="post-meta">
+        <time datetime="{{ page.date | date: '%Y-%m-%d' }}">{{ page.date | date: '%Y-%m-%d' }}</time>
+        {% for tag in page.tags %}<span class="tag" style="font-family: 'Gaegu', cursive; font-size: 16px; padding: 1px 12px;">{{ tag }}</span>{% endfor %}
+        {% if page.minutes %}<span>{{ page.minutes }} min</span>{% endif %}
+      </div>
+
+      <div class="post-body">
+{{ content }}
+      </div>
+
+      <div class="post-stamp" aria-hidden="true">
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="mix-blend-mode: multiply;">
+          <circle cx="60" cy="60" r="55" stroke="#4a5fc1" stroke-width="2.6"/>
+          <circle cx="60" cy="60" r="46" stroke="#4a5fc1" stroke-width="1.5" stroke-dasharray="4 5"/>
+          <path d="M52 32 C52 27 54 23 56 23 C58 23 59 26 58.5 30 L66 30 C68.5 30 69 33.5 67 34.5 C69 35.5 69 38.5 67 39.5 C68.5 40.5 68 43.5 66 44 L54 44 C50 44 48 42 48 38 L48 35 C48 33.5 50 32.5 52 32 Z" stroke="#4a5fc1" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M44 33 H48 V44 H44 Z" stroke="#4a5fc1" stroke-width="1.8" stroke-linejoin="round"/>
+          <text x="60" y="66" text-anchor="middle" font-family="Gaegu" font-weight="700" font-size="17" fill="#4a5fc1">참 잘했어요</text>
+          <path d="M34 76 H86" stroke="#4a5fc1" stroke-width="1.4" stroke-dasharray="3 4"/>
+          <text x="60" y="92" text-anchor="middle" font-family="Gaegu" font-size="12" fill="#4a5fc1">boram 노트 · 다 읽음</text>
+        </svg>
+      </div>
+
+      <nav class="post-nav" aria-label="이전·다음 글">
+        {% if page.previous %}<a href="{{ page.previous.url }}">← {{ page.previous.title }}</a>{% else %}<span style="color: var(--meta);">← 이전 글 없음</span>{% endif %}
+        <a href="/posts.html">글 모음</a>
+        {% if page.next %}<a href="{{ page.next.url }}">{{ page.next.title }} →</a>{% endif %}
+      </nav>
+
+    </article>

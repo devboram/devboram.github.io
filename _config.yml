@@ -1,0 +1,46 @@
+# 사이트 기본값 — 레이아웃에서 site.* 로 읽는다
+title: boram 의 작업노트
+description: Android 개발자 boram 이 만들면서 배운 것을 적어두는 노트.
+url: https://devboram.github.io
+lang: ko
+author: boram
+
+# 글 URL 은 전환 전과 같은 /posts/<슬러그>.html 을 유지한다
+permalink: /posts/:title:output_ext
+markdown: kramdown
+
+# GitHub Pages 가 기본 지원하는 플러그인만 쓴다
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+exclude:
+  - TODO.md
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+
+# 일반 페이지는 default 레이아웃, _posts/ 아래 글은 post 레이아웃 + 상세 화면용 main 스타일
+defaults:
+  - scope:
+      path: ""
+      type: pages
+    values:
+      layout: default
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post
+      nav: posts
+      main_style: "max-width: none; padding: 0 20px;"
+
+# giscus — 저장소 Discussions 를 댓글·방명록 저장소로 쓴다.
+# 카테고리는 Announcements — 관리자와 giscus 만 스레드를 만들 수 있어 방문자가 임의로 못 만든다.
+# repo_id 가 비어 있으면 댓글 영역은 안내 문구만 표시.
+giscus:
+  repo: devboram/devboram.github.io
+  repo_id: R_kgDOUGxIfQ
+  category: Announcements
+  category_id: DIC_kwDOUGxIfc4DEsLH

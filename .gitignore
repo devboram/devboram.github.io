@@ -4,3 +4,10 @@
 # editor
 .idea/
 .vscode/
+
+# jekyll
+_site/
+.jekyll-cache/
+.jekyll-metadata
+vendor/
+.bundle/

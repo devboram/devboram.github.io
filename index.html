@@ -1,28 +1,6 @@
-<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>boram 의 작업노트</title>
-  <meta name="description" content="Android 개발자 boram 이 만들면서 배운 것을 적어두는 노트.">
-  <meta property="og:title" content="boram 의 작업노트">
-  <meta property="og:description" content="Android 개발자 boram 이 만들면서 배운 것을 적어두는 노트.">
-  <link rel="icon" type="image/svg+xml" href="assets/icons/rabbit-looking-pleased.svg">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&family=Nanum+Gothic+Coding&display=swap">
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <header class="site-header">
-    <a class="logo" href="index.html">boram 의 작업노트</a>
-    <nav class="site-nav" aria-label="주 메뉴">
-      <a href="posts.html">글</a>
-      <a href="projects.html">프로젝트</a>
-      <a href="about.html">소개</a>
-      <a class="external" href="https://github.com/devboram" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
-    </nav>
-  </header>
-
-  <main>
+---
+# 홈은 site.title 만 쓴다 (title 없음)
+---
     <section class="hero">
       <div class="hero-text">
         <h1>만들면서 배운 것을,<br><span class="hl">노트에 적어둡니다.</span></h1>
@@ -34,27 +12,17 @@
     <section aria-labelledby="recent-posts-heading">
       <div class="section-title">
         <h2 id="recent-posts-heading">최근 글</h2>
-        <a class="see-all" href="posts.html">전체 보기 →</a>
+        <a class="see-all" href="/posts.html">전체 보기 →</a>
       </div>
       <div class="card-grid">
+        {% for post in site.posts limit: 3 %}
         <article class="note-card">
-          <div class="tape" style="background: var(--tape-blue);"></div>
-          <div class="meta">2026-08-31 · network</div>
-          <h3><a class="card-link" href="posts/ssl-handshake-to-ui.html">SSL 실패를 사용자 안내 문구까지 배선하기</a></h3>
-          <p>"네트워크를 확인하세요" 팝업의 진짜 원인은 기기 날짜였다.</p>
+          <div class="tape" style="background: {% cycle 'var(--tape-blue)', 'var(--tape-sage)', 'var(--tape-rose)' %};"></div>
+          <div class="meta">{{ post.date | date: "%Y-%m-%d" }} · {{ post.tags | join: ", " }}</div>
+          <h3><a class="card-link" href="{{ post.url }}">{{ post.title }}</a></h3>
+          <p>{{ post.description }}</p>
         </article>
-        <article class="note-card">
-          <div class="tape" style="background: var(--tape-sage);"></div>
-          <div class="meta">2026-08-27 · automation</div>
-          <h3><a class="card-link" href="posts.html">로컬 녹음·화자분리 회의록 파이프라인</a></h3>
-          <p>whisper 와 pyannote 로 회의록까지, 전부 로컬에서.</p>
-        </article>
-        <article class="note-card">
-          <div class="tape" style="background: var(--tape-rose);"></div>
-          <div class="meta">2026-08-24 · compose</div>
-          <h3><a class="card-link" href="posts.html">Compose 바텀시트 offset 보정 shell 내장기</a></h3>
-          <p>화면마다 복제되던 보정을 공용 shell 한 곳으로.</p>
-        </article>
+        {% endfor %}
       </div>
     </section>
 
@@ -74,16 +42,3 @@
         </article>
       </div>
     </section>
-  </main>
-
-  <footer class="site-footer">
-    <span>© dev.boram</span>
-    <div class="footer-right">
-      <span>github.com/devboram</span>
-      <a href="bunny.html" aria-label="숨겨진 페이지로 이동">
-        <img src="assets/icons/rabbit-looking-pleased.svg" alt="" width="26" height="26">
-      </a>
-    </div>
-  </footer>
-</body>
-</html>

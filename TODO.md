@@ -41,8 +41,8 @@
 - [x] 외부 요청은 Google Fonts 뿐 (grep 으로 전수 확인, github.com 은 사용자 클릭 링크일 뿐 리소스 요청 아님)
 - [x] SVG 전부 assets/icons/ 로컬 또는 인라인
 - [x] 공용 style.css 하나, 페이지별 CSS 없음
-- [x] JS 0 — <script> 태그 자체가 없음 (이스터에그도 순수 <a href>)
-- [x] HTML/CSS/assets 만으로 저장소 구성
+- [x] JS 0 — 사이트 자체 JS 없음. 예외는 giscus 댓글 위젯 script 1줄만 (2026-09-02 결정)
+- [x] HTML/CSS/assets + Jekyll(_layouts/_posts/_config.yml) 로 저장소 구성 — 빌드는 GitHub Pages 가 수행
 
 ## ⑤ 배포
 
@@ -58,11 +58,26 @@
 - [x] 프로필 자리는 토끼 SVG 로 채움 (빈 박스 없음)
 - [x] 연락처·GitHub 링크 실동작 (mailto:, https://github.com/devboram)
 - [x] favicon(토끼 SVG) + 기본 OG 태그(title/description)
-- [x] 글 HTML 복사 → 새 글 성립 1회 실행 확인 (제목 치환·CSS 상대경로 정상, 테스트 파일은 삭제함)
+- [x] 새 글 = `_posts/YYYY-MM-DD-슬러그.md` 파일 하나 (front matter: title·description·summary·tags·minutes). 홈 카드·목록·이전/다음 내비 자동
+
+## ⑦ Jekyll 전환 + GitHub Discussions 댓글·방명록 (2026-09-02)
+
+결정: "GitHub 이 제공하는 것만" — 글 관리는 Jekyll(Pages 내장 빌드), 댓글·방명록은 giscus(저장소 Discussions).
+Firebase 는 배제(폰 글쓰기는 github.com 파일 편집으로 해결, JS 0 원칙 유지).
+
+- [x] `_layouts/default.html`(head·header·footer 공용 껍데기) · `_layouts/post.html`(글 상세: 메타·도장·이전/다음 내비·댓글)
+- [x] `_config.yml`: permalink `/posts/:title.html` 로 기존 글 URL 유지, jekyll-feed·jekyll-sitemap 플러그인
+- [x] 홈 최근 글 3장·글 목록·태그 칩·글 개수 → `site.posts` 루프로 자동 생성
+- [x] 아직 안 쓴 글 2편(회의록 파이프라인·바텀시트 offset) → `_drafts/` 로 이동 (빌드 제외, 제목·요약 보존)
+- [x] `guestbook.html` 신설 + 내비에 "방명록" 추가, `_includes/comments.html`(giscus)
+- [x] 로컬 빌드: `Gemfile`(github-pages) + Ruby 3.3 — `bundle exec jekyll serve`
+- [ ] **giscus 발급**: 저장소 Settings → Discussions 켜기 → giscus.app 에서 앱 설치·카테고리 선택 → `_config.yml` 의 `giscus.repo_id`·`category`·`category_id` 채우기. 비어 있으면 "준비 중" 문구만 표시
+- [ ] giscus 테마를 종이 컨셉에 맞추기 (`data-theme` 에 커스텀 CSS URL 지정 가능) — 발급 후
+- [ ] 배포본에서 `/feed.xml`·`/sitemap.xml`·글 URL 200 확인
 
 ## 뺀 것 (재론 시점)
 
 - 태그 필터 실동작: 글 5편부터
 - 다크모드: 안 함 (종이 컨셉 충돌)
-- RSS/사이트맵: 글 쌓이면
+- ~~RSS/사이트맵: 글 쌓이면~~ → Jekyll 플러그인 2줄로 09-02 포함
 - 커스텀 도메인: 보류
