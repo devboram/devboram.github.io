@@ -11,7 +11,7 @@
 - [x] posts/<슬러그>.html: 제목·날짜·본문·소제목·코드블록·"참 잘했어요" 도장·이전 글 내비
 - [x] 코드블록 고정폭(Nanum Gothic Coding), 긴 줄 넘침 없음(overflow 스크롤)
 - [x] about.html: 폴라로이드 프로필(노트북 토끼) + 일하는 방식 카드 3
-- [x] projects.html: 폴라로이드 카드 3(제목·설명·링크) + 전구 토끼
+- [x] projects.html: 폴라로이드 카드 3(제목·설명·기술스택 — 링크 없음, 데이터는 `_data/projects.yml`) + 전구 토끼
 - [x] bunny.html(이스터에그): 인사 토끼 + dev.boram@gmail.com + github.com/devboram
 - [x] 전 페이지 푸터 토끼 → bunny.html 이동, 상단 내비엔 미노출
 - [x] 404.html: confused 토끼 + 홈 복귀 링크
@@ -35,30 +35,32 @@
 - [x] header/nav/main/article/footer 시맨틱, h1 페이지당 1개
 - [x] 키보드 포커스 표시 (:focus-visible 아웃라인)
 - [x] html lang="ko", 페이지별 title 상이
+- [x] 강조색(`--accent`, `.pen` 텍스트) 대비 4.5:1 이상 — 실측 4.66:1 (`#d1495b` 4.25:1 → `#c94256` 으로 조정, 2026-11-04)
+- [x] `prefers-reduced-motion: reduce` 에서 부드러운 스크롤·토끼 흔들기 비활성
 
 ## ④ 성능 / 구조
 
 - [x] 외부 요청은 Google Fonts 뿐 (grep 으로 전수 확인, github.com 은 사용자 클릭 링크일 뿐 리소스 요청 아님)
 - [x] SVG 전부 assets/icons/ 로컬 또는 인라인
-- [x] 공용 style.css 하나, 페이지별 CSS 없음
+- [x] 공용 style.css 하나, 페이지별 CSS 없음 — 인라인 `style=` 0건, main 모양은 front matter `main_class` (2026-11-04 정리)
 - [x] JS 0 — 사이트 자체 JS 없음. 예외는 giscus 댓글 위젯 script 1줄만 (2026-09-02 결정)
 - [x] HTML/CSS/assets + Jekyll(_layouts/_posts/_config.yml) 로 저장소 구성 — 빌드는 GitHub Pages 가 수행
 
 ## ⑤ 배포
 
-- [ ] main push 후 https://devboram.github.io/ 열림 — **아직 push 안 함, 사용자 확인 후 진행**
-- [ ] 전 페이지 URL 직접 진입 200 (이스터에그·404 포함) — 로컬 서버로는 확인, 배포본은 push 후 확인 필요
-- [ ] 상대경로 링크·assets 경로 배포본에서 정상 — 로컬 확인 완료, 배포본 재확인 필요
+- [x] main push 후 https://devboram.github.io/ 열림 — 2026-11-04 확인 (200)
+- [x] 전 페이지 URL 직접 진입 200 (이스터에그·404 포함) — 2026-11-04 배포본 확인: 홈·글 목록·글 상세·프로젝트·소개·방명록·bunny·404·feed.xml·sitemap.xml·robots.txt
+- [ ] 상대경로 링크·assets 경로 배포본에서 정상 — 홈 히어로 이미지가 상대경로였던 것을 절대경로로 통일(2026-11-04). 이번 변경 push 후 배포본 재확인 필요
 - [ ] 모바일 실기기(또는 에뮬레이션)로 배포 URL 1회 확인 — 배포 후 진행
 
 ## ⑥ 콘텐츠
 
-- [x] placeholder 문자열 0건 (grep: lorem ipsum/todo/준비 중/placeholder 전수 확인)
+- [x] placeholder 문자열 0건 (grep: lorem ipsum/todo/준비 중/placeholder + `[…스크린샷]` 형태 전수 확인 — 프로젝트 카드의 스크린샷 자리 글자는 토끼 SVG 로 교체, 2026-11-04)
 - [x] 샘플 글 1편 완성, 홈·목록·본문 정보 일치 (제목·날짜·태그 3곳 동일)
 - [x] 프로필 자리는 토끼 SVG 로 채움 (빈 박스 없음)
 - [x] 연락처·GitHub 링크 실동작 (mailto:, https://github.com/devboram)
-- [x] favicon(토끼 SVG) + 기본 OG 태그(title/description)
-- [x] 새 글 = `_posts/YYYY-MM-DD-슬러그.md` 파일 하나 (front matter: title·description·summary·tags·minutes). 홈 카드·목록·이전/다음 내비 자동
+- [x] favicon(토끼 SVG) + OG 태그 — jekyll-seo-tag: title/description·canonical·`og:image`(`assets/og-default.png` 1200×630)·twitter 카드 (2026-11-04)
+- [x] 새 글 = `_posts/YYYY-MM-DD-슬러그.md` 파일 하나 (front matter: title·description·summary·tags·minutes, 본문은 Markdown). 홈 카드·목록·이전/다음 내비 자동
 
 ## ⑦ Jekyll 전환 + GitHub Discussions 댓글·방명록 (2026-09-02)
 
@@ -71,9 +73,21 @@ Firebase 는 배제(폰 글쓰기는 github.com 파일 편집으로 해결, JS 0
 - [x] 아직 안 쓴 글 2편(회의록 파이프라인·바텀시트 offset) → `_drafts/` 로 이동 (빌드 제외, 제목·요약 보존)
 - [x] `guestbook.html` 신설 + 내비에 "방명록" 추가, `_includes/comments.html`(giscus)
 - [x] 로컬 빌드: `Gemfile`(github-pages) + Ruby 3.3 — `bundle exec jekyll serve`
-- [ ] **giscus 발급**: 저장소 Settings → Discussions 켜기 → giscus.app 에서 앱 설치·카테고리 선택 → `_config.yml` 의 `giscus.repo_id`·`category`·`category_id` 채우기. 비어 있으면 "준비 중" 문구만 표시
-- [ ] giscus 테마를 종이 컨셉에 맞추기 (`data-theme` 에 커스텀 CSS URL 지정 가능) — 발급 후
-- [ ] 배포본에서 `/feed.xml`·`/sitemap.xml`·글 URL 200 확인
+- [x] **giscus 발급**: `_config.yml` 의 `giscus.repo_id`·`category`·`category_id` 채움, 배포본 글 페이지에 giscus script 존재 확인 (2026-11-04). 비어 있으면 "준비 중" 문구만 표시
+- [x] giscus 테마를 종이 컨셉에 맞추기 — `assets/giscus-paper.css` (기본 light 위에 덮어쓰기). 로컬에서 CORS 헤더 있는 서버로 렌더 확인 (2026-11-04)
+- [ ] 배포본에서 giscus 종이 테마 렌더 확인 — CSS 가 배포 URL 에 올라간 뒤. 위젯이 안 뜨면 `_includes/comments.html` 의 `data-theme` 을 `"light"` 로 되돌린다
+- [x] 배포본에서 `/feed.xml`·`/sitemap.xml`·글 URL 200 확인 (2026-11-04)
+
+## ⑧ 개선·리팩토링 (2026-11-04)
+
+- [x] 홈·프로젝트 카드 데이터를 `_data/projects.yml` 하나로 (홈에서 빠져 있던 qa-runner 포함)
+- [x] 인라인 `style=` 67곳 → CSS 클래스, front matter `main_style` → `main_class`
+- [x] 홈 프로젝트 그리드가 모바일에서도 2컬럼이던 문제(인라인이 미디어쿼리를 이김) → 한 컬럼
+- [x] 죽은 CSS 제거 (`.stamp-svg circle`, `.site-header .logo img`)
+- [x] 글 본문 raw HTML → Markdown (kramdown `smart_quotes` 로 따옴표 모양 유지)
+- [x] Google Fonts preconnect, giscus `data-loading="lazy"`, README.md (로컬 실행법)
+- [x] 검증: 8페이지 × 1200/768/390 요소 위치 해시 비교 — 소개·글 목록·404·방명록·비밀 페이지는 기준선과 동일, 홈·프로젝트·글 상세는 의도한 변경만
+- [ ] 프로젝트 카드 토끼 자리에 실제 스크린샷이 생기면 `_data/projects.yml` 의 `image` 와 카드 템플릿 교체
 
 ## 뺀 것 (재론 시점)
 
