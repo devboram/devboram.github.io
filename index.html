@@ -6,7 +6,7 @@
         <h1>만들면서 배운 것을,<br><span class="hl">노트에 적어둡니다.</span></h1>
         <p>boram — Android 개발자. Kotlin 과 Jetpack Compose 로 스마트홈 앱을 만들고, 문제를 만나면 계측부터 하고, 반복되면 도구로 만듭니다.</p>
       </div>
-      <img src="assets/icons/rabbit-writing-note.svg" alt="노트에 무언가를 적고 있는 토끼 캐릭터">
+      <img src="/assets/icons/rabbit-writing-note.svg" alt="노트에 무언가를 적고 있는 토끼 캐릭터" width="130" height="130">
     </section>
 
     <section aria-labelledby="recent-posts-heading">
@@ -17,7 +17,7 @@
       <div class="card-grid">
         {% for post in site.posts limit: 3 %}
         <article class="note-card">
-          <div class="tape" style="background: {% cycle 'var(--tape-blue)', 'var(--tape-sage)', 'var(--tape-rose)' %};"></div>
+          <div class="tape tape--{% cycle 'blue', 'sage', 'rose' %}"></div>
           <div class="meta">{{ post.date | date: "%Y-%m-%d" }} · {{ post.tags | join: ", " }}</div>
           <h3><a class="card-link" href="{{ post.url }}">{{ post.title }}</a></h3>
           <p>{{ post.description }}</p>
@@ -26,19 +26,17 @@
       </div>
     </section>
 
-    <section aria-labelledby="projects-heading" style="margin-top: 52px;">
+    <section class="section-next" aria-labelledby="projects-heading">
       <div class="section-title">
         <h2 id="projects-heading">만든 도구들</h2>
         <span class="pen">← 반복되면 도구로!</span>
       </div>
-      <div class="card-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+      <div class="card-grid">
+        {% for p in site.data.projects %}
         <article class="note-card">
-          <h3>agent-monitor</h3>
-          <p>Claude 세션·서브에이전트 진행 상태를 보는 로컬 모니터.</p>
+          <h3>{{ p.name }}</h3>
+          <p>{{ p.summary }}</p>
         </article>
-        <article class="note-card">
-          <h3>meeting-minutes</h3>
-          <p>녹음 → 전사 → 화자분리 → 회의록 로컬 파이프라인.</p>
-        </article>
+        {% endfor %}
       </div>
     </section>

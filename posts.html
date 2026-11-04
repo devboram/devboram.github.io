@@ -3,13 +3,13 @@ title: 글
 description: boram 이 쓴 글 목록.
 nav: posts
 ---
-    <div style="padding: 44px 0 4px 0;">
-      <h1 class="handwrite" style="font-size: 40px;">글 모음</h1>
-      <p style="font-family: 'Nanum Gothic Coding', monospace; font-size: 13px; color: var(--meta);">posts/ · {{ site.posts.size }}개</p>
+    <div class="page-head">
+      <h1 class="handwrite">글 모음</h1>
+      <p class="post-count">posts/ · {{ site.posts.size }}개</p>
     </div>
 
     <!-- 태그 칩: 표시만(필터 미동작). 글 5편쯤 되면 JS 필터로 승격 예정. -->
-    <ul class="tag-row" style="list-style: none; padding: 0;">
+    <ul class="tag-row">
       <li><span class="tag-chip" aria-current="true">전체</span></li>
       {% for tag in site.tags %}<li><span class="tag-chip">{{ tag[0] }}</span></li>
       {% endfor %}

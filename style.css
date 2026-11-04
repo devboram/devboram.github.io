@@ -5,7 +5,7 @@
   --meta: #6b707a;
   --paper: #fcfcfd;
   --paper-line: rgba(96, 110, 140, 0.07);
-  --accent: #d1495b;
+  --accent: #c94256; /* 텍스트 대비 4.66:1 (종이) · 4.78:1 (흰 카드) */
   --highlight: #ffe873;
   --tape-blue: rgba(196, 202, 212, 0.8);
   --tape-sage: rgba(178, 208, 192, 0.85);
@@ -70,7 +70,6 @@ button:focus-visible {
   align-items: center;
   gap: 10px;
 }
-.site-header .logo img { width: 22px; height: 22px; }
 
 .site-nav {
   display: flex;
@@ -97,6 +96,11 @@ button:focus-visible {
 
 /* ===== 본문 컨테이너 ===== */
 main { flex-grow: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 0 40px 60px 40px; }
+
+/* 페이지별 main 변형 — front matter 의 main_class 로 고른다 */
+.main-post { max-width: none; padding: 0 20px; }
+.main-notfound { max-width: 700px; text-align: center; padding-top: 80px; }
+.main-bunny { max-width: 900px; text-align: center; padding-top: 40px; }
 
 /* ===== 히어로 ===== */
 .hero {
@@ -147,7 +151,12 @@ main { flex-grow: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 0 
   height: 22px;
   transform: translateX(-50%) rotate(-2deg);
 }
+.tape--blue { background: var(--tape-blue); }
+.tape--sage { background: var(--tape-sage); }
+.tape--rose { background: var(--tape-rose); }
+
 .note-card .meta { font-size: 12px; color: var(--meta); }
+.meta--mono { font-family: 'Nanum Gothic Coding', monospace; }
 .note-card h3 { font-family: 'Gaegu', cursive; font-weight: 700; font-size: 19px; margin: 0; line-height: 1.5; }
 .note-card p { font-size: 14px; line-height: 1.75; color: var(--muted); margin: 0; }
 .note-card a.card-link { color: inherit; }
@@ -155,8 +164,20 @@ main { flex-grow: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 0 
 
 .card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
 
+.section-next { margin-top: 52px; }
+.section-next-lg { margin-top: 64px; }
+
+/* ===== 페이지 머리말 (글·방명록·프로젝트) ===== */
+.page-head { padding: 44px 0 4px 0; }
+.page-head h1 { font-size: 40px; }
+.page-head .pen { font-size: 20px; }
+.page-head--row { padding-top: 48px; display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.page-head--row h1 { font-size: 44px; }
+.page-head--row + .card-grid { margin-top: 26px; }
+.post-count { font-family: 'Nanum Gothic Coding', monospace; font-size: 13px; color: var(--meta); }
+
 /* ===== 글 목록 행 ===== */
-.tag-row { display: flex; gap: 10px; margin: 20px 0 30px 0; flex-wrap: wrap; }
+.tag-row { display: flex; gap: 10px; margin: 20px 0 30px 0; flex-wrap: wrap; list-style: none; padding: 0; }
 .tag-chip {
   font-family: 'Gaegu', cursive;
   font-size: 17px;
@@ -203,7 +224,7 @@ main { flex-grow: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 0 
 .sheet .back-link { font-size: 14px; color: var(--meta); }
 .sheet h1 { font-family: 'Gaegu', cursive; font-weight: 700; font-size: 36px; line-height: 1.4; margin: 16px 0 0 0; }
 .sheet .post-meta { display: flex; gap: 14px; align-items: center; font-size: 13px; color: var(--meta); margin-top: 12px; }
-.sheet .post-meta .tag { border: var(--card-border); border-radius: 50%; }
+.sheet .post-meta .tag { border: var(--card-border); border-radius: 50%; font-family: 'Gaegu', cursive; font-size: 16px; padding: 1px 12px; }
 .post-body { margin-top: 30px; font-size: 16.5px; line-height: 2.0; color: #3a3d44; }
 .post-body p { margin: 0 0 20px 0; }
 .post-body h2 { font-family: 'Gaegu', cursive; font-weight: 700; font-size: 22px; margin: 30px 0 14px 0; }
@@ -221,13 +242,15 @@ main { flex-grow: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 0 
 .post-body pre code { background: none; padding: 0; }
 
 .post-stamp { display: flex; justify-content: flex-end; margin: -10px 0 10px 0; }
-.post-stamp svg { width: 108px; height: 108px; transform: rotate(-4deg); }
+.post-stamp svg { width: 108px; height: 108px; transform: rotate(-4deg); mix-blend-mode: multiply; }
 
 .post-nav { display: flex; justify-content: space-between; align-items: center; border-top: 2px dashed #d8dbe1; padding-top: 22px; margin-top: 20px; font-size: 15px; }
+.post-nav-empty { color: var(--meta); }
 
 /* ===== 폴라로이드 ===== */
 .polaroid-wrap { position: relative; flex-shrink: 0; }
 .polaroid {
+  margin: 0;
   background: #ffffff;
   border: 1px solid #d8dbe1;
   padding: 12px 12px 40px 12px;
@@ -243,8 +266,57 @@ main { flex-grow: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 0 
 }
 .polaroid figcaption { text-align: center; margin-top: 10px; font-family: 'Gaegu', cursive; font-size: 21px; }
 
-/* ===== 도장 ===== */
-.stamp-svg circle { fill: none; }
+/* 폴라로이드 위 마스킹테이프 (프로젝트 카드·소개 프로필 공용) */
+.polaroid-wrap .tape {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  width: 76px;
+  height: 20px;
+  transform: translateX(-50%) rotate(-2deg);
+  z-index: 2;
+}
+
+/* ===== 프로젝트 카드 ===== */
+.project-card { padding-top: 0; }
+.project-card .polaroid-wrap { margin: 0 0 4px 0; }
+.project-card:nth-child(3n + 1) .polaroid-wrap { transform: rotate(-1.5deg); }
+.project-card:nth-child(3n + 2) .polaroid-wrap { transform: rotate(1.2deg); }
+.project-card:nth-child(3n + 2) .tape { transform: translateX(-50%) rotate(2deg); }
+.project-card:nth-child(3n + 3) .polaroid-wrap { transform: rotate(-0.8deg); }
+.project-card:nth-child(3n + 3) .tape { transform: translateX(-50%) rotate(-1.5deg); }
+.polaroid .polaroid-slot--wide { aspect-ratio: 16 / 10; }
+.polaroid .polaroid-slot--wide img { width: auto; height: 75%; aspect-ratio: auto; background: none; }
+
+.closing-note { margin-top: 40px; display: flex; justify-content: center; align-items: center; gap: 12px; }
+.closing-note .pen { font-size: 20px; }
+
+/* ===== 소개 ===== */
+.about-intro { padding: 52px 0 0 0; display: flex; gap: 48px; align-items: flex-start; flex-wrap: wrap; }
+.about-intro .polaroid-wrap { transform: rotate(-2.5deg); }
+.about-intro .polaroid-wrap .tape { top: -12px; width: 96px; height: 24px; }
+.about-intro .polaroid { width: 220px; }
+.about-intro-text { max-width: 560px; }
+.about-intro-text h1 { font-size: 40px; line-height: 1.4; }
+.about-intro-text p { margin-top: 16px; font-size: 16px; line-height: 2.0; color: var(--muted); }
+.about-intro-text .tag-row { margin: 20px 0 16px 0; }
+.pen-note { margin-top: 36px; text-align: center; }
+
+/* ===== 비밀 페이지 ===== */
+.main-bunny h1 { font-size: 46px; }
+.bunny-sub { font-size: 22px; margin-top: 4px; }
+.bunny-stage { margin-top: 36px; display: flex; align-items: center; justify-content: center; gap: 40px; flex-wrap: wrap; }
+.bunny-stage .note-card { text-align: left; max-width: 420px; transform: none; }
+.bunny-stage h2 { font-family: 'Gaegu', cursive; font-size: 24px; margin: 0; }
+.contact-list { list-style: none; padding: 0; margin: 6px 0 0 0; display: flex; flex-direction: column; gap: 8px; }
+.link-underline { text-decoration: underline; }
+.bunny-hint { margin-top: 36px; }
+.main-bunny .external { margin-top: 14px; }
+
+/* ===== 404 ===== */
+.main-notfound h1 { font-size: 34px; margin-top: 20px; }
+.main-notfound p { color: var(--muted); font-size: 16px; margin-top: 14px; }
+.main-notfound .external { margin-top: 24px; }
 
 /* ===== 이스터에그 캐릭터 애니메이션 ===== */
 @keyframes wiggle {
@@ -288,3 +360,9 @@ main { flex-grow: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 0 
 
 /* 댓글·방명록 (giscus) 영역 — 글 본문과 점선으로 구분 */
 .comments { margin-top: 28px; border-top: 2px dashed #d8dbe1; padding-top: 22px; }
+
+/* 움직임 줄이기 설정을 켠 방문자에게는 부드러운 스크롤·토끼 흔들기를 끈다 */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .wiggle { animation: none; }
+}
