@@ -156,10 +156,11 @@ def glyph_sign(c, rnd, x, y, n, color, core):
                 if pattern[yy][xx]: cells.add((x + xx, gy + yy))
     neon(c, cells, color, core, glow=(0.16, 0.34))
 
-def scene(path):
+def scene(path, sky_override=None):
     W, H = 480, 150
     rnd = random.Random(11)
     sky = [rgb(h) for h in ('#06041a', '#0d0828', '#1a0f3c', '#2f1356', '#52196e', '#7a2a86')]  # 아래로 갈수록 파스텔 핑크
+    if sky_override: sky = [sky_override] * 6  # gen_skyline.py: 하늘만 다른 색으로 그려 차이로 하늘을 찾는다
     bands = [0, 24, 46, 66, 84, 100, H]
     c = Canvas(W, H, sky[0])
     for k in range(6):
