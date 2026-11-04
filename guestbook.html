@@ -2,10 +2,11 @@
 title: 방명록
 description: 지나가다 한 줄 남겨 주세요.
 nav: guestbook
+theme: pixel
 ---
-    <div class="page-head">
-      <h1 class="handwrite">방명록</h1>
-      <p class="pen">지나가다 한 줄 남겨 주세요 — GitHub 계정으로 로그인하면 쓸 수 있어요</p>
-    </div>
+    {% include page-banner.html bg="guestbook" icon="heartgem" title="세이브 포인트" %}
+    <p class="lead">여기서 한 줄 남기면 모험이 저장돼요 — GitHub 계정으로 로그인하면 쓸 수 있어요.</p>
 
-    {% include comments.html mapping="specific" term="guestbook" %}
+    <div class="px-window px-window--pink story">
+      {% include comments.html mapping="specific" term="guestbook" %}
+    </div>

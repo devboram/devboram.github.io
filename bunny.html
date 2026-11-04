@@ -2,23 +2,28 @@
 title: 비밀 페이지
 bare: true
 noindex: true
-main_class: main-bunny
+theme: pixel
 ---
-    <h1 class="handwrite"><span class="hl">비밀 페이지 발견!</span></h1>
-    <p class="pen bunny-sub">이 노트의 주인을 소환했어요</p>
+    {%- comment -%} 이스터에그 = 치비 일러스트(assets/chars/chibi) 로 파티 전원이 환영 {%- endcomment %}
+    <section class="page-hero">
+      <h1 class="ribbon ribbon--lg">{% include sprite.html name="star" size=2 %}<span>SECRET STAGE CLEAR!</span></h1>
+      <p class="lead">숨겨진 스테이지를 찾았어요 — 옥상 파티가 전부 나와서 반겨 줘요.</p>
+    </section>
 
-    <div class="bunny-stage">
-      <img class="wiggle" src="/assets/icons/rabbit-waving-hello.svg" alt="손을 흔들며 인사하는 토끼 캐릭터" width="170" height="170">
+    <ul class="chibi-row" aria-hidden="true">
+      {%- assign chibi_keys = "bunny,robot,cat,slime,villain" | split: "," %}
+      {% for k in chibi_keys %}<li><img class="char-img char-img--chibi sprite--bob" src="/assets/chars/chibi/{{ k }}_joy.png" alt="" height="160"></li>
+      {% endfor %}
+    </ul>
 
-      <div class="note-card">
-        <h2>이스터에그를 찾은 당신, 반가워요!</h2>
-        <p>여기까지 눌러본 사람에게만 보여주는 페이지예요. 버그 제보든, 같이 만들고 싶은 게 있든, 그냥 인사든 — 편하게 연락 주세요.</p>
-        <ul class="contact-list">
-          <li><span class="pen">mail</span> <a class="hl" href="mailto:dev.boram@gmail.com">dev.boram@gmail.com</a></li>
-          <li><span class="pen">github</span> <a class="link-underline" href="https://github.com/devboram" target="_blank" rel="noopener noreferrer">github.com/devboram</a></li>
-        </ul>
+    <section class="px-window px-window--gold story" aria-labelledby="secret-heading">
+      <h2 id="secret-heading">이스터에그를 찾은 당신, 반가워요!</h2>
+      <p>여기까지 눌러본 사람에게만 보여주는 페이지예요. 버그 제보든, 같이 만들고 싶은 게 있든, 그냥 인사든 — 편하게 연락 주세요.</p>
+      <ul class="link-list">
+        <li><a href="mailto:dev.boram@gmail.com">mail · dev.boram@gmail.com</a></li>
+        <li><a href="https://github.com/devboram" target="_blank" rel="noopener noreferrer">github · github.com/devboram ↗</a></li>
+      </ul>
+      <div class="story-actions">
+        <a class="px-btn" href="/">← 옥상으로 돌아가기</a>
       </div>
-    </div>
-
-    <p class="pen bunny-hint">푸터의 저 동그란 친구를 누르면 언제든 다시 올 수 있어요</p>
-    <a class="external" href="/">← 노트로 돌아가기</a>
+    </section>

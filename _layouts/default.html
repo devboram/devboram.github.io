@@ -8,21 +8,37 @@
   {% seo title=false %}
   {% if page.noindex %}<meta name="robots" content="noindex">{% endif %}
   <link rel="icon" type="image/svg+xml" href="/assets/icons/rabbit-looking-pleased.svg">
+{%- if page.theme == "pixel" %}
+  {%- comment -%} 픽셀 테마: 본문 Pretendard + 픽셀 글꼴 Galmuri (둘 다 OFL, 버전 고정) {%- endcomment %}
+  <meta name="color-scheme" content="dark">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri@2.40.3/dist/galmuri.css">
+  <link rel="stylesheet" href="/pixel.css">
+{%- else %}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&family=Nanum+Gothic+Coding&display=swap">
   <link rel="stylesheet" href="/style.css">
+{%- endif %}
   {% feed_meta %}
 </head>
 <body>
 {% unless page.bare %}
   <header class="site-header">
-    <a class="logo" href="/">{{ site.title }}</a>
+    {% if page.theme == "pixel" %}<a class="logo" href="/"><img class="char-img char-img--logo" src="/assets/chars/bunny.png" alt="" height="36"><span>{{ site.title }}</span></a>
+    {%- comment -%} 게임 HUD: 레벨 = 글 수, 파티 = 캐릭터 수, 아이템 = 도감 수 {%- endcomment %}
+    <ul class="hud-stats" aria-label="플레이 기록">
+      <li><span class="hud-key">LV</span>{{ site.posts.size }}</li>
+      <li class="hud-hp" aria-label="HP 가득">♥♥♥</li>
+      <li><span class="hud-key">PARTY</span>{{ site.data.characters.cast.size }}</li>
+      <li><span class="hud-key">ITEM</span>{{ site.data.characters.items.size }}</li>
+    </ul>
+    {% else %}<a class="logo" href="/">{{ site.title }}</a>{% endif %}
     <nav class="site-nav" aria-label="주 메뉴">
-      <a href="/posts.html"{% if page.nav == "posts" %} aria-current="page"{% endif %}>글</a>
-      <a href="/projects.html"{% if page.nav == "projects" %} aria-current="page"{% endif %}>프로젝트</a>
-      <a href="/about.html"{% if page.nav == "about" %} aria-current="page"{% endif %}>소개</a>
-      <a href="/guestbook.html"{% if page.nav == "guestbook" %} aria-current="page"{% endif %}>방명록</a>
+      {%- for n in site.data.nav %}
+      <a href="{{ n.href }}"{% if page.nav == n.key %} aria-current="page"{% endif %}>{% if page.theme == "pixel" %}<span class="cmd">{{ n.cmd }}</span>{% endif %}{{ n.label }}</a>
+      {%- endfor %}
       <a class="external" href="https://github.com/devboram" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
     </nav>
   </header>
@@ -33,6 +49,37 @@
   </main>
 
 {% unless page.bare %}
+{%- if page.theme == "pixel" %}
+  <footer class="site-footer">
+    <div class="footer-cols">
+      <div class="footer-brand">
+        <a class="logo" href="/"><img class="char-img char-img--logo" src="/assets/chars/bunny.png" alt="" height="36"><span>{{ site.title }}</span></a>
+        <p>{{ site.description }}</p>
+      </div>
+      <nav class="footer-links" aria-label="둘러보기">
+        <h2>둘러보기</h2>
+        <ul>
+          <li><a href="/posts.html">글 모음</a></li>
+          <li><a href="/projects.html">만든 도구들</a></li>
+          <li><a href="/characters.html">캐릭터 설정집</a></li>
+          <li><a href="/about.html">소개</a></li>
+          <li><a href="/guestbook.html">방명록</a></li>
+        </ul>
+      </nav>
+      <div class="footer-links">
+        <h2>연결</h2>
+        <ul>
+          <li><a href="https://github.com/devboram" target="_blank" rel="noopener noreferrer">GitHub ↗</a></li>
+          <li><a href="/feed.xml">RSS 구독</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© {{ site.time | date: "%Y" }} dev.boram · Jekyll · GitHub Pages</span>
+      <a href="/bunny.html" aria-label="숨겨진 페이지로 이동"><img class="char-img char-img--logo" src="/assets/chars/bunny.png" alt="" height="36"></a>
+    </div>
+  </footer>
+{%- else %}
   <footer class="site-footer">
     <span>© dev.boram</span>
     <div class="footer-right">
@@ -42,6 +89,7 @@
       </a>
     </div>
   </footer>
+{%- endif %}
 {% endunless %}
 </body>
 </html>

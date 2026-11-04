@@ -1,0 +1,108 @@
+---
+title: 캐릭터 설정집
+description: 네온 시티 노바의 달빛 옥상에서 버그를 잡고 기록을 남기는 작은 파티를 소개합니다.
+nav: characters
+theme: pixel
+---
+{%- comment -%}
+캐릭터 설정집: 정면도(모눈 + 높이 눈금, 8배) · 포즈 컷 · 사용 색 견본 · 프로필 · 능력치 · 스토리.
+데이터는 _data/characters.yml. sprite.html 안의 assign(s·px·keys …)과 이름이 겹치지 않게 hero_* 이름을 쓴다.
+{%- endcomment -%}
+    {% include page-banner.html bg="characters" icon="moon" title="CHARACTER SELECT" %}
+    <p class="lead">네온 시티 노바의 달빛 옥상, 버그를 쫓고 고친 이야기를 노트에 적는 작은 파티를 소개합니다.</p>
+
+    <nav class="char-select" aria-label="캐릭터 선택">
+      <ul>
+        {% for hero in site.data.characters.cast %}<li><a class="char-slot char-slot--{{ hero.color }}" href="#{{ hero.key }}"><img class="char-img char-img--select" src="/assets/chars/{{ hero.key }}.png" alt="" height="96"><span class="char-slot-name">{{ hero.name }}</span>{% if hero.boss %}<span class="px-chip px-chip--violet">BOSS</span>{% endif %}</a></li>
+        {% endfor %}
+      </ul>
+      <p class="press-start">— SELECT YOUR HERO —</p>
+    </nav>
+
+    <section class="px-window px-window--gold story" aria-labelledby="prologue-heading">
+      <h2 id="prologue-heading">프롤로그 — 달빛 옥상의 파티</h2>
+      {% for para in site.data.characters.prologue %}<p>{{ para }}</p>
+      {% endfor %}
+    </section>
+
+    {% for hero in site.data.characters.cast %}
+    {%- assign hero_sprite = site.data.sprites[hero.key] -%}
+    {%- assign hero_keys = hero_sprite.rows | join: "" | split: "" | uniq -%}
+    <article class="px-window sheet sheet--{{ hero.color }}" id="{{ hero.key }}" aria-labelledby="{{ hero.key }}-name">
+      <div class="sheet-art">
+        <figure class="sheet-front">
+          <div class="sheet-grid"><img class="char-img char-img--sheet" src="/assets/chars/{{ hero.key }}.png" alt="{{ hero.name }} 정면" height="240"><span class="ruler" aria-hidden="true"></span></div>
+          <figcaption>FRONT · 일러스트</figcaption>
+        </figure>
+        <figure class="sheet-pose">
+          <div class="sheet-stage">{% include sprite.html name=hero.pose size=4 label=hero.pose_label class="sprite--bob" %}</div>
+          <figcaption>POSE · {{ hero.pose_label }}</figcaption>
+        </figure>
+        <figure class="sheet-palette">
+          <ul class="swatches" aria-label="{{ hero.name }}에 쓰인 색">
+            {%- for k in hero_keys %}{% if k != "." %}
+            <li><svg viewBox="0 0 1 1" aria-hidden="true"><rect width="1" height="1" fill="{{ site.data.pixel_palette[k] }}"/></svg></li>
+            {%- endif %}{% endfor %}
+          </ul>
+          <figcaption>COLOR · {{ hero_keys.size | minus: 1 }}색</figcaption>
+        </figure>
+      </div>
+
+      <div class="sheet-info">
+        <p class="sheet-no">{% if hero.boss %}BOSS{% else %}CHARACTER 0{{ forloop.index }}{% endif %}</p>
+        <h2 id="{{ hero.key }}-name">{{ hero.name }}<span class="en">{{ hero.en }}</span></h2>
+        <p class="role"><span class="px-chip px-chip--pink">{{ hero.role }}</span><span class="px-chip px-chip--date">담당 · {{ hero.project }}</span></p>
+        <dl class="profile-list">
+          <dt>특기</dt><dd>{{ hero.skill }}</dd>
+          <dt>좋아하는 것</dt><dd>{{ hero.likes }}</dd>
+          <dt>말버릇</dt><dd>"{{ hero.quote }}"</dd>
+        </dl>
+        <div class="stats">
+          {% for st in hero.stats %}
+          <div class="stat">
+            <span class="stat-name">{{ st.name }}</span>
+            <span class="stat-bar" role="img" aria-label="{{ st.name }} {{ st.value }} / 5">{% for n in (1..5) %}<i{% if n <= st.value %} class="on"{% endif %}></i>{% endfor %}</span>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="sheet-story">
+          <h3>스토리</h3>
+          {% for para in hero.story %}<p>{{ para }}</p>
+          {% endfor %}
+        </div>
+      </div>
+      {% if hero.sheet %}
+      <figure class="model-sheet">
+        <img src="/assets/chars/sheets/{{ hero.key }}.jpg" alt="{{ hero.name }} 공식 설정 시트 — 3면도, 표정 6종, 포즈 4종, 소품, 컬러 팔레트" loading="lazy" width="1536" height="1024">
+        <figcaption>공식 설정 시트 · 3면도 · 표정 · 포즈 · 소품 · 팔레트</figcaption>
+      </figure>
+      {% endif %}
+    </article>
+    {% endfor %}
+
+    <section class="items" aria-labelledby="items-heading">
+      <div class="section-title"><h2 class="ribbon" id="items-heading">{% include sprite.html name="heartgem" size=2 %}<span>아이템 도감</span></h2></div>
+      <figure class="model-sheet items-sheet">
+        <img src="/assets/chars/sheets/items.jpg" alt="별 요술봉·달 콤팩트·러버덕·보물상자 등 소품 24종 일러스트 도감" loading="lazy" width="1536" height="1024">
+        <figcaption>OFFICIAL · 소품 일러스트 24종</figcaption>
+      </figure>
+      <ul class="item-grid">
+        {% for it in site.data.characters.items %}
+        <li class="px-window item-card">
+          <div class="item-art">{% include sprite.html name=it.key size=4 %}</div>
+          <h3>{{ it.name }}</h3>
+          <p>{{ it.desc }}</p>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section class="px-window px-window--pink story" aria-labelledby="epilogue-heading">
+      <h2 id="epilogue-heading">에필로그</h2>
+      {% for para in site.data.characters.epilogue %}<p>{{ para }}</p>
+      {% endfor %}
+      <div class="story-actions">
+        <a class="px-btn" href="/posts.html">퀘스트 로그 보기 →</a>
+        <a class="px-btn px-btn--ghost" href="/projects.html">파티 장비 보기</a>
+      </div>
+    </section>

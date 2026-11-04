@@ -1,0 +1,30 @@
+---
+title: 컨셉 기록
+description: 사이트 컨셉이 어떻게 바뀌어 왔는지 남겨 둔 작업 기록.
+theme: pixel
+noindex: true
+---
+{%- comment -%} 메뉴에 없는 기록용 페이지. 데이터는 _data/concept_history.yml {%- endcomment -%}
+{%- assign h = site.data.concept_history %}
+    <section class="page-hero">
+      <h1 class="ribbon ribbon--lg">{% include sprite.html name="star" size=2 %}<span>컨셉 기록</span></h1>
+      <p class="lead">지금 컨셉 — {{ h.current }}</p>
+    </section>
+
+    <section class="px-window px-window--gold story" aria-labelledby="principles-heading">
+      <h2 id="principles-heading">지키는 원칙</h2>
+      <ul class="history-principles">
+        {% for p in h.principles %}<li>{{ p }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <ol class="history">
+      {% for st in h.steps %}
+      <li class="px-window history-step">
+        <p class="sheet-no">STEP {{ forloop.index }}</p>
+        <h2>{{ st.title }} <span class="px-chip px-chip--{% case st.status %}{% when '채택' %}green{% when '철회' %}pink{% when '진행 중' %}gold{% else %}date{% endcase %}">{{ st.status }}</span></h2>
+        <p>{{ st.note }}</p>
+      </li>
+      {% endfor %}
+    </ol>

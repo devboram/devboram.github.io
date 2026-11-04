@@ -1,0 +1,7 @@
+# 주 메뉴 단일 출처 — 헤더 메뉴(두 테마)·홈 타이틀 메뉴가 함께 읽는다.
+# cmd = 픽셀 테마의 게임 커맨드 이름, start = 홈 타이틀 화면 메뉴 문구
+- { key: posts, href: /posts.html, label: 글, cmd: QUEST, start: 퀘스트 로그 — 글 읽기 }
+- { key: projects, href: /projects.html, label: 프로젝트, cmd: ITEMS, start: 인벤토리 — 만든 도구들 }
+- { key: characters, href: /characters.html, label: 캐릭터, cmd: PARTY, start: 캐릭터 선택 — 파티 소개 }
+- { key: about, href: /about.html, label: 소개, cmd: STATUS, start: 스테이터스 — 만든 사람 }
+- { key: guestbook, href: /guestbook.html, label: 방명록, cmd: SAVE, start: 세이브 포인트 — 방명록 }

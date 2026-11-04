@@ -1,19 +1,19 @@
-# 홈 카드(summary)와 프로젝트 페이지 카드(description·stack·image)가 함께 읽는다. 순서가 곧 노출 순서.
-# image 는 assets/icons/<이름>.svg — 스크린샷이 생기면 프로젝트 카드 템플릿에서 교체한다.
+# 홈 카드(summary)와 프로젝트 페이지 카드(description·stack)가 함께 읽는다. 순서가 곧 노출 순서.
+# avatar 는 assets/chars/<키>.png 캐릭터 일러스트 (설정집 /characters.html#<키> 로도 연결).
 - name: agent-monitor
   summary: Claude 세션·서브에이전트 진행 상태를 보는 로컬 모니터.
   description: Claude 세션·서브에이전트 진행 상태를 브라우저에서 3초 갱신으로 보여주는 로컬 모니터. 읽기 전용, 외부 통신 없음.
   stack: python · vanilla-web
-  image: rabbit-holding-laptop
+  avatar: robot
 
 - name: meeting-minutes
   summary: 녹음 → 전사 → 화자분리 → 회의록 로컬 파이프라인.
   description: 녹음 → 전사 → 화자분리 → 회의록 초안까지 전부 로컬에서 도는 파이프라인. 회의 내용이 밖으로 나가지 않는다.
   stack: whisper · pyannote · python
-  image: rabbit-writing-note
+  avatar: cat
 
 - name: qa-runner
   summary: Maestro 기반 앱 자동화 QA — 케이스 관리부터 회차 리포트까지.
   description: Maestro 기반 앱 자동화 QA. 테스트 케이스를 Excel 로 관리하고 에뮬레이터·실기기에서 돌려 회차 리포트를 남긴다.
   stack: maestro · python · excel
-  image: rabbit-looking-pleased
+  avatar: slime

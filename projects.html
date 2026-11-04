@@ -2,31 +2,26 @@
 title: 프로젝트
 description: boram 이 만든 도구들.
 nav: projects
+theme: pixel
 ---
-    <div class="page-head page-head--row">
-      <h1 class="handwrite">만든 도구들</h1>
-      <span class="pen">두 번 반복한 일은 전부 여기로 왔다</span>
-    </div>
+    {% include page-banner.html bg="projects" icon="heartgem" title="인벤토리" %}
+    <p class="lead">두 번 반복한 일을 도구로 만들어 가방에 넣어 뒀어요 — 아이템마다 파티 동료가 한 명씩 장착하고 있어요.</p>
 
-    <div class="card-grid">
+    <div class="party-grid page-section">
       {% for p in site.data.projects %}
-      <article class="note-card project-card">
-        <div class="polaroid-wrap">
-          <div class="tape tape--{% cycle 'blue', 'sage', 'rose' %}"></div>
-          <figure class="polaroid">
-            <div class="polaroid-slot polaroid-slot--wide">
-              <img src="/assets/icons/{{ p.image }}.svg" alt="" width="100" height="100">
-            </div>
-          </figure>
+      <article class="px-window party-card party-card--{% cycle 'pink', 'cyan', 'gold' %}">
+        <div class="party-head">
+          <span class="px-chip px-chip--date">ITEM 0{{ forloop.index }}</span>
+          <img class="char-img char-img--party sprite--bob" src="/assets/chars/{{ p.avatar }}.png" alt="" height="112">
         </div>
-        <h3>{{ p.name }}</h3>
-        <p>{{ p.description }}</p>
-        <div class="meta meta--mono">{{ p.stack }}</div>
+        <div class="party-body">
+          <h3>{{ p.name }}</h3>
+          <p>{{ p.description }}</p>
+          <p class="party-stack">{{ p.stack }}</p>
+          <a class="text-link" href="/characters.html#{{ p.avatar }}">장착한 캐릭터 보기 →</a>
+        </div>
       </article>
       {% endfor %}
     </div>
 
-    <div class="closing-note">
-      <img src="/assets/icons/rabbit-holding-lightbulb.svg" alt="전구를 들고 있는 토끼 캐릭터" width="76" height="76">
-      <span class="pen">다음 도구는 뭐가 될까? 반복되는 일을 관찰하는 중...</span>
-    </div>
+    <p class="lead page-section">다음 도구는 뭐가 될까? 반복되는 일을 관찰하는 중...</p>

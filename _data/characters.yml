@@ -1,0 +1,130 @@
+# 캐릭터 설정집(/characters.html) 데이터 — 이름·성격·스토리는 초안이다. 여기만 고치면 페이지가 바뀐다.
+# key = _data/sprites.yml 의 정면 스프라이트, pose = 포즈 스프라이트, color = 설정 카드 네온 색(pink·cyan·gold·green)
+prologue:
+  - 네온 시티 노바(NOVA)의 밤은 한 번도 꺼진 적이 없다. 수천 개의 앱이 동시에 숨 쉬는 이 도시에는, 아무도 원인을 모르는 작은 오류들이 별처럼 떠다닌다. 사람들은 그걸 '반짝이 버그'라고 부른다.
+  - 금빛 초승달이 핑크 철탑 끝에 걸리는 밤이면, 오래된 빌딩 옥상에 작은 파티가 모인다. 버그를 쫓고, 고친 이야기를 노트에 적어 두는 이들. 이 블로그는 그들의 모험 기록이다.
+epilogue:
+  - 오늘 밤도 옥상의 노트에 한 줄이 늘어난다. 해결한 사건은 퀘스트 로그(글)에, 새로 들인 동료는 파티(프로젝트)에 적힌다.
+cast:
+  - key: bunny
+    sheet: true
+    pose: bunny_wave
+    pose_label: 별 지팡이를 들고 인사
+    name: 보람이
+    en: BORAMI
+    role: 주인공 · 기록하는 마법토끼
+    project: 이 노트
+    color: pink
+    skill: 별 지팡이로 로그를 비추면 흐릿한 버그의 발자국이 빛난다.
+    likes: 새벽 커밋, 딸기우유, 깔끔한 diff
+    quote: 추측 말고, 계측부터!
+    stats:
+      - { name: 집중력, value: 4 }
+      - { name: 기록력, value: 5 }
+      - { name: 체력, value: 2 }
+    story:
+      - 원래는 평범한 앱 개발 토끼였다. 어느 날 와이파이가 멀쩡한 집마다 "네트워크를 확인하세요" 팝업이 뜨는 사건이 터졌고, 모두가 서버 탓을 할 때 보람이는 로그부터 열었다.
+      - 범인은 틀어진 기기 날짜였다. 그날 이후 보람이는 별 지팡이를 들었다. 추측 대신 계측을, 고친 뒤에는 기록을. 옥상의 노트는 그렇게 시작됐다.
+
+  - key: robot
+    sheet: true
+    pose: robot_fly
+    pose_label: 하늘에 떠서 순찰
+    name: 모니
+    en: MONI
+    role: 감시 로봇 · 세션 지킴이
+    project: agent-monitor
+    color: cyan
+    skill: 3초마다 모든 세션을 둘러보고, 멈춘 작업이 보이면 하트 안테나를 깜빡인다.
+    likes: 초록불, 제시간에 끝나는 작업
+    quote: 지금 셋이 일하는 중, 하나는 쉬는 중!
+    stats:
+      - { name: 성실함, value: 5 }
+      - { name: 눈치, value: 4 }
+      - { name: 수다, value: 2 }
+    story:
+      - 보람이가 여러 일을 동시에 맡기다 길을 잃자, 옥상의 고철을 모아 조립한 첫 번째 동료다.
+      - 모니는 아무것도 바꾸지 않는다. 읽기만 하고, 도시 밖으로는 아무것도 보내지 않는다. 대신 누가 어디까지 했는지는 누구보다 잘 안다.
+
+  - key: cat
+    sheet: true
+    pose: cat_sleep
+    pose_label: BORAM 간판 위에서 낮잠
+    name: 미누
+    en: MINU
+    role: 서기 고양이 · 회의 기록 담당
+    project: meeting-minutes
+    color: gold
+    skill: 회의에서 오간 말을 하나도 놓치지 않고 받아 적는다. 방울 소리로 누가 말했는지 구분한다.
+    likes: 조용한 회의실, 정리된 결정 사항, 낮잠
+    quote: 아까 그 말, 제가 적어 뒀어요.
+    stats:
+      - { name: 꼼꼼함, value: 5 }
+      - { name: 비밀 유지, value: 5 }
+      - { name: 아침잠, value: 5 }
+    story:
+      - 회의가 끝나면 늘 "그래서 뭘 하기로 했지?"가 남았다. 미누는 녹음부터 회의록 초안까지 옥상을 떠나지 않고 혼자 해낸다. 회의 내용이 도시 밖으로 새어 나가는 일은 없다.
+      - 다 적고 나면 BORAM 간판 위에 올라가 꾸벅꾸벅 존다. 깨우면 방울이 운다.
+
+  - key: slime
+    sheet: true
+    pose: slime_jump
+    pose_label: 옥상에서 통통 점프
+    name: 큐링
+    en: QURING
+    role: 길들인 버그 몬스터 · QA 담당
+    project: qa-runner
+    color: green
+    skill: 테스트 케이스를 먹고 회차 리포트를 뱉는다. 에뮬레이터와 실기기 사이를 통통 튀어 다닌다.
+    likes: 초록 체크 표시, 꽃, 몇 번이고 다시 돌리기
+    quote: 한 번 더! 이번엔 실기기로!
+    stats:
+      - { name: 끈기, value: 5 }
+      - { name: 점프력, value: 4 }
+      - { name: 눈치, value: 2 }
+    story:
+      - 큐링은 원래 앱 구석에 숨어 살던 버그 몬스터였다. 보람이가 쫓아다니다 지쳐 "그냥 친구 할래?" 하고 묻자, 의외로 순순히 따라왔다.
+      - 이제 큐링은 다른 버그가 어디에 숨는지 누구보다 잘 찾아낸다. 자기가 숨던 자리니까.
+
+  - key: villain
+    sheet: true
+    pose: villain_rage
+    pose_label: 주먹 번쩍, 글리치 폭주
+    boss: true
+    name: 글리치 킹
+    en: GLITCH KING
+    role: 빌런 · 반짝이 버그의 주인
+    project: 도시 곳곳의 버그
+    color: violet
+    skill: 지나가는 화면마다 몰래 반짝이 버그를 심는다. 들키면 지지직 사라진다.
+    likes: 새벽 배포, 재현 안 되는 오류, 반짝이는 왕관
+    quote: 흥, 이번 버그는 절대 못 찾을걸?
+    stats:
+      - { name: 장난기, value: 5 }
+      - { name: 숨기, value: 4 }
+      - { name: 끈기, value: 1 }
+    story:
+      - 네온 시티의 반짝이 버그는 대부분 이 꼬마 왕의 짓이다. 앱 틈새에 숨어 있다가, 아무도 안 볼 때 작은 오류를 하나씩 떨어뜨린다.
+      - 보람이의 별 지팡이가 로그를 비추면 금세 들키지만, 다음 날이면 또 새 왕관을 쓰고 나타난다. 미워할 수 없는 단골 악당.
+items:
+  - { key: wand, name: 달빛 요술봉, desc: 초승달에 감싼 하트와 작은 날개. 비추면 흐릿한 버그의 발자국이 빛난다. }
+  - { key: item_lens, name: 디버그 돋보기, desc: 별 테 돋보기. 들여다보면 숨은 원인이 초록빛으로 보인다. }
+  - { key: item_compact, name: 하트 콤팩트, desc: 열면 오늘의 커밋 기록이 거울에 비친다. }
+  - { key: item_brooch, name: 별 브로치, desc: 파티원 증표. 리본 꼬리가 둘 달려 있다. }
+  - { key: item_pendant, name: 초승달 펜던트, desc: 밤샘 작업 때 졸음을 쫓아 주는 부적. }
+  - { key: item_potion, name: 하트 물약, desc: 한 모금이면 빌드 실패의 상처가 아문다. }
+  - { key: item_crystal, name: 별빛 수정구, desc: 다음에 터질 버그가 어렴풋이 보인다(가끔 틀린다). }
+  - { key: item_book, name: 기록의 마법책, desc: 고친 이야기를 적는 노트. 이 블로그의 원본. }
+  - { key: item_bow, name: 큰 리본, desc: 보람이가 기분 좋은 날 다는 리본. }
+  - { key: item_tiara, name: 하트 티아라, desc: 큰 버그를 잡은 날에만 꺼내 쓰는 티아라. }
+  - { key: item_milk, name: 딸기우유, desc: 보람이의 최애 회복 아이템. }
+  - { key: item_duck, name: 러버덕, desc: 말없이 들어 주는 디버깅 짝꿍. 설명하다 보면 답이 나온다. }
+  - { key: item_net, name: 버그 잠자리채, desc: 반짝이 버그를 살살 떠 담는 그물. }
+  - { key: item_coffee, name: 하트 라테, desc: 회의 전 미누가 꼭 챙기는 한 잔. }
+  - { key: item_keycap, name: 하트 키캡, desc: 커밋 키에만 끼워 두는 특별한 키캡. }
+  - { key: item_laptop, name: 스티커 노트북, desc: 모니가 들어가 사는 집. 하트 스티커가 자랑. }
+  - { key: item_floppy, name: 하트 플로피, desc: 옥상 파티의 첫 기록이 담긴 오래된 디스크. }
+  - { key: item_wrench, name: 별 렌치, desc: 큐링이 테스트 장비를 조일 때 쓴다. }
+  - { key: item_lamp, name: 별 랜턴, desc: 깊은 로그 속을 걸을 때 켜는 등불. }
+  - { key: item_candy, name: 별사탕 병, desc: 테스트가 전부 초록불이면 하나씩 꺼내 먹는다. }
+  - { key: item_cookie, name: 초승달 쿠키, desc: 금빛 초승달이 뜨는 밤에만 굽는 쿠키. }

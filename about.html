@@ -2,49 +2,57 @@
 title: 소개
 description: Android 개발자 boram 을 소개합니다.
 nav: about
+theme: pixel
 ---
-    <div class="about-intro">
-      <div class="polaroid-wrap">
-        <div class="tape tape--blue"></div>
-        <figure class="polaroid">
-          <div class="polaroid-slot">
-            <img src="/assets/icons/rabbit-holding-laptop.svg" alt="노트북을 들고 있는 토끼 캐릭터" width="150" height="150">
-          </div>
-          <figcaption>boram</figcaption>
-        </figure>
-      </div>
+    {% include page-banner.html bg="about" icon="star" title="STATUS" %}
 
-      <div class="about-intro-text">
-        <h1 class="handwrite">안녕하세요, <span class="hl">boram</span> 입니다</h1>
+    <section class="px-window px-window--violet story about-profile" aria-labelledby="about-heading">
+      <img class="char-img char-img--sheet" src="/assets/chars/bunny.png" alt="별 지팡이를 든 토끼 캐릭터 보람이" height="240">
+      <div>
+        <p class="sheet-no">PLAYER 01 · LV {{ site.posts.size }} · CLASS Android Developer</p>
+        <h2 id="about-heading">안녕하세요, boram 입니다</h2>
         <p>스마트홈 입주민 앱을 만드는 Android 개발자입니다. Kotlin 과 Jetpack Compose, 멀티모듈 구조로 일하고 있어요. 문제를 만나면 추측보다 계측을 먼저 하고, 같은 일이 두 번 반복되면 도구로 만들어 둡니다. 이 노트는 그 과정에서 배운 것들의 기록입니다.</p>
-        <ul class="tag-row">
-          <li class="tag-chip">Kotlin</li>
-          <li class="tag-chip">Jetpack Compose</li>
-          <li class="tag-chip">멀티모듈</li>
-          <li class="tag-chip">Python 도구</li>
+        <div class="stats">
+          {% for st in site.data.player_stats %}
+          <div class="stat">
+            <span class="stat-name">{{ st.name }}</span>
+            <span class="stat-bar" role="img" aria-label="{{ st.name }} {{ st.value }} / 5">{% for n in (1..5) %}<i{% if n <= st.value %} class="on"{% endif %}></i>{% endfor %}</span>
+          </div>
+          {% endfor %}
+        </div>
+        <ul class="tag-cloud">
+          <li><span class="px-chip px-chip--pink">Kotlin</span></li>
+          <li><span class="px-chip px-chip--cyan">Jetpack Compose</span></li>
+          <li><span class="px-chip px-chip--gold">멀티모듈</span></li>
+          <li><span class="px-chip px-chip--violet">Python 도구</span></li>
         </ul>
       </div>
-    </div>
+    </section>
 
-    <section class="section-next-lg" aria-labelledby="way-heading">
+    <section class="section-next" aria-labelledby="way-heading">
       <div class="section-title">
-        <h2 id="way-heading">일하는 방식</h2>
-        <span class="pen">← 나름의 원칙</span>
+        <h2 class="ribbon" id="way-heading">{% include sprite.html name="heartgem" size=2 %}<span>패시브 스킬</span></h2>
       </div>
-      <div class="card-grid">
-        <article class="note-card">
-          <h3>계측이 먼저</h3>
-          <p>가설로 고치지 않는다. 재현 루프와 로그부터 만들고 원인을 좁힌다.</p>
+      <div class="party-grid">
+        <article class="px-window party-card party-card--pink">
+          <div class="party-body">
+            <h3>계측이 먼저</h3>
+            <p>가설로 고치지 않는다. 재현 루프와 로그부터 만들고 원인을 좁힌다.</p>
+          </div>
         </article>
-        <article class="note-card">
-          <h3>반복은 도구로</h3>
-          <p>두 번 한 일은 스크립트로 만든다. 회의록도, QA 도, 모니터링도.</p>
+        <article class="px-window party-card party-card--cyan">
+          <div class="party-body">
+            <h3>반복은 도구로</h3>
+            <p>두 번 한 일은 스크립트로 만든다. 회의록도, QA 도, 모니터링도.</p>
+          </div>
         </article>
-        <article class="note-card">
-          <h3>기록이 남긴다</h3>
-          <p>해결 과정을 글로 남긴다. 미래의 나와 같은 문제를 만난 누군가를 위해.</p>
+        <article class="px-window party-card party-card--gold">
+          <div class="party-body">
+            <h3>기록이 남긴다</h3>
+            <p>해결 과정을 글로 남긴다. 미래의 나와 같은 문제를 만난 누군가를 위해.</p>
+          </div>
         </article>
       </div>
     </section>
 
-    <p class="pen pen-note">연락처는... 이 노트 어딘가에 숨겨 뒀어요 (힌트: 맨 아래)</p>
+    <p class="lead page-section">연락처는... 이 노트 어딘가에 숨겨 뒀어요 (힌트: 맨 아래)</p>

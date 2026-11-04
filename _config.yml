@@ -25,9 +25,10 @@ exclude:
   - Gemfile
   - Gemfile.lock
   - vendor
+  - tools
 
 # 모든 페이지 공통 OG 이미지(jekyll-seo-tag 가 읽음), 일반 페이지는 default 레이아웃,
-# _posts/ 아래 글은 post 레이아웃 + 상세 화면용 main 클래스
+# _posts/ 아래 글은 post 레이아웃(퀘스트 화면) + 픽셀 테마
 defaults:
   - scope:
       path: ""
@@ -44,7 +45,7 @@ defaults:
     values:
       layout: post
       nav: posts
-      main_class: main-post
+      theme: pixel
 
 # giscus — 저장소 Discussions 를 댓글·방명록 저장소로 쓴다.
 # 카테고리는 Announcements — 관리자와 giscus 만 스레드를 만들 수 있어 방문자가 임의로 못 만든다.

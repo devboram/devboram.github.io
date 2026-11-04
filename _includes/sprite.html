@@ -1,0 +1,18 @@
+{%- comment -%}
+픽셀 스프라이트 → 인라인 SVG (JS 0). 사용:
+  {% include sprite.html name="bunny" size=6 label="토끼 캐릭터" class="sprite--bob" %}
+name = _data/sprites.yml 의 키, size = 한 칸을 몇 CSS px 로 키울지(기본 6),
+label 이 없으면 장식으로 보고 스크린리더에서 숨긴다. 색은 _data/pixel_palette.yml (문자 → 색).
+색마다 path 하나로 묶어 출력한다 (픽셀 하나 = "M x y h1 v1 h-1 z").
+{%- endcomment -%}
+{%- assign s = site.data.sprites[include.name] -%}
+{%- assign px = include.size | default: 6 -%}
+<svg class="sprite{% if include.class %} {{ include.class }}{% endif %}" viewBox="0 0 {{ s.w }} {{ s.h }}" width="{{ s.w | times: px }}" height="{{ s.h | times: px }}" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg" {% if include.label %}role="img" aria-label="{{ include.label }}"{% else %}aria-hidden="true" focusable="false"{% endif %}>
+{%- assign keys = s.rows | join: "" | split: "" | uniq -%}
+{%- for key in keys -%}{%- if key != "." -%}
+<path fill="{{ site.data.pixel_palette[key] }}" d="
+{%- for row in s.rows -%}{%- assign y = forloop.index0 -%}{%- assign chars = row | split: "" -%}
+{%- for ch in chars -%}{%- if ch == key -%}M{{ forloop.index0 }} {{ y }}h1v1h-1z{%- endif -%}{%- endfor -%}
+{%- endfor -%}"/>
+{%- endif -%}{%- endfor -%}
+</svg>

@@ -2,28 +2,30 @@
 title: 글
 description: boram 이 쓴 글 목록.
 nav: posts
+theme: pixel
 ---
-    <div class="page-head">
-      <h1 class="handwrite">글 모음</h1>
-      <p class="post-count">posts/ · {{ site.posts.size }}개</p>
-    </div>
+    {% include page-banner.html bg="posts" icon="moon" title="퀘스트 로그" %}
+    <p class="lead">지금까지 클리어한 퀘스트 {{ site.posts.size }}개 — 해결한 사건마다 한 장씩 기록해요.</p>
 
     <!-- 태그 칩: 표시만(필터 미동작). 글 5편쯤 되면 JS 필터로 승격 예정. -->
-    <ul class="tag-row">
-      <li><span class="tag-chip" aria-current="true">전체</span></li>
-      {% for tag in site.tags %}<li><span class="tag-chip">{{ tag[0] }}</span></li>
+    <ul class="tag-cloud page-tags">
+      <li><span class="px-chip px-chip--pink" aria-current="true">전체</span></li>
+      {% for tag in site.tags %}<li><span class="px-chip px-chip--{% cycle 'cyan', 'gold', 'violet' %}">{{ tag[0] }}<span class="count">{{ tag[1].size }}</span></span></li>
       {% endfor %}
     </ul>
 
-    {% for post in site.posts %}
-    <article class="post-row">
-      <div class="date-col">
-        <div class="big">{{ post.date | date: "%m.%d" }}</div>
-        <div class="tag">{{ post.tags | join: " · " }}</div>
-      </div>
-      <div>
-        <h3><a href="{{ post.url }}">{{ post.title }}</a></h3>
+    <ol class="post-index">
+      {% for post in site.posts %}
+      <li class="px-window post-index-item">
+        <div class="post-meta-row">
+          <span class="px-chip px-chip--date">QUEST {{ forloop.rindex | prepend: "0" | slice: -2, 2 }}</span>
+          <span class="px-chip px-chip--green">CLEAR ✔</span>
+          {% for tag in post.tags %}<span class="px-chip px-chip--cyan">{{ tag }}</span>{% endfor %}
+          <time datetime="{{ post.date | date: '%Y-%m-%d' }}">{{ post.date | date: "%Y.%m.%d" }}</time>
+          {% if post.minutes %}<span>· {{ post.minutes }}분 읽기</span>{% endif %}
+        </div>
+        <h2><a href="{{ post.url }}">{{ post.title }}</a></h2>
         <p>{{ post.summary | default: post.description }}</p>
-      </div>
-    </article>
-    {% endfor %}
+      </li>
+      {% endfor %}
+    </ol>

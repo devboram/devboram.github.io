@@ -2,9 +2,17 @@
 title: 페이지를 찾을 수 없어요
 bare: true
 noindex: true
-main_class: main-notfound
+theme: pixel
 ---
-    <img src="/assets/icons/rabbit-looking-confused.svg" alt="고개를 갸웃하는 토끼 캐릭터" width="150" height="150">
-    <h1 class="handwrite">어라, <span class="hl">이 페이지는 없나 봐요</span></h1>
-    <p>주소가 잘못됐거나, 글이 옮겨졌거나, 아직 안 쓴 글일 수도 있어요.</p>
-    <a class="external" href="/">← 홈으로 돌아가기</a>
+    {%- comment -%} 특별한 순간 = 치비 일러스트(assets/chars/chibi) {%- endcomment %}
+    {% include page-banner.html bg="404" icon="star" title="GAME OVER" %}
+
+    <section class="notfound">
+      <img class="char-img char-img--chibi" src="/assets/chars/chibi/bunny_doze.png" alt="길을 잃고 앉아서 조는 치비 토끼" height="160">
+      <h2>CONTINUE?</h2>
+      <p>주소가 잘못됐거나, 글이 옮겨졌거나, 아직 안 쓴 글일 수도 있어요.</p>
+      <div class="notfound-actions">
+        <a class="px-btn" href="/">▶ YES — 옥상으로</a>
+        <a class="px-btn px-btn--ghost" href="/posts.html">퀘스트 로그 보기</a>
+      </div>
+    </section>

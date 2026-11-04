@@ -1,0 +1,8 @@
+{%- comment -%}
+픽셀 테마 페이지 상단 배너. 배경 = assets/pixel/bg/<bg>.jpg (ChatGPT 생성, 가운데 아래가 비어 있다)
+사용: {% include page-banner.html bg="posts" icon="moon" title="글 모음" %}
+{%- endcomment -%}
+<section class="page-banner">
+  <img class="page-banner-bg" src="/assets/pixel/bg/{{ include.bg }}.jpg" alt="" width="876" height="284">
+  <h1 class="ribbon ribbon--lg">{% include sprite.html name=include.icon size=2 %}<span>{{ include.title }}</span></h1>
+</section>
