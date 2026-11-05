@@ -17,6 +17,8 @@ const hudEl = stage.querySelector('.play-hud');
 const speedEl = stage.querySelector('.play-speed');
 const zoneEl = stage.querySelector('.play-zone');
 const eventEl = stage.querySelector('.play-event');
+const mapEl = stage.querySelector('.play-map');
+const discoverEl = stage.querySelector('.play-discover');
 const wipeEl = stage.querySelector('.play-wipe');
 const data = JSON.parse(document.getElementById('play-data').textContent);
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -111,6 +113,21 @@ const itemMats = Array.from({ length: 24 }, (_, i) => {
   t.colorSpace = THREE.SRGBColorSpace;
   return new THREE.SpriteMaterial({ map: t, transparent: true, alphaTest: 0.3 });
 });
+// 도감: 주운 아이템 번호를 기기에 남긴다. 구역마다 그 구역에서만 나오는 희귀 아이템 1종
+const RARE = { city: 3, slum: 10, river: 24, park: 19, tower: 1 };
+const RARE_SET = new Set(Object.values(RARE));
+const dex = new Set((() => { try { return JSON.parse(localStorage.getItem('play-dex') || '[]'); } catch (e) { return []; } })());
+function saveDex() { try { localStorage.setItem('play-dex', JSON.stringify([...dex])); } catch (e) { /* 저장 못 해도 게임은 된다 */ } }
+function itemFor(zoneKey) {
+  if (RARE[zoneKey] && rnd() < 0.2) return RARE[zoneKey];
+  let n; do n = 1 + Math.floor(rnd() * 24); while (RARE_SET.has(n));
+  return n;
+}
+function setItem(b, n) {
+  b.userData.item = n; b.material = itemMats[n - 1];
+  const rare = RARE_SET.has(n), s = rare ? 2.1 : 1.5;
+  b.scale.set(s, s, 1); if (b.userData.halo) b.userData.halo.visible = rare;
+}
 
 // 빌딩 한 동: 몸통 + (셋백 윗층) + (옥상 네온 띠) + (안테나) + (세로 네온 간판)
 function tower(parent, x, z, w, d, h, baseY) {
@@ -494,13 +511,95 @@ function kitBuilding(type, height) {
 // ===== 드라이브 구간(존): 도로 조각마다 구역을 정해 풍경을 바꾼다 =====
 const ZONE_LEN = 10;  // 조각 10개(200m)마다 다음 구역
 const ZONES = [
-  { key: 'city', name: 'ZONE 1 · 도심 빌딩 숲', fog: 0x3a1850, sky: 0x9a7cff },
-  { key: 'slum', name: 'ZONE 2 · 뒷골목 슬럼', fog: 0x3a2018, sky: 0xffa86b },
-  { key: 'river', name: 'ZONE 3 · 한강 대교', fog: 0x2a1748, sky: 0x9a7cff },
-  { key: 'park', name: 'ZONE 4 · 벚꽃 공원', fog: 0x2a2050, sky: 0xc9a8ff },
-  { key: 'tower', name: 'ZONE 5 · 핑크 타워', fog: 0x4a1446, sky: 0xff7ad5 },
+  { key: 'city', name: '도심 빌딩 숲', desc: '모든 빌딩이 하루치 로그를 네온으로 내보낸다', short: '도심', fog: 0x3a1850, sky: 0x9a7cff },
+  { key: 'slum', name: '뒷골목 슬럼', desc: '고장 난 간판과 전선 사이, 글리치 킹의 구역', short: '슬럼', fog: 0x3a2018, sky: 0xffa86b },
+  { key: 'river', name: '한강 대교', desc: '강물에 비친 도시가 두 배로 반짝인다', short: '대교', fog: 0x2a1748, sky: 0x9a7cff },
+  { key: 'park', name: '벚꽃 공원', desc: '가로등 불빛에 물든 벚나무 길', short: '공원', fog: 0x2a2050, sky: 0xc9a8ff },
+  { key: 'tower', name: '핑크 타워', desc: '빛 고리 5개를 통과하면 글리치가 걷힌다', short: '타워', fog: 0x4a1446, sky: 0xff7ad5 },
 ];
-const zoneOf = (k) => ZONES[((Math.floor(k / ZONE_LEN) % ZONES.length) + ZONES.length) % ZONES.length];
+// 경로: 구역 순서는 고정 루프가 아니라 갈림길에서 고른 대로 쌓인다. 안 고르면 기본 순서(ZONES 차례)
+const route = [ZONES[0]];
+const forkAlt = {};  // 구역 번호 → 오른쪽 길로 가면 나오는 구역
+function zoneAt(i) {
+  while (route.length <= i) route.push(ZONES[(ZONES.indexOf(route[route.length - 1]) + 1) % ZONES.length]);
+  return route[i];
+}
+const zoneOf = (k) => zoneAt(Math.max(0, Math.floor(k / ZONE_LEN)));
+function altOf(i) {  // 갈림길 오른쪽 후보: 현재·기본 다음이 아닌 구역 중 하나(고정 시드)
+  if (!forkAlt[i]) { const cur = zoneAt(i), def = zoneAt(i + 1); forkAlt[i] = pick(ZONES.filter((z) => z !== cur && z !== def)); }
+  return forkAlt[i];
+}
+// ===== 구역 랜드마크(구역마다 한 번 지나는 큰 구조물) + 길가 주민 =====
+const livePetals = [], liveResidents = [];
+const petalMat = new THREE.PointsMaterial({ color: 0xffb3d9, size: 4, sizeAttenuation: false, transparent: true, opacity: 0.9 });
+const tunnelMat = new THREE.MeshStandardMaterial({ color: 0x120c1c, roughness: 0.95 });
+const cableMat = new THREE.LineBasicMaterial({ color: LAV });
+function landmark(deco, z, SEG) {
+  if (z.key === 'city') {  // 도로를 가로지르는 고가 전광판(커밋 로그가 흐른다)
+    const panel = PANELS.find((p) => p.key === 'commit');
+    const c = document.createElement('canvas'); c.width = PW; c.height = PH;
+    const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.LinearFilter;
+    panel.draw(c.getContext('2d'), 0);
+    const board = new THREE.Mesh(new THREE.PlaneGeometry(13.6, 8.5), new THREE.MeshBasicMaterial({ map: tex }));
+    board.position.set(0, 11, 0); deco.add(board);
+    for (const x of [-7.2, 7.2]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.5, 16, 0.5), boardPoleMat); p.position.set(x, 7.3, 0); deco.add(p); }
+    liveBoards.push({ board, panel, g: c.getContext('2d'), tex, seed: 0 });
+  }
+  if (z.key === 'slum') {  // 어두운 고가 밑 터널: 천장·벽, 빨간 등만
+    const roof = new THREE.Mesh(new THREE.BoxGeometry(17, 0.8, SEG), tunnelMat); roof.position.y = 7.6; deco.add(roof);
+    for (const x of [-8.2, 8.2]) { const w = new THREE.Mesh(new THREE.BoxGeometry(0.8, 8.3, SEG), tunnelMat); w.position.set(x, 3.4, 0); deco.add(w); }
+    for (let i = 0; i < 3; i++) { const l = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.3, 0.6), lanternMat); l.position.set(0, 7.05, -SEG / 2 + 3 + i * 7); deco.add(l); }
+  }
+  if (z.key === 'river') {  // 케이블 주탑: 높은 기둥 둘 + 갑판으로 내려오는 케이블
+    for (const x of [-7, 7]) {
+      const t = new THREE.Mesh(new THREE.BoxGeometry(1.2, 44, 1.2), towerMat2); t.position.set(x, 21, 0); deco.add(t);
+      for (const dz of [-24, -16, -8, 8, 16, 24]) deco.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x, 42, 0), new THREE.Vector3(x * 0.72, 1, dz)]), cableMat));
+    }
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(15.2, 0.6, 1), new THREE.MeshBasicMaterial({ color: PINK })); beam.position.y = 42; deco.add(beam);
+  }
+  if (z.key === 'park' && props.ready) {  // 거대 벚나무 + 떨어지는 꽃잎
+    const side = rnd() < 0.5 ? -1 : 1;
+    const t = propClone(props.trees[2], 17, 0.25);
+    t.traverse((o) => { if (o.isMesh && /leaf/i.test(o.material.name)) { o.material.color.set(0xff8fc8); o.material.emissive = new THREE.Color(0x7a2a58); } });
+    t.position.set(side * 12, t.userData.lift - 0.7, 0); deco.add(t);
+    const pos = [];
+    for (let i = 0; i < 50; i++) pos.push(side * 12 + (rnd() - 0.5) * 16, rnd() * 12, (rnd() - 0.5) * 16);
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    const pts = new THREE.Points(geo, petalMat); deco.add(pts); livePetals.push(pts);
+  }
+}
+const towerMat2 = new THREE.MeshStandardMaterial({ color: 0x3d3488, emissive: VIOLET, emissiveIntensity: 0.5 });
+// 길가 주민: 옥상 동료가 구역 길가에 서서 지나갈 때 한마디(얼굴 광고판이 아니라 길에 서 있는 주민)
+const RESIDENT = { city: 'robot', river: 'cat', park: 'slime' };
+const residentMats = {};
+function resident(deco, z) {
+  const key = RESIDENT[z.key], info = data.cast.find((c) => c.key === key);
+  if (!info) return;
+  const h = key === 'slime' ? 1.5 : 2;
+  if (!residentMats[key]) {
+    const tex = loader.load(`/assets/chars/${key}.png`, (t) => { residentMats[key].userData.aspect = t.image.width / t.image.height; });
+    tex.colorSpace = THREE.SRGBColorSpace; residentMats[key] = new THREE.SpriteMaterial({ map: tex, transparent: true, alphaTest: 0.2 });
+  }
+  const m = residentMats[key], spr = new THREE.Sprite(m); spr.center.set(0.5, 0); spr.scale.set(h * (m.userData.aspect || 0.8), h, 1);
+  const side = rnd() < 0.5 ? -1 : 1, onDeck = z.key === 'river';
+  const base = onDeck ? 0 : -0.7;
+  spr.position.set(side * (onDeck ? 4.3 : 7), base, (rnd() - 0.5) * 8); deco.add(spr);
+  liveResidents.push({ spr, info, base, said: false });
+}
+const liveForks = [];
+const forkPoleMat = new THREE.MeshStandardMaterial({ color: 0x3d3488, roughness: 0.6 });
+function forkSign(deco, i) {  // 도로 위 갈림길 표지 아치: ◀ 기본 길 · 오른쪽 길 ▶
+  const def = zoneAt(i + 1), alt = altOf(i);
+  const tex = canvasTexture(256, 56, (g) => {
+    g.fillStyle = '#0b2a2e'; g.fillRect(0, 0, 256, 56); g.strokeStyle = '#4ef3ff'; g.lineWidth = 4; g.strokeRect(2, 2, 252, 52);
+    text(g, '◀ ' + def.name, 66, 28, 15, '#f6f3ff'); text(g, alt.name + ' ▶', 190, 28, 15, '#ffd76a');
+    g.fillStyle = '#4ef3ff'; g.fillRect(126, 10, 4, 36);
+  });
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(10.5, 2.3), new THREE.MeshBasicMaterial({ map: tex }));
+  sign.position.set(0, 6.6, 0); deco.add(sign);
+  for (const x of [-5.6, 5.6]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.3, 7.8, 0.3), forkPoleMat); p.position.set(x, 3.2, 0); deco.add(p); }
+  liveForks.push({ sign, i, alt });
+}
 const towerLegMat = new THREE.MeshBasicMaterial({ color: PINK });
 const lanternMat = new THREE.MeshBasicMaterial({ color: 0xff3b3b });
 const groundMat = new THREE.MeshStandardMaterial({ color: 0x15122f, roughness: 0.6, metalness: 0.3 });
@@ -781,7 +880,11 @@ function decorate(g) {
   const deco = new THREE.Group(); g.add(deco); g.userData.deco = deco;
   const z = zoneOf(g.userData.k), SEG = drive.SEG;
   decorateProps(deco, z, SEG, g.userData.k);
-  if (g.userData.k % 2 === 0) roadsideBoard(deco, z.key, g.userData.k % 4 === 0 ? -1 : 1, (rnd() - 0.5) * SEG * 0.6);
+  const k = g.userData.k, inZone = ((k % ZONE_LEN) + ZONE_LEN) % ZONE_LEN;
+  if (inZone === 6 && k > 0) forkSign(deco, Math.floor(k / ZONE_LEN));
+  if (inZone === 3) landmark(deco, z, SEG);
+  if (inZone === 8) resident(deco, z);
+  if (k % 2 === 0) roadsideBoard(deco, z.key, k % 4 === 0 ? -1 : 1, (rnd() - 0.5) * SEG * 0.6);
   if (z.key === 'city' || z.key === 'slum') {  // 길가 땅(물 대신 거리)
     for (const side of [-1, 1]) { const gr = new THREE.Mesh(new THREE.BoxGeometry(60, 1, SEG), groundMat); gr.position.set(side * 35, -1.2, 0); deco.add(gr); }
   }
@@ -826,17 +929,35 @@ function decorate(g) {
 }
 
 const liveRings = [];
-const D = { lane: 1, speed: 18, dist: 0, stars: 0, bump: 0, boost: 0, prev: new Set(), rings: 0, ringsTotal: 0, beaten: false, glitch: 0, lap: -1, villainDone: false, ringsDone: false, startT: 0 };
+const D = { lane: 1, speed: 18, dist: 0, stars: 0, bump: 0, boost: 0, prev: new Set(), rings: 0, ringsTotal: 0, beaten: false, glitch: 0, villainDone: false, ringsDone: false, startT: 0 };
 // 글리치 킹: 뒷골목에서 길에 뛰어들어 반짝이 버그를 뿌린다. 아이템 하나를 주우면 정화
 const villainMat = new THREE.SpriteMaterial({ map: (() => { const t = new THREE.TextureLoader().load('/assets/chars/villain.png'); t.colorSpace = THREE.SRGBColorSpace; return t; })(), transparent: true, alphaTest: 0.2 });
 const villain = new THREE.Sprite(villainMat); villain.center.set(0.5, 0); villain.scale.set(2.2, 2.2, 1); villain.visible = false;
 drive.s.add(villain);
-let eventUntil = 0;
+let eventUntil = 0, discoverUntil = 0;
 function say(textMsg, sec = 2.6) { eventEl.textContent = textMsg; eventEl.hidden = false; eventUntil = clock.elapsedTime + sec; }
+function drawMap(zone) {  // 월드맵: 구역 5개 점. 가 본 곳은 켜지고 지금 있는 곳은 깜빡인다
+  mapEl.replaceChildren(...ZONES.map((z) => { const s = document.createElement('span'); s.textContent = z.short; s.className = z === zone ? 'is-now' : D.seen?.has(z) ? 'is-seen' : ''; return s; }));
+}
+function discover(zone) {  // 처음 들어가는 구역: 가운데 큰 발견 카드
+  discoverEl.querySelector('.play-discover-name').textContent = zone.name;
+  discoverEl.querySelector('.play-discover-desc').textContent = zone.desc;
+  discoverEl.hidden = false; discoverUntil = clock.elapsedTime + 3;
+}
 function resetDrive() {
-  D.lane = 1; D.speed = 18; D.dist = 0; D.bump = 0; D.boost = 0; D.stars = 0; D.rings = 0; D.ringsTotal = 0; D.beaten = false; D.glitch = 0; D.lap = -1; D.startT = clock.elapsedTime;
+  D.lane = 1; D.speed = 18; D.dist = 0; D.bump = 0; D.boost = 0; D.stars = 0; D.rings = 0; D.ringsTotal = 0; D.beaten = false; D.glitch = 0; D.startT = clock.elapsedTime;
   villain.visible = false; stage.classList.remove('is-glitch');
   drive.car.position.set(0, 0.95, 0); camFollowX = 0; zoneNow = null;
+  route.length = 1; for (const i in forkAlt) delete forkAlt[i];  // 경로는 드라이브마다 새로 고른다
+  const { segs, bugs, traffic, SEG, LANES } = drive;  // 도로·아이템·차를 출발점으로 되감는다(두 번째 드라이브부터 길이 비던 문제)
+  segs.forEach((g, i) => { g.position.z = SEG * 2 - i * SEG; g.userData.k = i - 2; decorate(g); });
+  bugs.forEach((b, i) => {
+    b.position.set(pick(LANES), 0.5, -30 - i * 25);
+    if (!b.userData.halo) { const h = new THREE.Sprite(haloMat); h.scale.set(1.3, 1.3, 1); h.position.y = 0.5; b.add(h); b.userData.halo = h; }  // 희귀 아이템 금빛 후광
+    setItem(b, itemFor(zoneOf(Math.round(-b.position.z / SEG)).key));
+  });
+  traffic.forEach((c, i) => c.position.set(pick(LANES), 0.95, -70 - i * 45));
+  D.seen = new Set(); D.newDex = 0; mapEl.hidden = false; drawMap(null);
 }
 function driveTick(dt, t) {
   const { car, segs, bugs, traffic, SEG, NSEG, LANES } = drive;
@@ -864,14 +985,26 @@ function driveTick(dt, t) {
   const wp = new THREE.Vector3();
   const near = lampSpots.map((b) => { b.getWorldPosition(wp); return [wp.z - cz, wp.clone()]; }).filter(([dz]) => dz < 6 && dz > -45).sort((a, b) => b[0] - a[0]).slice(0, 4);
   drive.lampLights.forEach((l, i) => { if (near[i]) { l.position.copy(near[i][1]); l.intensity = 22; } else l.intensity = 0; });
-  const zone = zoneOf(Math.round(-cz / SEG));
-  const kNow = Math.round(-cz / SEG), lap = Math.floor(kNow / (ZONE_LEN * ZONES.length));
-  if (lap !== D.lap) { D.lap = lap; D.villainDone = false; D.ringsDone = false; D.rings = 0; }
-  if (zone !== zoneNow) {
-    zoneNow = zone; zoneBannerUntil = t + 2.2;
-    if (zone.key === 'slum' && !D.villainDone) {  // 글리치 킹 등장
-      villain.visible = true; villain.position.set(pick(LANES), 0.3, cz - 75); villain.userData.hit = false;
+  // 갈림길: 표지 아치를 지나는 순간의 차선이 다음 구역을 정한다(오른쪽 차선 = 오른쪽 길). 이미 깔린 앞 조각은 다시 꾸민다
+  for (let i = liveForks.length - 1; i >= 0; i--) {
+    const f = liveForks[i];
+    if (!f.sign.parent?.parent?.parent) { liveForks.splice(i, 1); continue; }
+    f.sign.getWorldPosition(wp);
+    if (f.passed || wp.z < cz) continue;
+    f.passed = true;
+    if (D.lane === 2) {
+      route.length = f.i + 1; route.push(f.alt); delete forkAlt[f.i + 1];
+      for (const g of segs) if (Math.floor(g.userData.k / ZONE_LEN) === f.i + 1) decorate(g);
     }
+    say(`갈림길 → ${zoneAt(f.i + 1).name} 쪽으로`, 2);
+  }
+  const kNow = Math.round(-cz / SEG), zone = zoneOf(kNow);
+  if (zone !== zoneNow) {  // 구역 진입: 사건은 들어올 때마다 리셋(슬럼마다 글리치 킹, 타워마다 빛 고리)
+    zoneNow = zone;
+    if (D.seen.has(zone)) zoneBannerUntil = t + 2.2; else { D.seen.add(zone); discover(zone); }
+    drawMap(zone);
+    if (zone.key === 'slum') { D.villainDone = false; villain.visible = true; villain.position.set(pick(LANES), 0.3, cz - 75); villain.userData.hit = false; }
+    if (zone.key === 'tower') { D.ringsDone = false; D.rings = 0; }
   }
   if (villain.visible) {
     villain.position.x = Math.sin(t * 2.2) * 3;
@@ -902,16 +1035,34 @@ function driveTick(dt, t) {
   drive.hemi.color.lerp(new THREE.Color(zone.sky), Math.min(1, dt * 1.5));
   zoneEl.hidden = t >= zoneBannerUntil; zoneEl.textContent = zone.name;
   if (t >= eventUntil) eventEl.hidden = true;
+  if (t >= discoverUntil) discoverEl.hidden = true;
+  for (let i = liveResidents.length - 1; i >= 0; i--) {  // 길가 주민: 가까워지면 한마디, 제자리에서 통통
+    const r = liveResidents[i];
+    if (!r.spr.parent?.parent?.parent) { liveResidents.splice(i, 1); continue; }
+    r.spr.getWorldPosition(wp);
+    if (!r.said && wp.z - cz > -16) { r.said = true; say(`${r.info.name}: "${r.info.quote}"`, 2.4); }
+    if (!reduceMotion) r.spr.position.y = r.base + Math.abs(Math.sin(t * 4)) * 0.15;
+  }
+  for (let i = livePetals.length - 1; i >= 0; i--) {  // 벚꽃잎: 천천히 떨어지다가 위에서 다시
+    const p = livePetals[i];
+    if (!p.parent?.parent?.parent) { livePetals.splice(i, 1); continue; }
+    const a = p.geometry.attributes.position;
+    for (let i = 1; i < a.array.length; i += 3) { a.array[i] -= dt * 1.4; a.array[i - 1] += Math.sin(t * 2 + i) * dt * 0.6; if (a.array[i] < 0) a.array[i] = 12; }
+    a.needsUpdate = true;
+  }
   hintEl.hidden = switching || t - D.startT > 5;  // 조작 안내는 처음 5초만
   drive.water.position.z = cz - 150; drive.water.userData.murk.position.z = cz - 150;
   drive.dMoon.position.set(30, 60, cz - 320);
   drive.dStars.position.z = cz;
   for (const b of bugs) {
     b.position.y = 0.5 + (reduceMotion ? 0 : Math.sin(t * 3 + b.position.z) * 0.18);
-    const respawn = (dz) => { b.position.z -= dz; b.position.x = pick(LANES); b.material = pick(itemMats); };
+    const respawn = (dz) => { b.position.z -= dz; b.position.x = pick(LANES); setItem(b, itemFor(zoneOf(Math.round(-b.position.z / SEG)).key)); };
     if (Math.abs(b.position.z - cz) < 1.6 && Math.abs(b.position.x - car.position.x) < 1.3) {
-      D.stars += 1; respawn(160 + rnd() * 80);
+      const n = b.userData.item, rare = RARE_SET.has(n);
+      D.stars += rare ? 3 : 1; respawn(160 + rnd() * 80);
       if (D.glitch > 0) { D.glitch = 0; stage.classList.remove('is-glitch'); say('정화 완료! 반짝이 버그가 사라졌어요', 2); }
+      else if (!dex.has(n)) { dex.add(n); D.newDex += 1; saveDex(); say(`NEW! 도감 ${dex.size}/24 ${rare ? '· 희귀 아이템 ★+3' : ''}`, 2); }
+      else if (rare) say('희귀 아이템 ★+3', 1.4);
     }
     else if (b.position.z > cz + 6) respawn(200);
   }
@@ -984,8 +1135,8 @@ function switchMode(next) {
     mode = next;
     pixelPass.scene = next === 'drive' ? drive.s : scene;
     pixelPass.camera = next === 'drive' ? drive.cam : camera;
-    hudEl.hidden = speedEl.hidden = next !== 'drive'; zoneEl.hidden = eventEl.hidden = true;
-    const result = mode === 'roof' && D.dist > 30 ? `★ ${D.stars} · ${(D.dist / 1000).toFixed(2)} km · 빛 고리 ${D.ringsTotal}개${D.beaten ? ' · 글리치 킹 격퇴!' : ''}` : '';
+    hudEl.hidden = speedEl.hidden = mapEl.hidden = next !== 'drive'; zoneEl.hidden = eventEl.hidden = discoverEl.hidden = true;
+    const result = mode === 'roof' && D.dist > 30 ? `★ ${D.stars} · ${(D.dist / 1000).toFixed(2)} km · 탐험 ${D.seen.size}/${ZONES.length} 구역 · 도감 ${dex.size}/24${D.newDex ? ` (NEW ${D.newDex})` : ''} · 빛 고리 ${D.ringsTotal}개${D.beaten ? ' · 글리치 킹 격퇴!' : ''}` : '';
     if (next === 'drive') { resetDrive(); hintEl.hidden = false; hintEl.textContent = '◀ ▶ 차선 · ▲▼ 속도 · A 부스트 · B 옥상으로'; }
     else {
       bunny.position.set(7.2, 0, -4.4); stage.classList.remove('is-glitch'); villain.visible = false;
