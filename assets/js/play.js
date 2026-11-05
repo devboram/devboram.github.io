@@ -933,6 +933,37 @@ const D = { lane: 1, speed: 18, dist: 0, stars: 0, bump: 0, boost: 0, prev: new 
 // 글리치 킹: 뒷골목에서 길에 뛰어들어 반짝이 버그를 뿌린다. 아이템 하나를 주우면 정화
 const villainMat = new THREE.SpriteMaterial({ map: (() => { const t = new THREE.TextureLoader().load('/assets/chars/villain.png'); t.colorSpace = THREE.SRGBColorSpace; return t; })(), transparent: true, alphaTest: 0.2 });
 const villain = new THREE.Sprite(villainMat); villain.center.set(0.5, 0); villain.scale.set(2.2, 2.2, 1); villain.visible = false;
+
+// ===== 도로 굴곡(레트로 레이싱 방식) =====
+// 도로·게임 판정은 직선(z축) 그대로 두고, 그리기 직전에 차와의 거리에 따라 옆(커브)·위(언덕)로 밀어 보여 준다.
+// 구역마다 [커브 세기, 언덕 세기]. 조각 경계에서 선형 보간해 구역이 바뀔 때 툭 꺾이지 않게.
+const BEND = { city: [0.5, 0.25], slum: [1.0, 0.15], river: [0.25, 1.0], park: [0.8, 0.5], tower: [0.6, 1.1] };
+const BEND_BACK = 40, BEND_AHEAD = 240, BEND_STEP = 2, BEND_N = (BEND_BACK + BEND_AHEAD) / BEND_STEP + 1;
+const bend = { x: new Float32Array(BEND_N), y: new Float32Array(BEND_N), yaw: new Float32Array(BEND_N), pitch: new Float32Array(BEND_N), cz: 0 };
+function bendAmp(z) {
+  const u = -z / drive.SEG, k = Math.floor(u), f = u - k, a = BEND[zoneOf(k).key], b = BEND[zoneOf(k + 1).key];
+  return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+}
+const curvatureAt = (z) => bendAmp(z)[0] * 0.0045 * Math.sin(z / 32);           // 좌우 꺾임 비율(거리당 방향 변화)
+const slopeAt = (z) => bendAmp(z)[1] * 0.11 * Math.sin(z / 24 + 1.3);          // 오르막·내리막 경사
+function bendUpdate(cz) {  // 차 뒤 40m ~ 앞 240m 를 2m 간격으로 적분한 표
+  bend.cz = cz;
+  const s0 = slopeAt(cz), i0 = BEND_BACK / BEND_STEP;
+  for (const dir of [1, -1]) {
+    let yaw = 0, x = 0, y = 0;
+    for (let i = i0, d = 0; i >= 0 && i < BEND_N; i += dir, d += dir * BEND_STEP) {
+      bend.x[i] = x; bend.y[i] = y; bend.yaw[i] = yaw; bend.pitch[i] = slopeAt(cz - d) - s0;
+      yaw += curvatureAt(cz - d) * BEND_STEP * dir; x += yaw * BEND_STEP * dir; y += bend.pitch[i] * BEND_STEP * dir;
+    }
+  }
+}
+function bendAt(z) {  // z 위치의 [x 밀림, y 밀림, yaw, pitch]
+  const i = THREE.MathUtils.clamp((bend.cz - z + BEND_BACK) / BEND_STEP, 0, BEND_N - 1), a = Math.floor(i), f = i - a, b = Math.min(a + 1, BEND_N - 1);
+  return [bend.x[a] + (bend.x[b] - bend.x[a]) * f, bend.y[a] + (bend.y[b] - bend.y[a]) * f, bend.yaw[a], bend.pitch[a]];
+}
+// 스프라이트(아이템·차·글리치 킹)는 판정에 position 을 쓰므로 그리기 전에만 밀고 그린 뒤 되돌린다
+function bendApply(objs) { for (const o of objs) { const [x, y] = bendAt(o.position.z); o.userData.bx = o.position.x; o.userData.by = o.position.y; o.position.x += x; o.position.y += y; } }
+function bendRestore(objs) { for (const o of objs) { o.position.x = o.userData.bx; o.position.y = o.userData.by; } }
 drive.s.add(villain);
 let eventUntil = 0, discoverUntil = 0;
 function say(textMsg, sec = 2.6) { eventEl.textContent = textMsg; eventEl.hidden = false; eventUntil = clock.elapsedTime + sec; }
@@ -985,6 +1016,10 @@ function driveTick(dt, t) {
   D.dist += D.speed * dt;
   const cz = car.position.z;
   for (const g of segs) if (g.position.z > cz + SEG) { g.position.z -= SEG * NSEG; g.userData.k += NSEG; decorate(g); }
+  bendUpdate(cz);
+  for (const g of segs) { const [x, y, yaw, pitch] = bendAt(g.position.z); g.position.x = x; g.position.y = y; g.rotation.y = -yaw; g.rotation.x = pitch; }
+  const [, , yawCar, pitchCar] = bendAt(cz - 8);  // 커브에선 안쪽으로 기울고 언덕에선 코를 든다
+  car.rotation.z += yawCar * 1.6; car.rotation.x = pitchCar * 0.8;
   drive.skyline.position.z = cz;
   // 차 앞쪽 가까운 가로등 4개에 실제 조명을 옮겨 붙인다 — 주변 나무·길이 등불 색을 받는다
   for (let i = lampSpots.length - 1; i >= 0; i--) if (!lampSpots[i].parent?.parent?.parent) lampSpots.splice(i, 1);
@@ -1093,7 +1128,8 @@ function driveTick(dt, t) {
   const shake = D.bump > 0 && !reduceMotion ? Math.sin(t * 60) * 0.12 : 0;
   camFollowX += (car.position.x - camFollowX) * Math.min(1, dt * 4);
   cam.position.set(camFollowX * 0.9 + shake, car.position.y + 2.9, cz + 7.4);
-  cam.lookAt(camFollowX, car.position.y + 0.9, cz - 9);
+  const [lookX, lookY] = bendAt(cz - 26);  // 시선은 커브 안쪽·언덕 위아래로 반쯤 따라간다
+  cam.lookAt(camFollowX + lookX * 0.35, car.position.y + 0.9 + lookY * 0.45, cz - 9);
   cam.fov = 60 + (D.speed - 18) * 0.7; cam.updateProjectionMatrix();
   hudEl.textContent = `★ ${D.stars}  ·  ${(D.dist / 1000).toFixed(2)} km${zone.key === 'tower' ? `  ·  RING ${Math.min(D.rings, 5)}/5` : ''}`;
   speedEl.textContent = `${Math.round(D.speed * 6)} km/h`;
@@ -1198,7 +1234,8 @@ function tick() {
   for (const b of blinkers) b.visible = blinkOn;
   if (mode === 'drive') {
     driveTick(dt, t);
-    composer.render(dt);
+    const bent = [...drive.bugs, ...drive.traffic, villain];
+    bendApply(bent); composer.render(dt); bendRestore(bent);
     requestAnimationFrame(tick);
     return;
   }
