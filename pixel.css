@@ -738,6 +738,12 @@ main { flex-grow: 1; width: 100%; max-width: var(--layout-max); margin: 0 auto; 
 @media (prefers-reduced-motion: reduce) { .play-hint { animation: none; } }
 /* 드라이브 HUD · 화면 전환(픽셀 페이드) */
 .play-hud { position: absolute; top: 12px; left: 12px; margin: 0; padding: 4px 10px; font-family: var(--font-pixel-sm); font-size: 14px; color: var(--gold-400); background: rgba(7, 6, 26, 0.75); box-shadow: inset 0 0 0 2px var(--night-500); }
+.play-pop { position: absolute; top: 14px; left: 128px; font-family: var(--font-pixel-sm); font-size: 14px; color: var(--cyan-400); opacity: 0; pointer-events: none; }
+.play-pop.is-minus { color: #ff3355; }
+.play-pop.is-on { animation: score-pop 0.9s steps(6, end) forwards; }
+@keyframes score-pop { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-22px); } }
+.play-stage.is-hit .play-canvas { filter: brightness(1.6) sepia(1) hue-rotate(-40deg) saturate(3); }
+@media (prefers-reduced-motion: reduce) { .play-pop.is-on { animation: none; opacity: 1; } .play-stage.is-hit .play-canvas { filter: none; } }
 .play-wipe { position: absolute; inset: 0; pointer-events: none; opacity: 0; background: var(--night-950) url(/assets/pixel/stars.png) 0 0 / 96px 96px; transition: opacity 0.45s steps(5, end); }
 .play-wipe.is-on { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .play-wipe { transition: none; } }

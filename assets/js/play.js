@@ -936,6 +936,12 @@ const villain = new THREE.Sprite(villainMat); villain.center.set(0.5, 0); villai
 drive.s.add(villain);
 let eventUntil = 0, discoverUntil = 0;
 function say(textMsg, sec = 2.6) { eventEl.textContent = textMsg; eventEl.hidden = false; eventUntil = clock.elapsedTime + sec; }
+const popEl = stage.querySelector('.play-pop');
+function pop(delta) {  // 점수 옆에 +1 / -2 가 떠올랐다 사라진다
+  popEl.textContent = (delta > 0 ? '+' : '') + delta;
+  popEl.classList.toggle('is-minus', delta < 0);
+  popEl.classList.remove('is-on'); void popEl.offsetWidth; popEl.classList.add('is-on');
+}
 function drawMap(zone) {  // 월드맵: 구역 5개 점. 가 본 곳은 켜지고 지금 있는 곳은 깜빡인다
   mapEl.replaceChildren(...ZONES.map((z) => { const s = document.createElement('span'); s.textContent = z.short; s.className = z === zone ? 'is-now' : D.seen?.has(z) ? 'is-seen' : ''; return s; }));
 }
@@ -945,8 +951,8 @@ function discover(zone) {  // 처음 들어가는 구역: 가운데 큰 발견 �
   discoverEl.hidden = false; discoverUntil = clock.elapsedTime + 3;
 }
 function resetDrive() {
-  D.lane = 1; D.speed = 18; D.dist = 0; D.bump = 0; D.boost = 0; D.stars = 0; D.rings = 0; D.ringsTotal = 0; D.beaten = false; D.glitch = 0; D.startT = clock.elapsedTime;
-  villain.visible = false; stage.classList.remove('is-glitch');
+  D.lane = 1; D.speed = 18; D.dist = 0; D.bump = 0; D.boost = 0; D.stars = 0; D.rings = 0; D.ringsTotal = 0; D.beaten = false; D.glitch = 0; D.crashes = 0; D.startT = clock.elapsedTime;
+  villain.visible = false; stage.classList.remove('is-glitch', 'is-hit'); popEl.classList.remove('is-on');
   drive.car.position.set(0, 0.95, 0); camFollowX = 0; zoneNow = null;
   route.length = 1; for (const i in forkAlt) delete forkAlt[i];  // 경로는 드라이브마다 새로 고른다
   const { segs, bugs, traffic, SEG, LANES } = drive;  // 도로·아이템·차를 출발점으로 되감는다(두 번째 드라이브부터 길이 비던 문제)
@@ -1026,7 +1032,7 @@ function driveTick(dt, t) {
     if (!r.parent?.parent?.parent) { liveRings.splice(i, 1); continue; }
     r.getWorldPosition(wp);
     if (!r.userData.passed && wp.z > cz) {
-      r.userData.passed = true; D.rings += 1; D.ringsTotal += 1; D.stars += 1;
+      r.userData.passed = true; D.rings += 1; D.ringsTotal += 1; D.stars += 1; pop(1);
       if (!D.ringsDone && D.rings >= 5) { D.ringsDone = true; D.beaten = true; D.stars += 5; say('빛 고리 5개 통과! 글리치 킹이 도망갔어요 ★+5', 3); }
       else say(`빛 고리 ${D.rings}/5`, 1.2);
     }
@@ -1059,7 +1065,7 @@ function driveTick(dt, t) {
     const respawn = (dz) => { b.position.z -= dz; b.position.x = pick(LANES); setItem(b, itemFor(zoneOf(Math.round(-b.position.z / SEG)).key)); };
     if (Math.abs(b.position.z - cz) < 1.6 && Math.abs(b.position.x - car.position.x) < 1.3) {
       const n = b.userData.item, rare = RARE_SET.has(n);
-      D.stars += rare ? 3 : 1; respawn(160 + rnd() * 80);
+      D.stars += rare ? 3 : 1; pop(rare ? 3 : 1); respawn(160 + rnd() * 80);
       if (D.glitch > 0) { D.glitch = 0; stage.classList.remove('is-glitch'); say('정화 완료! 반짝이 버그가 사라졌어요', 2); }
       else if (!dex.has(n)) { dex.add(n); D.newDex += 1; saveDex(); say(`NEW! 도감 ${dex.size}/24 ${rare ? '· 희귀 아이템 ★+3' : ''}`, 2); }
       else if (rare) say('희귀 아이템 ★+3', 1.4);
@@ -1068,7 +1074,11 @@ function driveTick(dt, t) {
   }
   for (const c of traffic) {
     c.position.z -= c.userData.v * dt;
-    if (Math.abs(c.position.z - cz) < 3 && Math.abs(c.position.x - car.position.x) < 1.6 && D.bump <= 0) { D.speed = 5; D.bump = 0.6; }
+    if (Math.abs(c.position.z - cz) < 3 && Math.abs(c.position.x - car.position.x) < 1.6 && D.bump <= 0) {
+      D.speed = 5; D.bump = 0.6; D.crashes += 1;
+      D.stars = Math.max(0, D.stars - 2); pop(-2); say('쾅! ★-2', 1.4);
+      stage.classList.add('is-hit'); setTimeout(() => stage.classList.remove('is-hit'), 300);
+    }
     if (c.position.z > cz + 12) { c.position.z = cz - 140 - rnd() * 80; c.position.x = pick(LANES); }
   }
   for (let i = liveBoards.length - 1; i >= 0; i--) {
@@ -1136,7 +1146,7 @@ function switchMode(next) {
     pixelPass.scene = next === 'drive' ? drive.s : scene;
     pixelPass.camera = next === 'drive' ? drive.cam : camera;
     hudEl.hidden = speedEl.hidden = mapEl.hidden = next !== 'drive'; zoneEl.hidden = eventEl.hidden = discoverEl.hidden = true;
-    const result = mode === 'roof' && D.dist > 30 ? `★ ${D.stars} · ${(D.dist / 1000).toFixed(2)} km · 탐험 ${D.seen.size}/${ZONES.length} 구역 · 도감 ${dex.size}/24${D.newDex ? ` (NEW ${D.newDex})` : ''} · 빛 고리 ${D.ringsTotal}개${D.beaten ? ' · 글리치 킹 격퇴!' : ''}` : '';
+    const result = mode === 'roof' && D.dist > 30 ? `★ ${D.stars} · ${(D.dist / 1000).toFixed(2)} km · 탐험 ${D.seen.size}/${ZONES.length} 구역 · 도감 ${dex.size}/24${D.newDex ? ` (NEW ${D.newDex})` : ''} · 빛 고리 ${D.ringsTotal}개 · 충돌 ${D.crashes}회${D.beaten ? ' · 글리치 킹 격퇴!' : ''}` : '';
     if (next === 'drive') { resetDrive(); hintEl.hidden = false; hintEl.textContent = '◀ ▶ 차선 · ▲▼ 속도 · A 부스트 · B 옥상으로'; }
     else {
       bunny.position.set(7.2, 0, -4.4); stage.classList.remove('is-glitch'); villain.visible = false;
