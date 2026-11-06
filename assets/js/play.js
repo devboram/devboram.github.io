@@ -510,6 +510,7 @@ function kitBuilding(type, height) {
 
 // ===== 드라이브 구간(존): 도로 조각마다 구역을 정해 풍경을 바꾼다 =====
 const ZONE_LEN = 10;  // 조각 10개(200m)마다 다음 구역
+const FINISH_ZONE = 5, FINISH_K = FINISH_ZONE * ZONE_LEN;  // 구역 5개(1 km)를 달리면 피니시 라인
 const ZONES = [
   { key: 'city', name: '도심 빌딩 숲', desc: '모든 빌딩이 하루치 로그를 네온으로 내보낸다', short: '도심', fog: 0x3a1850, sky: 0x9a7cff },
   { key: 'slum', name: '뒷골목 슬럼', desc: '고장 난 간판과 전선 사이, 글리치 킹의 구역', short: '슬럼', fog: 0x3a2018, sky: 0xffa86b },
@@ -519,14 +520,14 @@ const ZONES = [
 ];
 // 경로: 구역 순서는 고정 루프가 아니라 갈림길에서 고른 대로 쌓인다. 안 고르면 기본 순서(ZONES 차례)
 const route = [ZONES[0]];
-const forkAlt = {};  // 구역 번호 → 오른쪽 길로 가면 나오는 구역
+const forkAlt = {};  // 구역 번호 → [좌회전 구역, 우회전 구역]
 function zoneAt(i) {
   while (route.length <= i) route.push(ZONES[(ZONES.indexOf(route[route.length - 1]) + 1) % ZONES.length]);
   return route[i];
 }
 const zoneOf = (k) => zoneAt(Math.max(0, Math.floor(k / ZONE_LEN)));
-function altOf(i) {  // 갈림길 오른쪽 후보: 현재·기본 다음이 아닌 구역 중 하나(고정 시드)
-  if (!forkAlt[i]) { const cur = zoneAt(i), def = zoneAt(i + 1); forkAlt[i] = pick(ZONES.filter((z) => z !== cur && z !== def)); }
+function altsOf(i) {  // 교차로 좌·우 후보: 현재·직진(기본 다음)이 아닌 구역 둘(고정 시드)
+  if (!forkAlt[i]) { const cur = zoneAt(i), def = zoneAt(i + 1), c = ZONES.filter((z) => z !== cur && z !== def), l = pick(c); forkAlt[i] = [l, pick(c.filter((z) => z !== l))]; }
   return forkAlt[i];
 }
 // ===== 구역 랜드마크(구역마다 한 번 지나는 큰 구조물) + 길가 주민 =====
@@ -588,17 +589,41 @@ function resident(deco, z) {
 }
 const liveForks = [];
 const forkPoleMat = new THREE.MeshStandardMaterial({ color: 0x3d3488, roughness: 0.6 });
-function forkSign(deco, i) {  // 도로 위 갈림길 표지 아치: ◀ 기본 길 · 오른쪽 길 ▶
-  const def = zoneAt(i + 1), alt = altOf(i);
-  const tex = canvasTexture(256, 56, (g) => {
-    g.fillStyle = '#0b2a2e'; g.fillRect(0, 0, 256, 56); g.strokeStyle = '#4ef3ff'; g.lineWidth = 4; g.strokeRect(2, 2, 252, 52);
-    text(g, '◀ ' + def.name, 66, 28, 15, '#f6f3ff'); text(g, alt.name + ' ▶', 190, 28, 15, '#ffd76a');
-    g.fillStyle = '#4ef3ff'; g.fillRect(126, 10, 4, 36);
+const crossMat = new THREE.MeshStandardMaterial({ color: 0x221c48, roughness: 0.7 });
+const crossDashMat = new THREE.MeshBasicMaterial({ color: LAV });
+const lightBoxMat = new THREE.MeshStandardMaterial({ color: 0x1a1430, roughness: 0.8 });
+function crossroad(deco, i) {  // 구역 끝 십자 교차로: 양옆으로 뻗은 길 + 신호등 + 방향 표지. 들어설 때 ◀/▶ 를 누르고 있으면 그쪽으로 회전
+  const def = zoneAt(i + 1), [left, right] = altsOf(i);
+  const node = new THREE.Mesh(new THREE.BoxGeometry(96, 0.8, 9), crossMat); node.position.y = -0.4; deco.add(node);
+  for (const x of [-42, -32, -22, -12, 12, 22, 32, 42]) { const d = new THREE.Mesh(new THREE.BoxGeometry(3, 0.05, 0.15), crossDashMat); d.position.set(x, 0.03, 0); deco.add(d); }
+  for (const x of [-6.4, 6.4]) {  // 신호등(초록 켜짐)
+    const p = new THREE.Mesh(new THREE.BoxGeometry(0.3, 6, 0.3), forkPoleMat); p.position.set(x, 2.3, 5.6); deco.add(p);
+    const box = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.4, 0.6), lightBoxMat); box.position.set(x, 5.2, 5.6); deco.add(box);
+    [[0xff2a6d, 0.3], [0xffd76a, 0.3], [0x4ef3ff, 1]].forEach(([c, o], j) => {
+      const l = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.1), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: o })); l.position.set(x, 5.95 - j * 0.75, 5.95); deco.add(l);
+    });
+  }
+  const tex = canvasTexture(320, 56, (g) => {
+    g.fillStyle = '#0b2a2e'; g.fillRect(0, 0, 320, 56); g.strokeStyle = '#4ef3ff'; g.lineWidth = 4; g.strokeRect(2, 2, 316, 52);
+    text(g, '◀ ' + left.short, 54, 28, 15, '#ffd76a'); text(g, '↑ ' + def.short, 160, 28, 15, '#f6f3ff'); text(g, right.short + ' ▶', 266, 28, 15, '#ffd76a');
+    g.fillStyle = '#4ef3ff'; g.fillRect(106, 10, 4, 36); g.fillRect(210, 10, 4, 36);
   });
-  const sign = new THREE.Mesh(new THREE.PlaneGeometry(10.5, 2.3), new THREE.MeshBasicMaterial({ map: tex }));
-  sign.position.set(0, 6.6, 0); deco.add(sign);
-  for (const x of [-5.6, 5.6]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.3, 7.8, 0.3), forkPoleMat); p.position.set(x, 3.2, 0); deco.add(p); }
-  liveForks.push({ sign, i, alt });
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(12, 2.1), new THREE.MeshBasicMaterial({ map: tex }));
+  sign.position.set(0, 6.6, 8); deco.add(sign);  // 교차로 8m 앞
+  for (const x of [-6.3, 6.3]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.3, 7.8, 0.3), forkPoleMat); p.position.set(x, 3.2, 8); deco.add(p); }
+  liveForks.push({ node, i, def, left, right });
+}
+const liveFinish = [];
+const checkerTex = canvasTexture(64, 16, (g) => { for (let y = 0; y < 2; y++) for (let x = 0; x < 8; x++) { g.fillStyle = (x + y) % 2 ? '#f6f3ff' : '#0b0a1f'; g.fillRect(x * 8, y * 8, 8, 8); } });
+function finishGate(deco) {  // 피니시 라인: 체크무늬 현수막 + 바닥 띠
+  const tex = canvasTexture(256, 48, (g) => {
+    for (let y = 0; y < 6; y++) for (let x = 0; x < 32; x++) { g.fillStyle = (x + y) % 2 ? '#f6f3ff' : '#0b0a1f'; g.fillRect(x * 8, y * 8, 8, 8); }
+    g.fillStyle = '#ff2a6d'; g.fillRect(60, 8, 136, 32); text(g, 'FINISH', 128, 24, 22, '#f6f3ff');
+  });
+  const banner = new THREE.Mesh(new THREE.PlaneGeometry(12.5, 2.3), new THREE.MeshBasicMaterial({ map: tex })); banner.position.set(0, 6.8, 0); deco.add(banner);
+  for (const x of [-6.5, 6.5]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.35, 8, 0.35), forkPoleMat); p.position.set(x, 3.3, 0); deco.add(p); }
+  const strip = new THREE.Mesh(new THREE.PlaneGeometry(10, 2), new THREE.MeshBasicMaterial({ map: checkerTex })); strip.rotation.x = -Math.PI / 2; strip.position.y = 0.03; deco.add(strip);
+  liveFinish.push(banner);
 }
 const towerLegMat = new THREE.MeshBasicMaterial({ color: PINK });
 const lanternMat = new THREE.MeshBasicMaterial({ color: 0xff3b3b });
@@ -881,7 +906,9 @@ function decorate(g) {
   const z = zoneOf(g.userData.k), SEG = drive.SEG;
   decorateProps(deco, z, SEG, g.userData.k);
   const k = g.userData.k, inZone = ((k % ZONE_LEN) + ZONE_LEN) % ZONE_LEN;
-  if (inZone === 6 && k > 0) forkSign(deco, Math.floor(k / ZONE_LEN));
+  const zi = Math.floor(k / ZONE_LEN);
+  if (inZone === 6 && k > 0 && zi < FINISH_ZONE - 1) crossroad(deco, zi);  // 마지막 구역 끝은 교차로 대신 피니시
+  if (k === FINISH_K) finishGate(deco);
   if (inZone === 3) landmark(deco, z, SEG);
   if (inZone === 8) resident(deco, z);
   if (k % 2 === 0) roadsideBoard(deco, z.key, k % 4 === 0 ? -1 : 1, (rnd() - 0.5) * SEG * 0.6);
@@ -929,6 +956,7 @@ function decorate(g) {
 }
 
 const liveRings = [];
+const fmtTime = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 const D = { lane: 1, speed: 18, dist: 0, stars: 0, bump: 0, boost: 0, prev: new Set(), rings: 0, ringsTotal: 0, beaten: false, glitch: 0, villainDone: false, ringsDone: false, startT: 0 };
 // 글리치 킹: 뒷골목에서 길에 뛰어들어 반짝이 버그를 뿌린다. 아이템 하나를 주우면 정화
 const villainMat = new THREE.SpriteMaterial({ map: (() => { const t = new THREE.TextureLoader().load('/assets/chars/villain.png'); t.colorSpace = THREE.SRGBColorSpace; return t; })(), transparent: true, alphaTest: 0.2 });
@@ -982,7 +1010,7 @@ function discover(zone) {  // 처음 들어가는 구역: 가운데 큰 발견 �
   discoverEl.hidden = false; discoverUntil = clock.elapsedTime + 3;
 }
 function resetDrive() {
-  D.lane = 1; D.speed = 18; D.dist = 0; D.bump = 0; D.boost = 0; D.stars = 0; D.rings = 0; D.ringsTotal = 0; D.beaten = false; D.glitch = 0; D.crashes = 0; D.startT = clock.elapsedTime;
+  D.lane = 1; D.speed = 18; D.dist = 0; D.bump = 0; D.boost = 0; D.stars = 0; D.rings = 0; D.ringsTotal = 0; D.beaten = false; D.glitch = 0; D.crashes = 0; D.finished = false; D.turn = null; drive.car.rotation.y = 0; D.startT = clock.elapsedTime;
   villain.visible = false; stage.classList.remove('is-glitch', 'is-hit'); popEl.classList.remove('is-on');
   drive.car.position.set(0, 0.95, 0); camFollowX = 0; zoneNow = null;
   route.length = 1; for (const i in forkAlt) delete forkAlt[i];  // 경로는 드라이브마다 새로 고른다
@@ -999,11 +1027,11 @@ function resetDrive() {
 function driveTick(dt, t) {
   const { car, segs, bugs, traffic, SEG, NSEG, LANES } = drive;
   // 차선: 누르는 순간 한 칸
-  for (const [k, d] of [['left', -1], ['right', 1]]) {
+  if (!D.turn && !D.finished) for (const [k, d] of [['left', -1], ['right', 1]]) {
     if (held.has(k) && !D.prev.has(k)) D.lane = THREE.MathUtils.clamp(D.lane + d, 0, 2);
   }
   D.prev = new Set(held);
-  const target = (held.has('up') ? 28 : held.has('down') ? 10 : 18) + (D.boost > 0 ? 14 : 0);
+  const target = D.finished ? 0 : D.turn ? 9 : (held.has('up') ? 28 : held.has('down') ? 10 : 18) + (D.boost > 0 ? 14 : 0);  // 피니시 뒤엔 멈추고, 회전 중엔 감속
   D.boost = Math.max(0, D.boost - dt);
   if (D.bump > 0) D.bump -= dt; else D.speed += (target - D.speed) * Math.min(1, dt * 2);
   const tx = LANES[D.lane];
@@ -1026,19 +1054,35 @@ function driveTick(dt, t) {
   const wp = new THREE.Vector3();
   const near = lampSpots.map((b) => { b.getWorldPosition(wp); return [wp.z - cz, wp.clone()]; }).filter(([dz]) => dz < 6 && dz > -45).sort((a, b) => b[0] - a[0]).slice(0, 4);
   drive.lampLights.forEach((l, i) => { if (near[i]) { l.position.copy(near[i][1]); l.intensity = 22; } else l.intensity = 0; });
-  // 갈림길: 표지 아치를 지나는 순간의 차선이 다음 구역을 정한다(오른쪽 차선 = 오른쪽 길). 이미 깔린 앞 조각은 다시 꾸민다
+  // 교차로: 들어서는 순간 ◀/▶ 를 누르고 있으면 그쪽 구역으로 회전, 아니면 직진. 이미 깔린 앞 조각은 다시 꾸민다
   for (let i = liveForks.length - 1; i >= 0; i--) {
     const f = liveForks[i];
-    if (!f.sign.parent?.parent?.parent) { liveForks.splice(i, 1); continue; }
-    f.sign.getWorldPosition(wp);
+    if (!f.node.parent?.parent?.parent) { liveForks.splice(i, 1); continue; }
+    f.node.getWorldPosition(wp);
+    if (!f.warned && wp.z - cz > -80) { f.warned = true; say(`교차로: ◀ ${f.left.name} · 직진 ${f.def.name} · ${f.right.name} ▶`, 2.6); }
     if (f.passed || wp.z < cz) continue;
     f.passed = true;
-    if (D.lane === 2) {
-      route.length = f.i + 1; route.push(f.alt); delete forkAlt[f.i + 1];
+    const dir = held.has('left') ? -1 : held.has('right') ? 1 : 0;
+    if (dir) {
+      const next = dir < 0 ? f.left : f.right;
+      route.length = f.i + 1; route.push(next); delete forkAlt[f.i + 1];
       for (const g of segs) if (Math.floor(g.userData.k / ZONE_LEN) === f.i + 1) decorate(g);
-    }
-    say(`갈림길 → ${zoneAt(f.i + 1).name} 쪽으로`, 2);
+      D.turn = { dir, t: 0, zone: next };
+    } else say(`직진 → ${f.def.name}`, 2);
   }
+  if (D.turn) {  // 회전 연출: 감속하며 차가 돌고 카메라가 따라 돌다가 별빛 와이프, 걷히면 새 구역이 정면
+    const tr = D.turn; tr.t += dt;
+    car.rotation.y = reduceMotion ? 0 : -tr.dir * Math.sin(Math.min(1, tr.t / 0.6) * Math.PI / 2) * 1.1;
+    if (tr.t > 0.5 && !tr.wiped) { tr.wiped = true; wipeEl.classList.add('is-on'); }
+    if (tr.t > 1.05) { D.turn = null; car.rotation.y = 0; wipeEl.classList.remove('is-on'); say(`${tr.dir < 0 ? '좌회전' : '우회전'} → ${tr.zone.name}`, 2.2); }
+  }
+  for (let i = liveFinish.length - 1; i >= 0; i--) {  // 피니시 라인 통과
+    const b = liveFinish[i];
+    if (!b.parent?.parent?.parent) { liveFinish.splice(i, 1); continue; }
+    b.getWorldPosition(wp);
+    if (!D.finished && wp.z > cz) { D.finished = true; D.time = t - D.startT; D.finishAt = t; say(`FINISH! 기록 ${fmtTime(D.time)}`, 3); }
+  }
+  if (D.finished && t - D.finishAt > 2) switchMode('roof');
   const kNow = Math.round(-cz / SEG), zone = zoneOf(kNow);
   if (zone !== zoneNow) {  // 구역 진입: 사건은 들어올 때마다 리셋(슬럼마다 글리치 킹, 타워마다 빛 고리)
     zoneNow = zone;
@@ -1127,11 +1171,17 @@ function driveTick(dt, t) {
   // 카트 뒤 낮은 위치에서 따라간다(카트라이더·레이싱 게임 시점). 차선 바꿀 때 카메라가 반 박자 늦게 따라온다
   const shake = D.bump > 0 && !reduceMotion ? Math.sin(t * 60) * 0.12 : 0;
   camFollowX += (car.position.x - camFollowX) * Math.min(1, dt * 4);
-  cam.position.set(camFollowX * 0.9 + shake, car.position.y + 2.9, cz + 7.4);
-  const [lookX, lookY] = bendAt(cz - 26);  // 시선은 커브 안쪽·언덕 위아래로 반쯤 따라간다
-  cam.lookAt(camFollowX + lookX * 0.35, car.position.y + 0.9 + lookY * 0.45, cz - 9);
+  if (D.turn) {  // 회전 중엔 차 머리 방향을 따라 카메라가 돈다
+    const h = car.rotation.y, fx = -Math.sin(h), fz = -Math.cos(h);
+    cam.position.set(car.position.x - fx * 7.4, car.position.y + 2.9, cz - fz * 7.4);
+    cam.lookAt(car.position.x + fx * 9, car.position.y + 0.9, cz + fz * 9);
+  } else {
+    cam.position.set(camFollowX * 0.9 + shake, car.position.y + 2.9, cz + 7.4);
+    const [lookX, lookY] = bendAt(cz - 26);  // 시선은 커브 안쪽·언덕 위아래로 반쯤 따라간다
+    cam.lookAt(camFollowX + lookX * 0.35, car.position.y + 0.9 + lookY * 0.45, cz - 9);
+  }
   cam.fov = 60 + (D.speed - 18) * 0.7; cam.updateProjectionMatrix();
-  hudEl.textContent = `★ ${D.stars}  ·  ${(D.dist / 1000).toFixed(2)} km${zone.key === 'tower' ? `  ·  RING ${Math.min(D.rings, 5)}/5` : ''}`;
+  hudEl.textContent = `★ ${D.stars}  ·  ${(D.dist / 1000).toFixed(2)} / ${(FINISH_K * SEG / 1000).toFixed(2)} km${zone.key === 'tower' ? `  ·  RING ${Math.min(D.rings, 5)}/5` : ''}`;
   speedEl.textContent = `${Math.round(D.speed * 6)} km/h`;
 }
 
@@ -1182,11 +1232,11 @@ function switchMode(next) {
     pixelPass.scene = next === 'drive' ? drive.s : scene;
     pixelPass.camera = next === 'drive' ? drive.cam : camera;
     hudEl.hidden = speedEl.hidden = mapEl.hidden = next !== 'drive'; zoneEl.hidden = eventEl.hidden = discoverEl.hidden = true;
-    const result = mode === 'roof' && D.dist > 30 ? `★ ${D.stars} · ${(D.dist / 1000).toFixed(2)} km · 탐험 ${D.seen.size}/${ZONES.length} 구역 · 도감 ${dex.size}/24${D.newDex ? ` (NEW ${D.newDex})` : ''} · 빛 고리 ${D.ringsTotal}개 · 충돌 ${D.crashes}회${D.beaten ? ' · 글리치 킹 격퇴!' : ''}` : '';
+    const result = mode === 'roof' && D.dist > 30 ? `${D.finished ? `FINISH ${fmtTime(D.time)} · ` : ''}★ ${D.stars} · ${(D.dist / 1000).toFixed(2)} km · 탐험 ${D.seen.size}/${ZONES.length} 구역 · 도감 ${dex.size}/24${D.newDex ? ` (NEW ${D.newDex})` : ''} · 빛 고리 ${D.ringsTotal}개 · 충돌 ${D.crashes}회${D.beaten ? ' · 글리치 킹 격퇴!' : ''}` : '';
     if (next === 'drive') { resetDrive(); hintEl.hidden = false; hintEl.textContent = '◀ ▶ 차선 · ▲▼ 속도 · A 부스트 · B 옥상으로'; }
     else {
       bunny.position.set(7.2, 0, -4.4); stage.classList.remove('is-glitch'); villain.visible = false;
-      if (result) showDialog('DRIVE 결과', `${result} — 오늘의 퀘스트: ${(data.posts || [])[0] || '새 글 준비 중'}`);
+      if (result) showDialog(D.finished ? 'FINISH!' : 'DRIVE 결과', `${result} — 오늘의 퀘스트: ${(data.posts || [])[0] || '새 글 준비 중'}`);
     }
     wipeEl.classList.remove('is-on');
     switching = false;
