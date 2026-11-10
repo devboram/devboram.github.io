@@ -34,6 +34,26 @@ renderer.setPixelRatio(1);
 renderer.localClippingEnabled = true;  // 플레이어 차 지붕 자르기
 
 const PINK = 0xff2a6d, CYAN = 0x4ef3ff, GOLD = 0xffd76a, VIOLET = 0xa78bff, LAV = 0xc4bcf2;
+
+// ===== 드라이브 조정값 — 난이도·점수·거리·시간은 여기서만 고친다 (속도 m/s, 거리 m, 시간 초) =====
+const TUNE = {
+  speed: { cruise: 18, fast: 28, slow: 10, boost: 14, turn: 9, crash: 5 },  // 기본·▲·▼·부스트 추가분·회전 중·충돌 직후
+  boostSec: 1.2,
+  score: { item: 1, rare: 3, ring: 1, ringBonus: 5, crash: 2 },             // crash 는 깎는 양
+  rareChance: 0.2,       // 구역 희귀 아이템이 나올 확률
+  ringGoal: 5,           // 타워 빛 고리 목표 개수
+  crashStun: 0.6,        // 충돌 뒤 가속이 막히는 시간
+  glitchSec: 6,          // 글리치 킹에게 닿은 뒤 핸들이 흔들리는 시간
+  finishZones: 5,        // 이만큼 구역을 달리면 피니시(구역 하나 = 200m)
+  finishHold: 2,         // 피니시 통과 뒤 결과 화면까지
+  crossWarn: 80,         // 교차로 안내가 뜨는 거리
+  turn: { spin: 0.6, wipeAt: 0.5, end: 1.05, angle: 1.1 },                  // 회전 연출: 도는 시간·와이프 시작·끝·각도(rad)
+  hintSec: 5,            // 조작 안내를 보여 주는 시간
+  bend: {                // 도로 굴곡: 구역별 [커브 세기, 언덕 세기] × 공통 계수
+    curve: 0.0045, hill: 0.11,
+    zones: { city: [0.5, 0.25], slum: [1.0, 0.15], river: [0.25, 1.0], park: [0.8, 0.5], tower: [0.6, 1.1] },
+  },
+};
 const NEON = [PINK, CYAN, GOLD, VIOLET];
 
 // 같은 도시가 매번 나오도록 고정 시드 난수
@@ -119,7 +139,7 @@ const RARE_SET = new Set(Object.values(RARE));
 const dex = new Set((() => { try { return JSON.parse(localStorage.getItem('play-dex') || '[]'); } catch (e) { return []; } })());
 function saveDex() { try { localStorage.setItem('play-dex', JSON.stringify([...dex])); } catch (e) { /* 저장 못 해도 게임은 된다 */ } }
 function itemFor(zoneKey) {
-  if (RARE[zoneKey] && rnd() < 0.2) return RARE[zoneKey];
+  if (RARE[zoneKey] && rnd() < TUNE.rareChance) return RARE[zoneKey];
   let n; do n = 1 + Math.floor(rnd() * 24); while (RARE_SET.has(n));
   return n;
 }
@@ -510,7 +530,7 @@ function kitBuilding(type, height) {
 
 // ===== 드라이브 구간(존): 도로 조각마다 구역을 정해 풍경을 바꾼다 =====
 const ZONE_LEN = 10;  // 조각 10개(200m)마다 다음 구역
-const FINISH_ZONE = 5, FINISH_K = FINISH_ZONE * ZONE_LEN;  // 구역 5개(1 km)를 달리면 피니시 라인
+const FINISH_ZONE = TUNE.finishZones, FINISH_K = FINISH_ZONE * ZONE_LEN;  // 이 조각에 피니시 라인
 const ZONES = [
   { key: 'city', name: '도심 빌딩 숲', desc: '모든 빌딩이 하루치 로그를 네온으로 내보낸다', short: '도심', fog: 0x3a1850, sky: 0x9a7cff },
   { key: 'slum', name: '뒷골목 슬럼', desc: '고장 난 간판과 전선 사이, 글리치 킹의 구역', short: '슬럼', fog: 0x3a2018, sky: 0xffa86b },
@@ -964,16 +984,16 @@ const villain = new THREE.Sprite(villainMat); villain.center.set(0.5, 0); villai
 
 // ===== 도로 굴곡(레트로 레이싱 방식) =====
 // 도로·게임 판정은 직선(z축) 그대로 두고, 그리기 직전에 차와의 거리에 따라 옆(커브)·위(언덕)로 밀어 보여 준다.
-// 구역마다 [커브 세기, 언덕 세기]. 조각 경계에서 선형 보간해 구역이 바뀔 때 툭 꺾이지 않게.
-const BEND = { city: [0.5, 0.25], slum: [1.0, 0.15], river: [0.25, 1.0], park: [0.8, 0.5], tower: [0.6, 1.1] };
+// 세기는 TUNE.bend. 조각 경계에서 선형 보간해 구역이 바뀔 때 툭 꺾이지 않게.
+const BEND = TUNE.bend.zones;
 const BEND_BACK = 40, BEND_AHEAD = 240, BEND_STEP = 2, BEND_N = (BEND_BACK + BEND_AHEAD) / BEND_STEP + 1;
 const bend = { x: new Float32Array(BEND_N), y: new Float32Array(BEND_N), yaw: new Float32Array(BEND_N), pitch: new Float32Array(BEND_N), cz: 0 };
 function bendAmp(z) {
   const u = -z / drive.SEG, k = Math.floor(u), f = u - k, a = BEND[zoneOf(k).key], b = BEND[zoneOf(k + 1).key];
   return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
 }
-const curvatureAt = (z) => bendAmp(z)[0] * 0.0045 * Math.sin(z / 32);           // 좌우 꺾임 비율(거리당 방향 변화)
-const slopeAt = (z) => bendAmp(z)[1] * 0.11 * Math.sin(z / 24 + 1.3);          // 오르막·내리막 경사
+const curvatureAt = (z) => bendAmp(z)[0] * TUNE.bend.curve * Math.sin(z / 32);           // 좌우 꺾임 비율(거리당 방향 변화)
+const slopeAt = (z) => bendAmp(z)[1] * TUNE.bend.hill * Math.sin(z / 24 + 1.3);          // 오르막·내리막 경사
 function bendUpdate(cz) {  // 차 뒤 40m ~ 앞 240m 를 2m 간격으로 적분한 표
   bend.cz = cz;
   const s0 = slopeAt(cz), i0 = BEND_BACK / BEND_STEP;
@@ -1010,7 +1030,7 @@ function discover(zone) {  // 처음 들어가는 구역: 가운데 큰 발견 �
   discoverEl.hidden = false; discoverUntil = clock.elapsedTime + 3;
 }
 function resetDrive() {
-  D.lane = 1; D.speed = 18; D.dist = 0; D.bump = 0; D.boost = 0; D.stars = 0; D.rings = 0; D.ringsTotal = 0; D.beaten = false; D.glitch = 0; D.crashes = 0; D.finished = false; D.turn = null; drive.car.rotation.y = 0; D.startT = clock.elapsedTime;
+  D.lane = 1; D.speed = TUNE.speed.cruise; D.dist = 0; D.bump = 0; D.boost = 0; D.stars = 0; D.rings = 0; D.ringsTotal = 0; D.beaten = false; D.glitch = 0; D.crashes = 0; D.finished = false; D.turn = null; drive.car.rotation.y = 0; D.startT = clock.elapsedTime;
   villain.visible = false; stage.classList.remove('is-glitch', 'is-hit'); popEl.classList.remove('is-on');
   drive.car.position.set(0, 0.95, 0); camFollowX = 0; zoneNow = null;
   route.length = 1; for (const i in forkAlt) delete forkAlt[i];  // 경로는 드라이브마다 새로 고른다
@@ -1031,7 +1051,8 @@ function driveTick(dt, t) {
     if (held.has(k) && !D.prev.has(k)) D.lane = THREE.MathUtils.clamp(D.lane + d, 0, 2);
   }
   D.prev = new Set(held);
-  const target = D.finished ? 0 : D.turn ? 9 : (held.has('up') ? 28 : held.has('down') ? 10 : 18) + (D.boost > 0 ? 14 : 0);  // 피니시 뒤엔 멈추고, 회전 중엔 감속
+  const V = TUNE.speed;
+  const target = D.finished ? 0 : D.turn ? V.turn : (held.has('up') ? V.fast : held.has('down') ? V.slow : V.cruise) + (D.boost > 0 ? V.boost : 0);  // 피니시 뒤엔 멈추고, 회전 중엔 감속
   D.boost = Math.max(0, D.boost - dt);
   if (D.bump > 0) D.bump -= dt; else D.speed += (target - D.speed) * Math.min(1, dt * 2);
   const tx = LANES[D.lane];
@@ -1059,7 +1080,7 @@ function driveTick(dt, t) {
     const f = liveForks[i];
     if (!f.node.parent?.parent?.parent) { liveForks.splice(i, 1); continue; }
     f.node.getWorldPosition(wp);
-    if (!f.warned && wp.z - cz > -80) { f.warned = true; say(`교차로: ◀ ${f.left.name} · 직진 ${f.def.name} · ${f.right.name} ▶`, 2.6); }
+    if (!f.warned && wp.z - cz > -TUNE.crossWarn) { f.warned = true; say(`교차로: ◀ ${f.left.name} · 직진 ${f.def.name} · ${f.right.name} ▶`, 2.6); }
     if (f.passed || wp.z < cz) continue;
     f.passed = true;
     const dir = held.has('left') ? -1 : held.has('right') ? 1 : 0;
@@ -1072,9 +1093,10 @@ function driveTick(dt, t) {
   }
   if (D.turn) {  // 회전 연출: 감속하며 차가 돌고 카메라가 따라 돌다가 별빛 와이프, 걷히면 새 구역이 정면
     const tr = D.turn; tr.t += dt;
-    car.rotation.y = reduceMotion ? 0 : -tr.dir * Math.sin(Math.min(1, tr.t / 0.6) * Math.PI / 2) * 1.1;
-    if (tr.t > 0.5 && !tr.wiped) { tr.wiped = true; wipeEl.classList.add('is-on'); }
-    if (tr.t > 1.05) { D.turn = null; car.rotation.y = 0; wipeEl.classList.remove('is-on'); say(`${tr.dir < 0 ? '좌회전' : '우회전'} → ${tr.zone.name}`, 2.2); }
+    const T = TUNE.turn;
+    car.rotation.y = reduceMotion ? 0 : -tr.dir * Math.sin(Math.min(1, tr.t / T.spin) * Math.PI / 2) * T.angle;
+    if (tr.t > T.wipeAt && !tr.wiped) { tr.wiped = true; wipeEl.classList.add('is-on'); }
+    if (tr.t > T.end) { D.turn = null; car.rotation.y = 0; wipeEl.classList.remove('is-on'); say(`${tr.dir < 0 ? '좌회전' : '우회전'} → ${tr.zone.name}`, 2.2); }
   }
   for (let i = liveFinish.length - 1; i >= 0; i--) {  // 피니시 라인 통과
     const b = liveFinish[i];
@@ -1082,7 +1104,7 @@ function driveTick(dt, t) {
     b.getWorldPosition(wp);
     if (!D.finished && wp.z > cz) { D.finished = true; D.time = t - D.startT; D.finishAt = t; say(`FINISH! 기록 ${fmtTime(D.time)}`, 3); }
   }
-  if (D.finished && t - D.finishAt > 2) switchMode('roof');
+  if (D.finished && t - D.finishAt > TUNE.finishHold) switchMode('roof');
   const kNow = Math.round(-cz / SEG), zone = zoneOf(kNow);
   if (zone !== zoneNow) {  // 구역 진입: 사건은 들어올 때마다 리셋(슬럼마다 글리치 킹, 타워마다 빛 고리)
     zoneNow = zone;
@@ -1095,7 +1117,7 @@ function driveTick(dt, t) {
     villain.position.x = Math.sin(t * 2.2) * 3;
     villain.position.y = 0.3 + Math.abs(Math.sin(t * 5)) * 0.8;
     if (!villain.userData.hit && villain.position.z - cz > -4) {
-      villain.userData.hit = true; D.villainDone = true; D.glitch = 6;
+      villain.userData.hit = true; D.villainDone = true; D.glitch = TUNE.glitchSec;
       stage.classList.add('is-glitch'); say('글리치 킹이 반짝이 버그를 뿌렸다! 아이템을 주우면 정화돼요', 3.2);
     }
     if (villain.position.z > cz + 8) villain.visible = false;
@@ -1111,9 +1133,10 @@ function driveTick(dt, t) {
     if (!r.parent?.parent?.parent) { liveRings.splice(i, 1); continue; }
     r.getWorldPosition(wp);
     if (!r.userData.passed && wp.z > cz) {
-      r.userData.passed = true; D.rings += 1; D.ringsTotal += 1; D.stars += 1; pop(1);
-      if (!D.ringsDone && D.rings >= 5) { D.ringsDone = true; D.beaten = true; D.stars += 5; say('빛 고리 5개 통과! 글리치 킹이 도망갔어요 ★+5', 3); }
-      else say(`빛 고리 ${D.rings}/5`, 1.2);
+      const S = TUNE.score, goal = TUNE.ringGoal;
+      r.userData.passed = true; D.rings += 1; D.ringsTotal += 1; D.stars += S.ring; pop(S.ring);
+      if (!D.ringsDone && D.rings >= goal) { D.ringsDone = true; D.beaten = true; D.stars += S.ringBonus; say(`빛 고리 ${goal}개 통과! 글리치 킹이 도망갔어요 ★+${S.ringBonus}`, 3); }
+      else say(`빛 고리 ${D.rings}/${goal}`, 1.2);
     }
   }
   drive.s.fog.color.lerp(new THREE.Color(zone.fog), Math.min(1, dt * 1.5));
@@ -1135,7 +1158,7 @@ function driveTick(dt, t) {
     for (let i = 1; i < a.array.length; i += 3) { a.array[i] -= dt * 1.4; a.array[i - 1] += Math.sin(t * 2 + i) * dt * 0.6; if (a.array[i] < 0) a.array[i] = 12; }
     a.needsUpdate = true;
   }
-  hintEl.hidden = switching || t - D.startT > 5;  // 조작 안내는 처음 5초만
+  hintEl.hidden = switching || t - D.startT > TUNE.hintSec;  // 조작 안내는 처음 5초만
   drive.water.position.z = cz - 150; drive.water.userData.murk.position.z = cz - 150;
   drive.dMoon.position.set(30, 60, cz - 320);
   drive.dStars.position.z = cz;
@@ -1143,19 +1166,20 @@ function driveTick(dt, t) {
     b.position.y = 0.5 + (reduceMotion ? 0 : Math.sin(t * 3 + b.position.z) * 0.18);
     const respawn = (dz) => { b.position.z -= dz; b.position.x = pick(LANES); setItem(b, itemFor(zoneOf(Math.round(-b.position.z / SEG)).key)); };
     if (Math.abs(b.position.z - cz) < 1.6 && Math.abs(b.position.x - car.position.x) < 1.3) {
-      const n = b.userData.item, rare = RARE_SET.has(n);
-      D.stars += rare ? 3 : 1; pop(rare ? 3 : 1); respawn(160 + rnd() * 80);
+      const n = b.userData.item, rare = RARE_SET.has(n), gain = rare ? TUNE.score.rare : TUNE.score.item;
+      D.stars += gain; pop(gain); respawn(160 + rnd() * 80);
       if (D.glitch > 0) { D.glitch = 0; stage.classList.remove('is-glitch'); say('정화 완료! 반짝이 버그가 사라졌어요', 2); }
-      else if (!dex.has(n)) { dex.add(n); D.newDex += 1; saveDex(); say(`NEW! 도감 ${dex.size}/24 ${rare ? '· 희귀 아이템 ★+3' : ''}`, 2); }
-      else if (rare) say('희귀 아이템 ★+3', 1.4);
+      else if (!dex.has(n)) { dex.add(n); D.newDex += 1; saveDex(); say(`NEW! 도감 ${dex.size}/24 ${rare ? `· 희귀 아이템 ★+${gain}` : ''}`, 2); }
+      else if (rare) say(`희귀 아이템 ★+${gain}`, 1.4);
     }
     else if (b.position.z > cz + 6) respawn(200);
   }
   for (const c of traffic) {
     c.position.z -= c.userData.v * dt;
     if (Math.abs(c.position.z - cz) < 3 && Math.abs(c.position.x - car.position.x) < 1.6 && D.bump <= 0) {
-      D.speed = 5; D.bump = 0.6; D.crashes += 1;
-      D.stars = Math.max(0, D.stars - 2); pop(-2); say('쾅! ★-2', 1.4);
+      const loss = TUNE.score.crash;
+      D.speed = TUNE.speed.crash; D.bump = TUNE.crashStun; D.crashes += 1;
+      D.stars = Math.max(0, D.stars - loss); pop(-loss); say(`쾅! ★-${loss}`, 1.4);
       stage.classList.add('is-hit'); setTimeout(() => stage.classList.remove('is-hit'), 300);
     }
     if (c.position.z > cz + 12) { c.position.z = cz - 140 - rnd() * 80; c.position.x = pick(LANES); }
@@ -1180,8 +1204,8 @@ function driveTick(dt, t) {
     const [lookX, lookY] = bendAt(cz - 26);  // 시선은 커브 안쪽·언덕 위아래로 반쯤 따라간다
     cam.lookAt(camFollowX + lookX * 0.35, car.position.y + 0.9 + lookY * 0.45, cz - 9);
   }
-  cam.fov = 60 + (D.speed - 18) * 0.7; cam.updateProjectionMatrix();
-  hudEl.textContent = `★ ${D.stars}  ·  ${(D.dist / 1000).toFixed(2)} / ${(FINISH_K * SEG / 1000).toFixed(2)} km${zone.key === 'tower' ? `  ·  RING ${Math.min(D.rings, 5)}/5` : ''}`;
+  cam.fov = 60 + (D.speed - TUNE.speed.cruise) * 0.7; cam.updateProjectionMatrix();
+  hudEl.textContent = `★ ${D.stars}  ·  ${(D.dist / 1000).toFixed(2)} / ${(FINISH_K * SEG / 1000).toFixed(2)} km${zone.key === 'tower' ? `  ·  RING ${Math.min(D.rings, TUNE.ringGoal)}/${TUNE.ringGoal}` : ''}`;
   speedEl.textContent = `${Math.round(D.speed * 6)} km/h`;
 }
 
@@ -1263,7 +1287,7 @@ function nearest() {
 function press(k) {
   if (mode === 'drive') {
     if (k === 'b') switchMode('roof');
-    else D.boost = 1.2;
+    else D.boost = TUNE.boostSec;
     return;
   }
   if (k === 'b') { closeDialog(); return; }
