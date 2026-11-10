@@ -1044,8 +1044,10 @@ function resetDrive() {
   traffic.forEach((c, i) => c.position.set(pick(LANES), 0.95, -70 - i * 45));
   D.seen = new Set(); D.newDex = 0; mapEl.hidden = false; drawMap(null);
 }
-function driveTick(dt, t) {
-  const { car, segs, bugs, traffic, SEG, NSEG, LANES } = drive;
+// ===== 드라이브 한 프레임 — 기능별 함수. 순서는 driveTick 이 정한다 =====
+const wp = new THREE.Vector3();  // 월드 좌표를 받아 오는 임시 벡터(프레임마다 새로 만들지 않는다)
+function tickCar(dt, t) {  // 입력 → 속도·차선·차 자세·주행 거리
+  const { car, LANES } = drive;
   // 차선: 누르는 순간 한 칸
   if (!D.turn && !D.finished) for (const [k, d] of [['left', -1], ['right', 1]]) {
     if (held.has(k) && !D.prev.has(k)) D.lane = THREE.MathUtils.clamp(D.lane + d, 0, 2);
@@ -1063,7 +1065,9 @@ function driveTick(dt, t) {
   if (car.userData.clipH !== undefined) roofClip.constant = car.position.y + car.userData.clipH;
   car.position.y = 0.95 + (reduceMotion ? 0 : Math.sin(t * 6) * 0.05);
   D.dist += D.speed * dt;
-  const cz = car.position.z;
+}
+function tickRoad(cz) {  // 도로 조각 재활용 + 굴곡 적용 + 가까운 가로등 조명
+  const { car, segs, SEG, NSEG } = drive;
   for (const g of segs) if (g.position.z > cz + SEG) { g.position.z -= SEG * NSEG; g.userData.k += NSEG; decorate(g); }
   bendUpdate(cz);
   for (const g of segs) { const [x, y, yaw, pitch] = bendAt(g.position.z); g.position.x = x; g.position.y = y; g.rotation.y = -yaw; g.rotation.x = pitch; }
@@ -1072,9 +1076,11 @@ function driveTick(dt, t) {
   drive.skyline.position.z = cz;
   // 차 앞쪽 가까운 가로등 4개에 실제 조명을 옮겨 붙인다 — 주변 나무·길이 등불 색을 받는다
   for (let i = lampSpots.length - 1; i >= 0; i--) if (!lampSpots[i].parent?.parent?.parent) lampSpots.splice(i, 1);
-  const wp = new THREE.Vector3();
   const near = lampSpots.map((b) => { b.getWorldPosition(wp); return [wp.z - cz, wp.clone()]; }).filter(([dz]) => dz < 6 && dz > -45).sort((a, b) => b[0] - a[0]).slice(0, 4);
   drive.lampLights.forEach((l, i) => { if (near[i]) { l.position.copy(near[i][1]); l.intensity = 22; } else l.intensity = 0; });
+}
+function tickCrossroads(cz) {  // 교차로 안내·좌/직/우 결정
+  const { segs } = drive;
   // 교차로: 들어서는 순간 ◀/▶ 를 누르고 있으면 그쪽 구역으로 회전, 아니면 직진. 이미 깔린 앞 조각은 다시 꾸민다
   for (let i = liveForks.length - 1; i >= 0; i--) {
     const f = liveForks[i];
@@ -1091,6 +1097,9 @@ function driveTick(dt, t) {
       D.turn = { dir, t: 0, zone: next };
     } else say(`직진 → ${f.def.name}`, 2);
   }
+}
+function tickTurn(dt) {  // 교차로 회전 연출
+  const { car } = drive;
   if (D.turn) {  // 회전 연출: 감속하며 차가 돌고 카메라가 따라 돌다가 별빛 와이프, 걷히면 새 구역이 정면
     const tr = D.turn; tr.t += dt;
     const T = TUNE.turn;
@@ -1098,6 +1107,8 @@ function driveTick(dt, t) {
     if (tr.t > T.wipeAt && !tr.wiped) { tr.wiped = true; wipeEl.classList.add('is-on'); }
     if (tr.t > T.end) { D.turn = null; car.rotation.y = 0; wipeEl.classList.remove('is-on'); say(`${tr.dir < 0 ? '좌회전' : '우회전'} → ${tr.zone.name}`, 2.2); }
   }
+}
+function tickFinish(cz, t) {  // 피니시 라인 통과·결과 화면 전환
   for (let i = liveFinish.length - 1; i >= 0; i--) {  // 피니시 라인 통과
     const b = liveFinish[i];
     if (!b.parent?.parent?.parent) { liveFinish.splice(i, 1); continue; }
@@ -1105,7 +1116,10 @@ function driveTick(dt, t) {
     if (!D.finished && wp.z > cz) { D.finished = true; D.time = t - D.startT; D.finishAt = t; say(`FINISH! 기록 ${fmtTime(D.time)}`, 3); }
   }
   if (D.finished && t - D.finishAt > TUNE.finishHold) switchMode('roof');
-  const kNow = Math.round(-cz / SEG), zone = zoneOf(kNow);
+}
+function tickZone(cz, t) {  // 구역 진입 사건(발견 카드·글리치 킹 등장·빛 고리 리셋). 현재 구역을 돌려준다
+  const { LANES } = drive;
+  const zone = zoneOf(Math.round(-cz / drive.SEG));
   if (zone !== zoneNow) {  // 구역 진입: 사건은 들어올 때마다 리셋(슬럼마다 글리치 킹, 타워마다 빛 고리)
     zoneNow = zone;
     if (D.seen.has(zone)) zoneBannerUntil = t + 2.2; else { D.seen.add(zone); discover(zone); }
@@ -1113,6 +1127,9 @@ function driveTick(dt, t) {
     if (zone.key === 'slum') { D.villainDone = false; villain.visible = true; villain.position.set(pick(LANES), 0.3, cz - 75); villain.userData.hit = false; }
     if (zone.key === 'tower') { D.ringsDone = false; D.rings = 0; }
   }
+  return zone;
+}
+function tickVillain(cz, dt, t) {  // 글리치 킹 이동·접촉, 글리치 상태
   if (villain.visible) {
     villain.position.x = Math.sin(t * 2.2) * 3;
     villain.position.y = 0.3 + Math.abs(Math.sin(t * 5)) * 0.8;
@@ -1127,6 +1144,8 @@ function driveTick(dt, t) {
     if (!reduceMotion && Math.random() < dt * 1.2) D.lane = THREE.MathUtils.clamp(D.lane + (Math.random() < 0.5 ? -1 : 1), 0, 2);  // 핸들이 흔들린다
     if (D.glitch <= 0) stage.classList.remove('is-glitch');
   }
+}
+function tickRings(cz) {  // 타워 빛 고리 통과
   // 핑크 타워 빛 고리 통과
   for (let i = liveRings.length - 1; i >= 0; i--) {
     const r = liveRings[i];
@@ -1139,11 +1158,15 @@ function driveTick(dt, t) {
       else say(`빛 고리 ${D.rings}/${goal}`, 1.2);
     }
   }
+}
+function tickAmbience(zone, dt, t) {  // 구역 색(안개·하늘)과 배너·문구 숨김
   drive.s.fog.color.lerp(new THREE.Color(zone.fog), Math.min(1, dt * 1.5));
   drive.hemi.color.lerp(new THREE.Color(zone.sky), Math.min(1, dt * 1.5));
   zoneEl.hidden = t >= zoneBannerUntil; zoneEl.textContent = zone.name;
   if (t >= eventUntil) eventEl.hidden = true;
   if (t >= discoverUntil) discoverEl.hidden = true;
+}
+function tickRoadside(cz, dt, t) {  // 길가 주민 한마디 + 벚꽃잎
   for (let i = liveResidents.length - 1; i >= 0; i--) {  // 길가 주민: 가까워지면 한마디, 제자리에서 통통
     const r = liveResidents[i];
     if (!r.spr.parent?.parent?.parent) { liveResidents.splice(i, 1); continue; }
@@ -1158,10 +1181,15 @@ function driveTick(dt, t) {
     for (let i = 1; i < a.array.length; i += 3) { a.array[i] -= dt * 1.4; a.array[i - 1] += Math.sin(t * 2 + i) * dt * 0.6; if (a.array[i] < 0) a.array[i] = 12; }
     a.needsUpdate = true;
   }
+}
+function tickBackdrop(cz, t) {  // 조작 안내 숨김 + 차를 따라오는 먼 배경(강물·달·별)
   hintEl.hidden = switching || t - D.startT > TUNE.hintSec;  // 조작 안내는 처음 5초만
   drive.water.position.z = cz - 150; drive.water.userData.murk.position.z = cz - 150;
   drive.dMoon.position.set(30, 60, cz - 320);
   drive.dStars.position.z = cz;
+}
+function tickItems(cz, t) {  // 아이템 줍기·도감·재배치
+  const { car, bugs, SEG, LANES } = drive;
   for (const b of bugs) {
     b.position.y = 0.5 + (reduceMotion ? 0 : Math.sin(t * 3 + b.position.z) * 0.18);
     const respawn = (dz) => { b.position.z -= dz; b.position.x = pick(LANES); setItem(b, itemFor(zoneOf(Math.round(-b.position.z / SEG)).key)); };
@@ -1174,6 +1202,9 @@ function driveTick(dt, t) {
     }
     else if (b.position.z > cz + 6) respawn(200);
   }
+}
+function tickTraffic(cz, dt) {  // 다른 차 이동·충돌 감점
+  const { car, traffic, LANES } = drive;
   for (const c of traffic) {
     c.position.z -= c.userData.v * dt;
     if (Math.abs(c.position.z - cz) < 3 && Math.abs(c.position.x - car.position.x) < 1.6 && D.bump <= 0) {
@@ -1184,6 +1215,8 @@ function driveTick(dt, t) {
     }
     if (c.position.z > cz + 12) { c.position.z = cz - 140 - rnd() * 80; c.position.x = pick(LANES); }
   }
+}
+function tickBoards(cz, t) {  // 가까운 광고판만 다시 그린다
   for (let i = liveBoards.length - 1; i >= 0; i--) {
     const b = liveBoards[i];
     if (!b.board.parent?.parent?.parent) { liveBoards.splice(i, 1); continue; }
@@ -1191,6 +1224,9 @@ function driveTick(dt, t) {
     const dz = wp.z - cz;
     if (dz < 4 && dz > -110 && (!b.last || t - b.last > 0.12)) { b.panel.draw(b.g, t + b.seed); b.tex.needsUpdate = true; b.last = t; }
   }
+}
+function tickCamera(cz, dt, t) {  // 카메라 따라가기(회전 중엔 차 머리 방향)
+  const { car } = drive;
   const cam = drive.cam;
   // 카트 뒤 낮은 위치에서 따라간다(카트라이더·레이싱 게임 시점). 차선 바꿀 때 카메라가 반 박자 늦게 따라온다
   const shake = D.bump > 0 && !reduceMotion ? Math.sin(t * 60) * 0.12 : 0;
@@ -1205,8 +1241,30 @@ function driveTick(dt, t) {
     cam.lookAt(camFollowX + lookX * 0.35, car.position.y + 0.9 + lookY * 0.45, cz - 9);
   }
   cam.fov = 60 + (D.speed - TUNE.speed.cruise) * 0.7; cam.updateProjectionMatrix();
+}
+function tickHud(zone) {  // 계기판 글자
+  const { SEG } = drive;
   hudEl.textContent = `★ ${D.stars}  ·  ${(D.dist / 1000).toFixed(2)} / ${(FINISH_K * SEG / 1000).toFixed(2)} km${zone.key === 'tower' ? `  ·  RING ${Math.min(D.rings, TUNE.ringGoal)}/${TUNE.ringGoal}` : ''}`;
   speedEl.textContent = `${Math.round(D.speed * 6)} km/h`;
+}
+function driveTick(dt, t) {
+  tickCar(dt, t);
+  const cz = drive.car.position.z;
+  tickRoad(cz);
+  tickCrossroads(cz);
+  tickTurn(dt);
+  tickFinish(cz, t);
+  const zone = tickZone(cz, t);
+  tickVillain(cz, dt, t);
+  tickRings(cz);
+  tickAmbience(zone, dt, t);
+  tickRoadside(cz, dt, t);
+  tickBackdrop(cz, t);
+  tickItems(cz, t);
+  tickTraffic(cz, dt);
+  tickBoards(cz, t);
+  tickCamera(cz, dt, t);
+  tickHud(zone);
 }
 
 // 렌더 패스: 픽셀 → 번짐 → 출력
