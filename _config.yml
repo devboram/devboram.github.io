@@ -45,7 +45,6 @@ defaults:
     values:
       layout: post
       nav: posts
-      theme: pixel
 
 # giscus — 저장소 Discussions 를 댓글·방명록 저장소로 쓴다.
 # 카테고리는 Announcements — 관리자와 giscus 만 스레드를 만들 수 있어 방문자가 임의로 못 만든다.

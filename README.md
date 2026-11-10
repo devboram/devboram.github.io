@@ -25,8 +25,8 @@ bundle exec jekyll serve
 - 페이지 상단 배너: `{% include page-banner.html bg="<이름>" icon="<스프라이트>" title="..." %}`, 배경은 `assets/pixel/bg/<이름>.jpg`.
 - 색·글꼴·그림자·테두리 같은 디자인 값: `pixel.css` 맨 위 `:root` 토큰만 고친다 (primitive 팔레트 → semantic 역할 이름 순서, 컴포넌트는 semantic 만 읽는다).
 - 그림 생성·가공: `tools/art/` (스크립트, 빌드 제외 — 실행법은 그 폴더 `README.md`). ChatGPT·Figma 생성 원본은 저장소가 아니라 볼트 `Projects/개인 프로젝트/devboram.github.io/리소스/원본/` 에 둔다.
-- 모든 페이지는 `theme: pixel`(글은 `_config.yml` 기본값). `style.css`(이전 종이 테마)는 지금 어느 페이지도 읽지 않는다.
+- 스타일은 `pixel.css` 하나(토큰·공용 컴포넌트). 한 페이지만 쓰는 큰 덩어리는 따로 두고 front matter `css:` 로 읽는다 — 지금은 `/play.html` 의 `play.css` 뿐.
 
 ## 배포
 
-`main` 에 push 하면 GitHub Pages 가 빌드한다. 인라인 `style=` 은 쓰지 않고 `pixel.css` 하나에 클래스로 둔다.
+`main` 에 push 하면 GitHub Pages 가 빌드한다. 인라인 `style=` 은 쓰지 않고 `pixel.css`(페이지 전용은 `css:` 로 읽는 파일)에 클래스로 둔다.
