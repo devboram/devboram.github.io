@@ -9,6 +9,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { Reflector } from 'three/addons/objects/Reflector.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { buildFloors, liftDoor } from './play-floors.js';
 
 const stage = document.querySelector('.play-stage');
 const canvas = stage.querySelector('.play-canvas');
@@ -373,13 +374,33 @@ const npcs = data.cast.filter((c) => npcSpots[c.key]).map((c) => {
 });
 const me = data.cast.find((c) => c.key === 'bunny');
 
+// ===== 층: 옥상(RF) + 실내 층(play-floors.js). 걷기·대화·엘리베이터는 층 공통 — 지금 있는 층이 place =====
+const roofLift = liftDoor(canvasTexture, CYAN, GOLD); roofLift.position.set(3.8, 0, -ROOF.d / 2 + 0.3); scene.add(roofLift);
+const FLOORS = [
+  { key: 'RF', name: 'RF 달빛 옥상', scene, w: ROOF.w, d: ROOF.d, spawn: [3.8, -3.6], npcs, things: [
+    { pos: [7.2, -ROOF.d / 2 + 0.3], hint: '드라이브 하러 가기', act: () => switchMode('drive') },
+    { pos: [3.8, -ROOF.d / 2 + 0.3], hint: '엘리베이터 타기', act: () => openLift() },
+  ] },
+  ...buildFloors({ canvasTexture, colors: { PINK, CYAN, GOLD, VIOLET, LAV }, data, skyline: skylineTexs[0] }).map((f) => ({
+    ...f,
+    npcs: f.npcs.map((n) => {
+      const spr = card(`/assets/chars/${n.key}.png`, n.height); f.scene.add(spr);
+      spr.position.set(...n.pos); spr.userData.base = n.pos[1];
+      spr.userData.info = data.cast.find((c) => c.key === n.key); spr.userData.lines = n.lines;
+      return spr;
+    }),
+    things: [...f.things, { pos: f.lift, hint: '엘리베이터 타기', act: () => openLift() }],
+  })),
+];
+let place = FLOORS[0];
+
 // 반짝이(요술봉 행동)
 const sparkGeo = new THREE.BufferGeometry();
 const SPARKS = 60;
 const sparkPos = new Float32Array(SPARKS * 3), sparkVel = new Float32Array(SPARKS * 3);
 sparkGeo.setAttribute('position', new THREE.BufferAttribute(sparkPos, 3));
 const sparkMat = new THREE.PointsMaterial({ color: GOLD, size: 5, sizeAttenuation: false, transparent: true, opacity: 0 });
-scene.add(new THREE.Points(sparkGeo, sparkMat));
+const sparkPts = new THREE.Points(sparkGeo, sparkMat); scene.add(sparkPts);  // 층을 옮기면 토끼와 함께 그 층 장면으로 간다
 let sparkLife = 0;
 function burst(at) {
   for (let i = 0; i < SPARKS; i++) {
@@ -1453,7 +1474,9 @@ for (const btn of document.querySelectorAll('.pad-btn')) {
   for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) btn.addEventListener(ev, up);
 }
 
-let dialogOpen = false, twirlT = -1, mode = 'roof', switching = false;
+let dialogOpen = false, dialogAction = null, twirlT = -1, mode = 'roof', switching = false;
+let liftSel = -1, floorBannerUntil = 0;  // 엘리베이터에서 고르는 층(-1 = 닫힘), 층 이름 배너를 내리는 시각
+const liftPrev = new Set();
 function switchMode(next) {
   if (switching) return;
   switching = true; closeDialog();
@@ -1461,7 +1484,7 @@ function switchMode(next) {
   setTimeout(() => {
     mode = next;
     if (engine) engine.g.gain.setTargetAtTime(0, actx.currentTime, 0.05);  // 옥상에선 엔진음을 끈다
-    pixelPass.scene = next === 'drive' ? drive.s : scene;
+    pixelPass.scene = next === 'drive' ? drive.s : place.scene;
     pixelPass.camera = next === 'drive' ? drive.cam : camera;
     hudEl.hidden = speedEl.hidden = mapEl.hidden = next !== 'drive'; zoneEl.hidden = eventEl.hidden = discoverEl.hidden = true;
     const result = mode === 'roof' && D.dist > 30 ? `${D.finished ? `FINISH ${fmtTime(D.time)} · ` : ''}★ ${D.stars} · ${(D.dist / 1000).toFixed(2)} km · 탐험 ${D.seen.size}/${ZONES.length} 구역 · 도감 ${dex.size}/24${D.newDex ? ` (NEW ${D.newDex})` : ''} · 빛 고리 ${D.ringsTotal}개 · 충돌 ${D.crashes}회${D.beaten ? ' · 글리치 킹 격퇴!' : ''}` : '';
@@ -1474,22 +1497,40 @@ function switchMode(next) {
     switching = false;
   }, reduceMotion ? 0 : 480);
 }
-function showDialog(name, text) {
+function showDialog(name, text, onA = null) {  // onA 가 있으면 A 를 눌렀을 때 닫고 그 일을 한다
   dialogEl.querySelector('.play-dialog-name').textContent = name;
   dialogEl.querySelector('.play-dialog-text').textContent = text;
-  dialogEl.hidden = false; dialogOpen = true;
+  dialogEl.hidden = false; dialogOpen = true; dialogAction = onA;
 }
-function closeDialog() { dialogEl.hidden = true; dialogOpen = false; }
+function closeDialog() { dialogEl.hidden = true; dialogOpen = false; dialogAction = null; liftSel = -1; }
+
+// 엘리베이터: 층 목록에서 ▲▼ 로 고르고 A 로 이동
+function drawLift() { showDialog('엘리베이터 — ▲▼ 고르기 · A 이동', FLOORS.map((f, i) => `${i === liftSel ? '▶' : '▷'} ${f.name}${f === place ? ' (지금 층)' : ''}`).join('\n')); }
+function openLift() { const at = FLOORS.indexOf(place); drawLift(liftSel = at); }
+function gotoFloor(f) {
+  if (switching) return;
+  switching = true; wipeEl.classList.add('is-on'); sfx('turn');
+  setTimeout(() => {
+    place = f; f.scene.add(bunny, sparkPts); bunny.position.set(f.spawn[0], 0, f.spawn[1]);
+    pixelPass.scene = f.scene; bloom.strength = f.glow ?? TUNE.view.glow.roof;  // 실내는 번짐을 줄여 흰 캐릭터가 날아가지 않게
+    camPos.set(bunny.position.x * 0.6, 4.8, bunny.position.z + 11); camLook.set(bunny.position.x * 0.8, 1.6, bunny.position.z - 4);
+    zoneEl.textContent = f.name; zoneEl.hidden = false; floorBannerUntil = clock.elapsedTime + 2.2;
+    wipeEl.classList.remove('is-on'); switching = false;
+  }, reduceMotion ? 0 : 480);
+}
 
 function nearest() {
-  let best = null, bd = 2.4;
-  for (const n of npcs) {
+  let best = null, bd = 2.4, td = 2;  // 물건(문·책장)은 2m 안에서 가장 가까운 것, 있으면 동료보다 먼저
+  for (const n of place.npcs) {
     const d = Math.hypot(n.position.x - bunny.position.x, n.position.z - bunny.position.z);
     if (d < bd) { bd = d; best = { type: 'npc', n }; }
   }
-  const door = scene.userData.door.position;
-  if (Math.hypot(door.x - bunny.position.x, door.z - bunny.position.z) < 2) best = { type: 'door' };
-  return best;
+  let thing = null;
+  for (const th of place.things) {
+    const d = Math.hypot(th.pos[0] - bunny.position.x, th.pos[1] - bunny.position.z);
+    if (d < td) { td = d; thing = { type: 'thing', th }; }
+  }
+  return thing || best;
 }
 
 function press(k) {
@@ -1502,10 +1543,15 @@ function press(k) {
     return;
   }
   if (k === 'b') { closeDialog(); return; }
-  if (dialogOpen) { closeDialog(); return; }
+  if (liftSel >= 0) { const f = FLOORS[liftSel]; closeDialog(); if (f !== place) gotoFloor(f); return; }
+  if (dialogOpen) { const act = dialogAction; closeDialog(); act?.(); return; }
   const t = nearest();
-  if (t?.type === 'npc') showDialog(t.n.userData.info.name, `"${t.n.userData.info.quote}"`);
-  else if (t?.type === 'door') switchMode('drive');
+  if (t?.type === 'npc') {  // 말을 걸 때마다 다음 대사
+    const u = t.n.userData, lines = u.lines || [u.info.quote];
+    u.line = ((u.line ?? -1) + 1) % lines.length;
+    showDialog(u.info.name, `"${lines[u.line]}"`);
+  }
+  else if (t?.type === 'thing') t.th.act({ showDialog });
   else { twirlT = 0; burst(bunny.position); }
 }
 
@@ -1524,13 +1570,19 @@ function tick() {
     requestAnimationFrame(tick);
     return;
   }
+  // 엘리베이터 층 고르기(누르는 순간 한 칸)
+  if (liftSel >= 0) for (const [k, d] of [['up', -1], ['down', 1]]) {
+    if (held.has(k) && !liftPrev.has(k)) { liftSel = THREE.MathUtils.clamp(liftSel + d, 0, FLOORS.length - 1); drawLift(); sfx('lane'); }
+  }
+  liftPrev.clear(); for (const k of held) liftPrev.add(k);
+  if (t >= floorBannerUntil) zoneEl.hidden = true;
   // 이동
   if (!dialogOpen && twirlT < 0) {
     const v = new THREE.Vector2((held.has('right') ? 1 : 0) - (held.has('left') ? 1 : 0), (held.has('down') ? 1 : 0) - (held.has('up') ? 1 : 0));
     if (v.lengthSq()) {
       v.normalize().multiplyScalar(5 * dt);
-      bunny.position.x = THREE.MathUtils.clamp(bunny.position.x + v.x, -ROOF.w / 2 + 0.8, ROOF.w / 2 - 0.8);
-      bunny.position.z = THREE.MathUtils.clamp(bunny.position.z + v.y, -ROOF.d / 2 + 0.8, ROOF.d / 2 - 0.8);
+      bunny.position.x = THREE.MathUtils.clamp(bunny.position.x + v.x, -place.w / 2 + 0.8, place.w / 2 - 0.8);
+      bunny.position.z = THREE.MathUtils.clamp(bunny.position.z + v.y, -place.d / 2 + 0.8, place.d / 2 - 0.8);
       bunny.position.y = Math.abs(Math.sin(t * 12)) * 0.12;
     } else bunny.position.y = 0;
   }
@@ -1542,7 +1594,7 @@ function tick() {
     if (i >= TWIRL.length) { twirlT = -1; tex.offset.x = 0; } else tex.offset.x = TWIRL[i] / 6;
   }
   // 동료 둥실
-  if (!reduceMotion) for (const n of npcs) n.position.y = n.userData.base + Math.sin(t * 2 + n.position.x) * 0.06;
+  if (!reduceMotion) for (const n of place.npcs) n.position.y = n.userData.base + Math.sin(t * 2 + n.position.x) * 0.06;
   // 대교 차
   for (const c of bridgeCars) { c.position.x += c.userData.v * dt; if (c.position.x > 130) c.position.x = -130; if (c.position.x < -130) c.position.x = 130; }
   // 반짝이
@@ -1558,7 +1610,7 @@ function tick() {
   }
   // 안내
   const near = nearest();
-  const hint = dialogOpen ? '' : near?.type === 'npc' ? `▶ A ${near.n.userData.info.name}에게 말 걸기` : near?.type === 'door' ? '▶ A 드라이브 하러 가기' : '';
+  const hint = dialogOpen ? '' : near?.type === 'npc' ? `▶ A ${near.n.userData.info.name}에게 말 걸기` : near?.type === 'thing' ? `▶ A ${near.th.hint}` : '';
   hintEl.hidden = !hint; if (hint) hintEl.textContent = hint;
   // 카메라: 토끼 뒤 위에서 천천히 따라간다
   const sway = reduceMotion ? 0 : Math.sin(t * 0.25) * 0.8;

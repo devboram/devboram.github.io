@@ -17,7 +17,7 @@
 .play-dialog { position: absolute; left: 16px; right: 16px; bottom: 16px; padding: 16px 20px; text-align: left; }
 .play-dialog p { margin: 0; }
 .play-dialog-name { font-family: var(--font-pixel); font-weight: 700; font-size: 15px; color: var(--gold-400); }
-.play-dialog-text { margin-top: 6px !important; font-size: 15px; line-height: 1.7; }
+.play-dialog-text { margin-top: 6px !important; font-size: 15px; line-height: 1.7; white-space: pre-line; }
 .play-dialog-close { margin-top: 6px !important; font-family: var(--font-pixel-sm); font-size: 14px; color: var(--text-muted); text-align: right; }
 .play-fallback { display: none; position: absolute; inset: auto 16px 16px 16px; margin: 0; padding: 12px; background: var(--night-950); }
 .play-stage.is-fallback .play-fallback { display: block; }
