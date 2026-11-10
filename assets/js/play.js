@@ -9,7 +9,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { Reflector } from 'three/addons/objects/Reflector.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { buildFloors, liftDoor } from './play-floors.js';
+import { buildFloors, liftDoor, roofProps } from './play-floors.js';
 
 const stage = document.querySelector('.play-stage');
 const canvas = stage.querySelector('.play-canvas');
@@ -364,24 +364,19 @@ function card(url, height, frames = 1) {
 
 const bunny = card('/assets/chars/anim/bunny_twirl.webp', 2.4, 6);
 bunny.position.set(0, 0, 2);
-const npcSpots = { robot: [-4.5, 1.6, -1.5], cat: [-3, 7.3, -ROOF.d / 2 - 0.1], slime: [4, 0, 2.6], villain: [5.2, 0, -2.5] };
-const npcs = data.cast.filter((c) => npcSpots[c.key]).map((c) => {
-  const s = card(`/assets/chars/${c.key}.png`, c.key === 'slime' ? 1.6 : 2.1);
-  s.position.set(...npcSpots[c.key]);
-  s.userData.base = s.position.y;
-  s.userData.info = c;
-  return s;
-});
 const me = data.cast.find((c) => c.key === 'bunny');
 
 // ===== 층: 옥상(RF) + 실내 층(play-floors.js). 걷기·대화·엘리베이터는 층 공통 — 지금 있는 층이 place =====
 const roofLift = liftDoor(canvasTexture, CYAN, GOLD); roofLift.position.set(3.8, 0, -ROOF.d / 2 + 0.3); scene.add(roofLift);
+// 동료는 각자 맡은 층에 있다(5F 미누 · 4F 모니 · 3F 큐링 · B1 글리치 킹). 옥상은 소품을 살펴보는 허브
+const floorCtx = { canvasTexture, colors: { PINK, CYAN, GOLD, VIOLET, LAV }, data, skyline: skylineTexs[0], dex, drive: () => switchMode('drive') };
 const FLOORS = [
-  { key: 'RF', name: 'RF 달빛 옥상', scene, w: ROOF.w, d: ROOF.d, spawn: [3.8, -3.6], npcs, things: [
+  { key: 'RF', name: 'RF 달빛 옥상', scene, w: ROOF.w, d: ROOF.d, spawn: [3.8, -3.6], npcs: [], things: [
     { pos: [7.2, -ROOF.d / 2 + 0.3], hint: '드라이브 하러 가기', act: () => switchMode('drive') },
     { pos: [3.8, -ROOF.d / 2 + 0.3], hint: '엘리베이터 타기', act: () => openLift() },
+    ...roofProps(scene, floorCtx, ROOF),
   ] },
-  ...buildFloors({ canvasTexture, colors: { PINK, CYAN, GOLD, VIOLET, LAV }, data, skyline: skylineTexs[0] }).map((f) => ({
+  ...buildFloors(floorCtx).map((f) => ({
     ...f,
     npcs: f.npcs.map((n) => {
       const spr = card(`/assets/chars/${n.key}.png`, n.height); f.scene.add(spr);
@@ -1490,7 +1485,7 @@ function switchMode(next) {
     const result = mode === 'roof' && D.dist > 30 ? `${D.finished ? `FINISH ${fmtTime(D.time)} · ` : ''}★ ${D.stars} · ${(D.dist / 1000).toFixed(2)} km · 탐험 ${D.seen.size}/${ZONES.length} 구역 · 도감 ${dex.size}/24${D.newDex ? ` (NEW ${D.newDex})` : ''} · 빛 고리 ${D.ringsTotal}개 · 충돌 ${D.crashes}회${D.beaten ? ' · 글리치 킹 격퇴!' : ''}` : '';
     if (next === 'drive') { resetDrive(); hintEl.hidden = false; hintEl.textContent = '◀ ▶ 차선 · ▲▼ 속도 · A 부스트 · B 옥상으로'; }
     else {
-      bloom.strength = TUNE.view.glow.roof; bunny.position.set(7.2, 0, -4.4); stage.classList.remove('is-glitch'); villain.visible = false;
+      bloom.strength = place.glow ?? TUNE.view.glow.roof; bunny.position.set(...(place === FLOORS[0] ? [7.2, 0, -4.4] : [-4.5, 0, -3.2])); stage.classList.remove('is-glitch'); villain.visible = false;
       if (result) showDialog(D.finished ? 'FINISH!' : 'DRIVE 결과', `${result} — 오늘의 퀘스트: ${(data.posts || [])[0] || '새 글 준비 중'}`);
     }
     wipeEl.classList.remove('is-on');
@@ -1505,13 +1500,14 @@ function showDialog(name, text, onA = null) {  // onA 가 있으면 A 를 눌렀
 function closeDialog() { dialogEl.hidden = true; dialogOpen = false; dialogAction = null; liftSel = -1; }
 
 // 엘리베이터: 층 목록에서 ▲▼ 로 고르고 A 로 이동
-function drawLift() { showDialog('엘리베이터 — ▲▼ 고르기 · A 이동', FLOORS.map((f, i) => `${i === liftSel ? '▶' : '▷'} ${f.name}${f === place ? ' (지금 층)' : ''}`).join('\n')); }
-function openLift() { const at = FLOORS.indexOf(place); drawLift(liftSel = at); }
+const lifts = () => FLOORS.filter((f) => !f.locked?.());  // 잠긴 층(숨은 층)은 목록에서 뺀다
+function drawLift() { showDialog('엘리베이터 — ▲▼ 고르기 · A 이동', lifts().map((f, i) => `${i === liftSel ? '▶' : '▷'} ${f.name}${f === place ? ' (지금 층)' : ''}`).join('\n')); }
+function openLift() { const at = lifts().indexOf(place); drawLift(liftSel = at); }
 function gotoFloor(f) {
   if (switching) return;
   switching = true; wipeEl.classList.add('is-on'); sfx('turn');
   setTimeout(() => {
-    place = f; f.scene.add(bunny, sparkPts); bunny.position.set(f.spawn[0], 0, f.spawn[1]);
+    place = f; f.enter?.(); f.scene.add(bunny, sparkPts); bunny.position.set(f.spawn[0], 0, f.spawn[1]);
     pixelPass.scene = f.scene; bloom.strength = f.glow ?? TUNE.view.glow.roof;  // 실내는 번짐을 줄여 흰 캐릭터가 날아가지 않게
     camPos.set(bunny.position.x * 0.6, 4.8, bunny.position.z + 11); camLook.set(bunny.position.x * 0.8, 1.6, bunny.position.z - 4);
     zoneEl.textContent = f.name; zoneEl.hidden = false; floorBannerUntil = clock.elapsedTime + 2.2;
@@ -1543,7 +1539,7 @@ function press(k) {
     return;
   }
   if (k === 'b') { closeDialog(); return; }
-  if (liftSel >= 0) { const f = FLOORS[liftSel]; closeDialog(); if (f !== place) gotoFloor(f); return; }
+  if (liftSel >= 0) { const f = lifts()[liftSel]; closeDialog(); if (f !== place) gotoFloor(f); return; }
   if (dialogOpen) { const act = dialogAction; closeDialog(); act?.(); return; }
   const t = nearest();
   if (t?.type === 'npc') {  // 말을 걸 때마다 다음 대사
@@ -1572,7 +1568,7 @@ function tick() {
   }
   // 엘리베이터 층 고르기(누르는 순간 한 칸)
   if (liftSel >= 0) for (const [k, d] of [['up', -1], ['down', 1]]) {
-    if (held.has(k) && !liftPrev.has(k)) { liftSel = THREE.MathUtils.clamp(liftSel + d, 0, FLOORS.length - 1); drawLift(); sfx('lane'); }
+    if (held.has(k) && !liftPrev.has(k)) { liftSel = THREE.MathUtils.clamp(liftSel + d, 0, lifts().length - 1); drawLift(); sfx('lane'); }
   }
   liftPrev.clear(); for (const k of held) liftPrev.add(k);
   if (t >= floorBannerUntil) zoneEl.hidden = true;

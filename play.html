@@ -10,7 +10,7 @@ noindex: true
 {%- endcomment %}
     <section class="play" aria-labelledby="play-heading">
       <h1 class="ribbon" id="play-heading">{% include sprite.html name="star" size=2 %}<span>TEST STAGE · 달빛 옥상</span></h1>
-      <p class="lead">3D 픽셀 네온 시티 시험판이에요. 옥상을 걸어 다니며 동료에게 말을 걸고, DRIVE 문으로 나가 네온 대교를 달려 보세요.</p>
+      <p class="lead">3D 픽셀 네온 시티 시험판이에요. 옥상 소품을 살펴보고, 엘리베이터로 층마다 있는 동료를 만나고, DRIVE 문으로 나가 네온 대교를 달려 보세요.</p>
 
       <div class="play-console">
         <div class="play-stage" tabindex="0" aria-label="게임 화면 — 방향키로 이동, 스페이스로 행동">
@@ -56,6 +56,8 @@ noindex: true
     <script type="application/json" id="play-data">{
       "posts": [{% for post in site.posts limit: 8 %}{{ post.title | jsonify }}{% unless forloop.last %},{% endunless %}{% endfor %}],
       "links": [{% for post in site.posts limit: 4 %}{"title": {{ post.title | jsonify }}, "url": {{ post.url | relative_url | jsonify }}}{% unless forloop.last %},{% endunless %}{% endfor %}],
+      "projects": [{% for pr in site.data.projects %}{"name": {{ pr.name | jsonify }}, "summary": {{ pr.summary | jsonify }}}{% unless forloop.last %},{% endunless %}{% endfor %}],
+      "projectsUrl": {{ '/projects.html' | relative_url | jsonify }},
       "cast": [{% for hero in site.data.characters.cast %}{"key": {{ hero.key | jsonify }}, "name": {{ hero.name | jsonify }}, "quote": {{ hero.quote | jsonify }}}{% unless forloop.last %},{% endunless %}{% endfor %}]
     }</script>
     <script type="importmap">{
