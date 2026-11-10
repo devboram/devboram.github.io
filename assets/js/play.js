@@ -6,6 +6,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { Reflector } from 'three/addons/objects/Reflector.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
@@ -56,6 +57,13 @@ const TUNE = {
     boostKick: 3,        // 부스트를 누른 순간 바로 붙는 속도
     sparks: 14,          // 줍기·충돌 때 튀는 입자 수
     streaks: 0.7,        // 속도선 진하기(0 이면 끔)
+  },
+  view: {                // 화질
+    pixel: 2,            // 게임 픽셀 한 칸의 화면 픽셀 수. 작을수록 또렷하고 무겁다(3 = 예전 값). 주소에 ?px=3 을 붙이면 그 값으로 열린다
+    vignette: 0.35,      // 화면 가장자리 어둡게(0 이면 끔)
+    saturation: 1.12,    // 색 진하기(1 = 그대로)
+    contrast: 1.06,      // 밝고 어두움의 차이(1 = 그대로)
+    glow: { roof: 0.55, city: 0.55, slum: 0.5, river: 0.65, park: 0.5, tower: 0.75 },  // 구역별 네온 번짐 세기
   },
   sound: {               // 소리 크기(0~1). 0 이면 그 소리만 끈다. M 키는 전체 끄기
     master: 0.5, sfx: 0.2, engine: 0.05, music: 0.05,
@@ -847,9 +855,12 @@ function buildPlayerKart() {
   drive.driver.position.set(0, -0.5, 0.35);
 }
 // 다른 차들: Kenney 차 모델 + 빨간 미등(뒤에서 보이게)
+const shadowMat = new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, map: (() => { const c = document.createElement('canvas'); c.width = c.height = 32; const g = c.getContext('2d');
+  const gr = g.createRadialGradient(16, 16, 3, 16, 16, 16); gr.addColorStop(0, 'rgba(0,0,0,0.7)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, 32, 32); return new THREE.CanvasTexture(c); })() });
 function buildTraffic() {
   for (const c of drive.traffic) {
     for (const o of [...c.children]) c.remove(o);
+    const sh = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 4.4), shadowMat); sh.rotation.x = -Math.PI / 2; sh.position.y = -0.92; c.add(sh);  // 차 밑 그림자: 도로에 붙어 보이게
     const m = propClone(pick(props.cars), 1.5, 0.35);
     m.rotation.y = Math.PI;
     m.position.y = m.userData.lift - 0.95;
@@ -1229,6 +1240,7 @@ function tickRings(cz) {  // 타워 빛 고리 통과
 function tickAmbience(zone, dt, t) {  // 구역 색(안개·하늘)과 배너·문구 숨김
   drive.s.fog.color.lerp(new THREE.Color(zone.fog), Math.min(1, dt * 1.5));
   drive.hemi.color.lerp(new THREE.Color(zone.sky), Math.min(1, dt * 1.5));
+  bloom.strength += (TUNE.view.glow[zone.key] - bloom.strength) * Math.min(1, dt * 1.5);  // 구역마다 네온 번짐 세기가 다르다
   zoneEl.hidden = t >= zoneBannerUntil; zoneEl.textContent = zone.name;
   if (t >= eventUntil) eventEl.hidden = true;
   if (t >= discoverUntil) discoverEl.hidden = true;
@@ -1341,13 +1353,25 @@ function driveTick(dt, t) {
   tickHud(zone);
 }
 
-// 렌더 패스: 픽셀 → 번짐 → 출력
+// 렌더 패스: 픽셀 → 번짐 → 출력 → 색 마감(채도·대비·가장자리 어둡게)
 const composer = new EffectComposer(renderer);
-const pixelPass = new RenderPixelatedPass(3, scene, camera, { normalEdgeStrength: 0.2, depthEdgeStrength: 0.35 });
+const pixelPass = new RenderPixelatedPass(+new URLSearchParams(location.search).get('px') || TUNE.view.pixel, scene, camera, { normalEdgeStrength: 0.2, depthEdgeStrength: 0.35 });
 composer.addPass(pixelPass);
-const bloom = new UnrealBloomPass(new THREE.Vector2(640, 360), 0.55, 0.3, 0.82);
+const bloom = new UnrealBloomPass(new THREE.Vector2(640, 360), TUNE.view.glow.roof, 0.3, 0.82);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
+composer.addPass(new ShaderPass({
+  uniforms: { tDiffuse: { value: null }, vig: { value: TUNE.view.vignette }, sat: { value: TUNE.view.saturation }, con: { value: TUNE.view.contrast } },
+  vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float vig, sat, con; varying vec2 vUv;
+    void main() {
+      vec4 c = texture2D(tDiffuse, vUv);
+      c.rgb = mix(vec3(dot(c.rgb, vec3(0.299, 0.587, 0.114))), c.rgb, sat);
+      c.rgb = (c.rgb - 0.5) * con + 0.5;
+      c.rgb *= 1.0 - vig * smoothstep(0.3, 0.8, length(vUv - 0.5));
+      gl_FragColor = c;
+    }`,
+}));
 
 function resize() {
   const w = stage.clientWidth, h = stage.clientHeight;
@@ -1443,7 +1467,7 @@ function switchMode(next) {
     const result = mode === 'roof' && D.dist > 30 ? `${D.finished ? `FINISH ${fmtTime(D.time)} · ` : ''}★ ${D.stars} · ${(D.dist / 1000).toFixed(2)} km · 탐험 ${D.seen.size}/${ZONES.length} 구역 · 도감 ${dex.size}/24${D.newDex ? ` (NEW ${D.newDex})` : ''} · 빛 고리 ${D.ringsTotal}개 · 충돌 ${D.crashes}회${D.beaten ? ' · 글리치 킹 격퇴!' : ''}` : '';
     if (next === 'drive') { resetDrive(); hintEl.hidden = false; hintEl.textContent = '◀ ▶ 차선 · ▲▼ 속도 · A 부스트 · B 옥상으로'; }
     else {
-      bunny.position.set(7.2, 0, -4.4); stage.classList.remove('is-glitch'); villain.visible = false;
+      bloom.strength = TUNE.view.glow.roof; bunny.position.set(7.2, 0, -4.4); stage.classList.remove('is-glitch'); villain.visible = false;
       if (result) showDialog(D.finished ? 'FINISH!' : 'DRIVE 결과', `${result} — 오늘의 퀘스트: ${(data.posts || [])[0] || '새 글 준비 중'}`);
     }
     wipeEl.classList.remove('is-on');
