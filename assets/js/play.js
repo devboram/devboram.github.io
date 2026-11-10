@@ -49,6 +49,18 @@ const TUNE = {
   crossWarn: 80,         // 교차로 안내가 뜨는 거리
   turn: { spin: 0.6, wipeAt: 0.5, end: 1.05, angle: 1.1 },                  // 회전 연출: 도는 시간·와이프 시작·끝·각도(rad)
   hintSec: 5,            // 조작 안내를 보여 주는 시간
+  feel: {                // 손맛: 직접 달려 보고 맞춘다
+    hitStop: 0.07,       // 충돌 순간 화면이 멈추는 시간
+    shake: 0.35,         // 충돌 때 카메라 흔들림 세기(m)
+    shakeDecay: 6,       // 흔들림이 잦아드는 빠르기
+    boostKick: 3,        // 부스트를 누른 순간 바로 붙는 속도
+    sparks: 14,          // 줍기·충돌 때 튀는 입자 수
+    streaks: 0.7,        // 속도선 진하기(0 이면 끔)
+  },
+  sound: {               // 소리 크기(0~1). 0 이면 그 소리만 끈다. M 키는 전체 끄기
+    master: 0.5, sfx: 0.2, engine: 0.05, music: 0.05,
+    beat: 0.22,          // 배경음 한 음 길이(초)
+  },
   bend: {                // 도로 굴곡: 구역별 [커브 세기, 언덕 세기] × 공통 계수
     curve: 0.0045, hill: 0.11,
     zones: { city: [0.5, 0.25], slum: [1.0, 0.15], river: [0.25, 1.0], park: [0.8, 0.5], tower: [0.6, 1.1] },
@@ -1030,7 +1042,7 @@ function discover(zone) {  // 처음 들어가는 구역: 가운데 큰 발견 �
   discoverEl.hidden = false; discoverUntil = clock.elapsedTime + 3;
 }
 function resetDrive() {
-  D.lane = 1; D.speed = TUNE.speed.cruise; D.dist = 0; D.bump = 0; D.boost = 0; D.stars = 0; D.rings = 0; D.ringsTotal = 0; D.beaten = false; D.glitch = 0; D.crashes = 0; D.finished = false; D.turn = null; drive.car.rotation.y = 0; D.startT = clock.elapsedTime;
+  D.lane = 1; D.speed = TUNE.speed.cruise; D.dist = 0; D.bump = 0; D.boost = 0; D.stars = 0; D.rings = 0; D.ringsTotal = 0; D.beaten = false; D.glitch = 0; D.crashes = 0; D.finished = false; D.turn = null; D.freeze = 0; D.shake = 0; D.beat = -1; drive.car.rotation.y = 0; D.startT = clock.elapsedTime;
   villain.visible = false; stage.classList.remove('is-glitch', 'is-hit'); popEl.classList.remove('is-on');
   drive.car.position.set(0, 0.95, 0); camFollowX = 0; zoneNow = null;
   route.length = 1; for (const i in forkAlt) delete forkAlt[i];  // 경로는 드라이브마다 새로 고른다
@@ -1044,13 +1056,68 @@ function resetDrive() {
   traffic.forEach((c, i) => c.position.set(pick(LANES), 0.95, -70 - i * 45));
   D.seen = new Set(); D.newDex = 0; mapEl.hidden = false; drawMap(null);
 }
+// ===== 드라이브 효과: 튀는 입자(줍기·충돌·부스트) + 속도선 =====
+const FXN = 96;
+const fxPos = new Float32Array(FXN * 3).fill(-999), fxVel = new Float32Array(FXN * 3), fxCol = new Float32Array(FXN * 3), fxLife = new Float32Array(FXN);
+const fxGeo = new THREE.BufferGeometry();
+fxGeo.setAttribute('position', new THREE.BufferAttribute(fxPos, 3)); fxGeo.setAttribute('color', new THREE.BufferAttribute(fxCol, 3));
+const fxPts = new THREE.Points(fxGeo, new THREE.PointsMaterial({ size: 5, sizeAttenuation: false, vertexColors: true, depthWrite: false }));
+fxPts.frustumCulled = false; drive.s.add(fxPts);
+let fxNext = 0;
+const fxC = new THREE.Color();
+function fxBurst(at, color, n = TUNE.feel.sparks, spread = 4) {
+  if (reduceMotion) return;
+  fxC.set(color);
+  for (let j = 0; j < n; j++) {
+    const i = fxNext++ % FXN, a = Math.random() * Math.PI * 2, v = spread * (0.4 + Math.random() * 0.6);
+    fxPos.set([at.x, at.y + 0.4, at.z], i * 3);
+    fxVel.set([Math.cos(a) * v, 1.5 + Math.random() * 4, Math.sin(a) * v - D.speed], i * 3);  // 차와 함께 앞으로 흘러간다
+    fxCol.set([fxC.r, fxC.g, fxC.b], i * 3); fxLife[i] = 0.5 + Math.random() * 0.3;
+  }
+  fxGeo.attributes.color.needsUpdate = true;
+}
+const STREAKS = 36, stPos = new Float32Array(STREAKS * 6);
+for (let i = 0; i < STREAKS; i++) { const x = (i % 2 ? 1 : -1) * (3.5 + Math.random() * 9), y = 0.4 + Math.random() * 7, z = -Math.random() * 70; stPos.set([x, y, z, x, y, z - 5], i * 6); }
+const stGeo = new THREE.BufferGeometry(); stGeo.setAttribute('position', new THREE.BufferAttribute(stPos, 3));
+const streakMat = new THREE.LineBasicMaterial({ color: 0xdffcff, transparent: true, opacity: 0, depthWrite: false });
+const streaks = new THREE.LineSegments(stGeo, streakMat); streaks.frustumCulled = false; drive.s.add(streaks);
+function tickFx(cz, dt) {  // 입자 낙하 + 속도선(빠를수록 진하게)
+  for (let i = 0; i < FXN; i++) {
+    if (fxLife[i] <= 0) continue;
+    const p = i * 3; fxLife[i] -= dt;
+    if (fxLife[i] <= 0) { fxPos[p + 1] = -999; continue; }
+    fxVel[p + 1] -= 9 * dt;
+    for (let a = 0; a < 3; a++) fxPos[p + a] += fxVel[p + a] * dt;
+  }
+  fxGeo.attributes.position.needsUpdate = true;
+  const V = TUNE.speed, over = THREE.MathUtils.clamp((D.speed - V.cruise) / (V.fast + V.boost - V.cruise), 0, 1);
+  streakMat.opacity = reduceMotion ? 0 : over * TUNE.feel.streaks;
+  streaks.position.z = cz;
+  if (streakMat.opacity > 0) {
+    for (let i = 0; i < STREAKS; i++) { const p = i * 6; let z = stPos[p + 2] + D.speed * 2.5 * dt; if (z > 6) z = -70; stPos[p + 2] = z; stPos[p + 5] = z - 5; }
+    stGeo.attributes.position.needsUpdate = true;
+  }
+}
+function tickSound(zone, t) {  // 엔진음(속도 따라 높아짐) + 구역별 배경음
+  if (!actx) return;
+  const S = TUNE.sound, now = actx.currentTime;
+  engine.osc.frequency.setTargetAtTime(45 + D.speed * 3.2, now, 0.05);
+  engine.g.gain.setTargetAtTime(D.finished ? 0 : S.engine, now, 0.1);
+  const step = Math.floor(t / S.beat);
+  if (step !== D.beat && S.music > 0 && !D.finished) {
+    D.beat = step;
+    const root = MUSIC_ROOT[zone.key];
+    tone(root * MUSIC_STEPS[step % 8], 0, S.beat * 0.9, 'triangle', S.music);
+    if (step % 8 === 0) tone(root / 2, 0, S.beat * 3, 'sine', S.music * 1.6);
+  }
+}
 // ===== 드라이브 한 프레임 — 기능별 함수. 순서는 driveTick 이 정한다 =====
 const wp = new THREE.Vector3();  // 월드 좌표를 받아 오는 임시 벡터(프레임마다 새로 만들지 않는다)
 function tickCar(dt, t) {  // 입력 → 속도·차선·차 자세·주행 거리
   const { car, LANES } = drive;
   // 차선: 누르는 순간 한 칸
   if (!D.turn && !D.finished) for (const [k, d] of [['left', -1], ['right', 1]]) {
-    if (held.has(k) && !D.prev.has(k)) D.lane = THREE.MathUtils.clamp(D.lane + d, 0, 2);
+    if (held.has(k) && !D.prev.has(k)) { const to = THREE.MathUtils.clamp(D.lane + d, 0, 2); if (to !== D.lane) sfx('lane'); D.lane = to; }
   }
   D.prev = new Set(held);
   const V = TUNE.speed;
@@ -1094,7 +1161,7 @@ function tickCrossroads(cz) {  // 교차로 안내·좌/직/우 결정
       const next = dir < 0 ? f.left : f.right;
       route.length = f.i + 1; route.push(next); delete forkAlt[f.i + 1];
       for (const g of segs) if (Math.floor(g.userData.k / ZONE_LEN) === f.i + 1) decorate(g);
-      D.turn = { dir, t: 0, zone: next };
+      D.turn = { dir, t: 0, zone: next }; sfx('turn');
     } else say(`직진 → ${f.def.name}`, 2);
   }
 }
@@ -1113,7 +1180,7 @@ function tickFinish(cz, t) {  // 피니시 라인 통과·결과 화면 전환
     const b = liveFinish[i];
     if (!b.parent?.parent?.parent) { liveFinish.splice(i, 1); continue; }
     b.getWorldPosition(wp);
-    if (!D.finished && wp.z > cz) { D.finished = true; D.time = t - D.startT; D.finishAt = t; say(`FINISH! 기록 ${fmtTime(D.time)}`, 3); }
+    if (!D.finished && wp.z > cz) { D.finished = true; D.time = t - D.startT; D.finishAt = t; say(`FINISH! 기록 ${fmtTime(D.time)}`, 3); sfx('finish'); fxBurst(drive.car.position, GOLD, 40, 7); }
   }
   if (D.finished && t - D.finishAt > TUNE.finishHold) switchMode('roof');
 }
@@ -1122,7 +1189,7 @@ function tickZone(cz, t) {  // 구역 진입 사건(발견 카드·글리치 킹
   const zone = zoneOf(Math.round(-cz / drive.SEG));
   if (zone !== zoneNow) {  // 구역 진입: 사건은 들어올 때마다 리셋(슬럼마다 글리치 킹, 타워마다 빛 고리)
     zoneNow = zone;
-    if (D.seen.has(zone)) zoneBannerUntil = t + 2.2; else { D.seen.add(zone); discover(zone); }
+    if (D.seen.has(zone)) zoneBannerUntil = t + 2.2; else { D.seen.add(zone); discover(zone); sfx('zone'); }
     drawMap(zone);
     if (zone.key === 'slum') { D.villainDone = false; villain.visible = true; villain.position.set(pick(LANES), 0.3, cz - 75); villain.userData.hit = false; }
     if (zone.key === 'tower') { D.ringsDone = false; D.rings = 0; }
@@ -1153,7 +1220,7 @@ function tickRings(cz) {  // 타워 빛 고리 통과
     r.getWorldPosition(wp);
     if (!r.userData.passed && wp.z > cz) {
       const S = TUNE.score, goal = TUNE.ringGoal;
-      r.userData.passed = true; D.rings += 1; D.ringsTotal += 1; D.stars += S.ring; pop(S.ring);
+      r.userData.passed = true; D.rings += 1; D.ringsTotal += 1; D.stars += S.ring; pop(S.ring); sfx('ring'); fxBurst(drive.car.position, PINK);
       if (!D.ringsDone && D.rings >= goal) { D.ringsDone = true; D.beaten = true; D.stars += S.ringBonus; say(`빛 고리 ${goal}개 통과! 글리치 킹이 도망갔어요 ★+${S.ringBonus}`, 3); }
       else say(`빛 고리 ${D.rings}/${goal}`, 1.2);
     }
@@ -1195,7 +1262,8 @@ function tickItems(cz, t) {  // 아이템 줍기·도감·재배치
     const respawn = (dz) => { b.position.z -= dz; b.position.x = pick(LANES); setItem(b, itemFor(zoneOf(Math.round(-b.position.z / SEG)).key)); };
     if (Math.abs(b.position.z - cz) < 1.6 && Math.abs(b.position.x - car.position.x) < 1.3) {
       const n = b.userData.item, rare = RARE_SET.has(n), gain = rare ? TUNE.score.rare : TUNE.score.item;
-      D.stars += gain; pop(gain); respawn(160 + rnd() * 80);
+      D.stars += gain; pop(gain); sfx(rare ? 'rare' : 'item'); fxBurst(b.position, rare ? GOLD : CYAN, rare ? 28 : undefined);
+      respawn(160 + rnd() * 80);
       if (D.glitch > 0) { D.glitch = 0; stage.classList.remove('is-glitch'); say('정화 완료! 반짝이 버그가 사라졌어요', 2); }
       else if (!dex.has(n)) { dex.add(n); D.newDex += 1; saveDex(); say(`NEW! 도감 ${dex.size}/24 ${rare ? `· 희귀 아이템 ★+${gain}` : ''}`, 2); }
       else if (rare) say(`희귀 아이템 ★+${gain}`, 1.4);
@@ -1212,6 +1280,8 @@ function tickTraffic(cz, dt) {  // 다른 차 이동·충돌 감점
       D.speed = TUNE.speed.crash; D.bump = TUNE.crashStun; D.crashes += 1;
       D.stars = Math.max(0, D.stars - loss); pop(-loss); say(`쾅! ★-${loss}`, 1.4);
       stage.classList.add('is-hit'); setTimeout(() => stage.classList.remove('is-hit'), 300);
+      sfx('crash'); fxBurst(car.position, PINK, 24, 7);
+      if (!reduceMotion) { D.freeze = TUNE.feel.hitStop; D.shake = TUNE.feel.shake; }
     }
     if (c.position.z > cz + 12) { c.position.z = cz - 140 - rnd() * 80; c.position.x = pick(LANES); }
   }
@@ -1229,14 +1299,15 @@ function tickCamera(cz, dt, t) {  // 카메라 따라가기(회전 중엔 차 �
   const { car } = drive;
   const cam = drive.cam;
   // 카트 뒤 낮은 위치에서 따라간다(카트라이더·레이싱 게임 시점). 차선 바꿀 때 카메라가 반 박자 늦게 따라온다
-  const shake = D.bump > 0 && !reduceMotion ? Math.sin(t * 60) * 0.12 : 0;
+  const shake = Math.sin(t * 60) * D.shake, shakeY = Math.cos(t * 47) * D.shake * 0.6;  // 충돌 때 크게 흔들리고 잦아든다
+  D.shake *= Math.exp(-dt * TUNE.feel.shakeDecay);
   camFollowX += (car.position.x - camFollowX) * Math.min(1, dt * 4);
   if (D.turn) {  // 회전 중엔 차 머리 방향을 따라 카메라가 돈다
     const h = car.rotation.y, fx = -Math.sin(h), fz = -Math.cos(h);
     cam.position.set(car.position.x - fx * 7.4, car.position.y + 2.9, cz - fz * 7.4);
     cam.lookAt(car.position.x + fx * 9, car.position.y + 0.9, cz + fz * 9);
   } else {
-    cam.position.set(camFollowX * 0.9 + shake, car.position.y + 2.9, cz + 7.4);
+    cam.position.set(camFollowX * 0.9 + shake, car.position.y + 2.9 + shakeY, cz + 7.4);
     const [lookX, lookY] = bendAt(cz - 26);  // 시선은 커브 안쪽·언덕 위아래로 반쯤 따라간다
     cam.lookAt(camFollowX + lookX * 0.35, car.position.y + 0.9 + lookY * 0.45, cz - 9);
   }
@@ -1248,6 +1319,7 @@ function tickHud(zone) {  // 계기판 글자
   speedEl.textContent = `${Math.round(D.speed * 6)} km/h`;
 }
 function driveTick(dt, t) {
+  if (D.freeze > 0) { D.freeze -= dt; dt = 0; }  // 충돌 순간 잠깐 멈춤(히트스톱)
   tickCar(dt, t);
   const cz = drive.car.position.z;
   tickRoad(cz);
@@ -1262,6 +1334,8 @@ function driveTick(dt, t) {
   tickBackdrop(cz, t);
   tickItems(cz, t);
   tickTraffic(cz, dt);
+  tickFx(cz, dt);
+  tickSound(zone, t);
   tickBoards(cz, t);
   tickCamera(cz, dt, t);
   tickHud(zone);
@@ -1284,21 +1358,72 @@ function resize() {
 new ResizeObserver(resize).observe(stage);
 resize();
 
+// ===== 소리 — 음원 파일 없이 WebAudio 로 합성. 크기는 TUNE.sound, M 키로 전체 끄기 =====
+let actx = null, master = null, engine = null, muted = false;
+try { muted = localStorage.getItem('play-mute') === '1'; } catch (e) { /* 저장소를 못 써도 소리는 난다 */ }
+function audioOn() {  // 브라우저 정책상 첫 입력 뒤에만 켤 수 있다
+  if (actx) { if (actx.state === 'suspended' && !document.hidden) actx.resume(); return; }
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return;
+  actx = new AC(); master = actx.createGain(); master.gain.value = muted ? 0 : TUNE.sound.master; master.connect(actx.destination);
+  const osc = actx.createOscillator(), lp = actx.createBiquadFilter(), g = actx.createGain();
+  osc.type = 'sawtooth'; lp.type = 'lowpass'; lp.frequency.value = 500; g.gain.value = 0;
+  osc.connect(lp).connect(g).connect(master); osc.start(); engine = { osc, g };
+}
+function tone(freq, at, dur, type, vol, to = freq) {  // 한 음: at 초 뒤에 dur 초 동안, to 가 다르면 음높이가 미끄러진다
+  if (!actx) return;
+  const o = actx.createOscillator(), g = actx.createGain(), t0 = actx.currentTime + at;
+  o.type = type; o.frequency.setValueAtTime(freq, t0);
+  if (to !== freq) o.frequency.exponentialRampToValueAtTime(to, t0 + dur);
+  g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+  o.connect(g).connect(master); o.start(t0); o.stop(t0 + dur + 0.02);
+}
+function noise(dur, vol) {  // 잦아드는 잡음(충돌)
+  if (!actx) return;
+  const buf = actx.createBuffer(1, Math.ceil(actx.sampleRate * dur), actx.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+  const src = actx.createBufferSource(), g = actx.createGain();
+  src.buffer = buf; g.gain.value = vol; src.connect(g).connect(master); src.start();
+}
+const blip = (f, at, dur, type = 'square', k = 1, to) => tone(f, at, dur, type, TUNE.sound.sfx * k, to);
+const SFX = {
+  lane: () => blip(330, 0, 0.04, 'square', 0.4),
+  item: () => { blip(880, 0, 0.07); blip(1320, 0.06, 0.1); },
+  rare: () => [660, 880, 1320, 1760].forEach((f, i) => blip(f, i * 0.06, 0.12)),
+  crash: () => { noise(0.3, TUNE.sound.sfx * 1.6); blip(160, 0, 0.3, 'square', 1.2, 40); },
+  boost: () => blip(200, 0, 0.35, 'sawtooth', 0.7, 900),
+  ring: () => blip(1568, 0, 0.25, 'sine', 1.2),
+  turn: () => blip(500, 0, 0.3, 'triangle', 0.8, 250),
+  zone: () => { blip(523, 0, 0.12, 'triangle'); blip(784, 0.12, 0.2, 'triangle'); },
+  finish: () => [523, 659, 784, 1047, 784, 1047].forEach((f, i) => blip(f, i * 0.12, 0.2)),
+};
+const sfx = (name) => SFX[name]();
+const MUSIC_ROOT = { city: 220, slum: 174.6, river: 261.6, park: 196, tower: 293.7 };  // 구역마다 으뜸음이 바뀐다
+const MUSIC_STEPS = [1, 1.5, 2, 1.5, 1.2, 1.5, 1.8, 1.5];                               // 단조 5음계 아르페지오
+function toggleMute() {
+  muted = !muted;
+  try { localStorage.setItem('play-mute', muted ? '1' : '0'); } catch (e) { /* 저장 못 해도 이번엔 꺼진다 */ }
+  if (master) master.gain.value = muted ? 0 : TUNE.sound.master;
+  if (mode === 'drive') say(muted ? '소리 끔 (M)' : '소리 켬 (M)', 1.2);
+}
+document.addEventListener('visibilitychange', () => { if (actx) document.hidden ? actx.suspend() : actx.resume(); });  // 탭을 떠나면 소리도 멈춘다
+
 // 입력: 키보드 + 화면 콘솔
 const held = new Set();
 const KEYMAP = { ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'a', Enter: 'a', KeyJ: 'a', Escape: 'b', KeyK: 'b' };
 let inView = true;
 new IntersectionObserver(([e]) => { inView = e.isIntersecting; }).observe(stage);
 addEventListener('keydown', (e) => {
+  if (e.code === 'KeyM' && inView && !e.repeat) { toggleMute(); return; }
   const k = KEYMAP[e.code];
   if (!k || !inView) return;
-  e.preventDefault();
+  e.preventDefault(); audioOn();
   if (k === 'a' || k === 'b') { if (!e.repeat) press(k); } else held.add(k);
 });
 addEventListener('keyup', (e) => { const k = KEYMAP[e.code]; if (k) held.delete(k); });
 for (const btn of document.querySelectorAll('.pad-btn')) {
   const k = btn.dataset.key;
-  const down = (e) => { e.preventDefault(); btn.classList.add('is-down'); if (k === 'a' || k === 'b') press(k); else held.add(k); };
+  const down = (e) => { e.preventDefault(); audioOn(); btn.classList.add('is-down'); if (k === 'a' || k === 'b') press(k); else held.add(k); };
   const up = () => { btn.classList.remove('is-down'); held.delete(k); };
   btn.addEventListener('pointerdown', down);
   for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) btn.addEventListener(ev, up);
@@ -1311,6 +1436,7 @@ function switchMode(next) {
   wipeEl.classList.add('is-on');
   setTimeout(() => {
     mode = next;
+    if (engine) engine.g.gain.setTargetAtTime(0, actx.currentTime, 0.05);  // 옥상에선 엔진음을 끈다
     pixelPass.scene = next === 'drive' ? drive.s : scene;
     pixelPass.camera = next === 'drive' ? drive.cam : camera;
     hudEl.hidden = speedEl.hidden = mapEl.hidden = next !== 'drive'; zoneEl.hidden = eventEl.hidden = discoverEl.hidden = true;
@@ -1345,7 +1471,10 @@ function nearest() {
 function press(k) {
   if (mode === 'drive') {
     if (k === 'b') switchMode('roof');
-    else D.boost = TUNE.boostSec;
+    else if (!D.finished) {  // 부스트: 누른 순간 바로 튀어 나간다
+      D.boost = TUNE.boostSec; D.speed = Math.min(D.speed + TUNE.feel.boostKick, TUNE.speed.fast + TUNE.speed.boost);
+      sfx('boost'); fxBurst(drive.car.position, CYAN, 10, 2);
+    }
     return;
   }
   if (k === 'b') { closeDialog(); return; }
