@@ -67,8 +67,7 @@ const TUNE = {
     glow: { roof: 0.55, city: 0.55, slum: 0.5, river: 0.65, park: 0.5, tower: 0.75 },  // 구역별 네온 번짐 세기
   },
   sound: {               // 소리 크기(0~1). 0 이면 그 소리만 끈다. M 키는 전체 끄기
-    master: 0.5, sfx: 0.2, engine: 0.05, music: 0.05,
-    beat: 0.22,          // 배경음 한 음 길이(초)
+    master: 0.5, sfx: 0.2, engine: 0.05, music: 0.5,
   },
   bend: {                // 도로 굴곡: 구역별 [커브 세기, 언덕 세기] × 공통 계수
     curve: 0.0045, hill: 0.11,
@@ -1069,7 +1068,7 @@ function discover(zone) {  // 처음 들어가는 구역: 가운데 큰 발견 �
   discoverEl.hidden = false; discoverUntil = clock.elapsedTime + 3;
 }
 function resetDrive() {
-  D.lane = 1; D.speed = TUNE.speed.cruise; D.dist = 0; D.bump = 0; D.boost = 0; D.stars = 0; D.rings = 0; D.ringsTotal = 0; D.beaten = false; D.glitch = 0; D.crashes = 0; D.finished = false; D.turn = null; D.freeze = 0; D.shake = 0; D.beat = -1; drive.car.rotation.y = 0; D.startT = clock.elapsedTime;
+  D.lane = 1; D.speed = TUNE.speed.cruise; D.dist = 0; D.bump = 0; D.boost = 0; D.stars = 0; D.rings = 0; D.ringsTotal = 0; D.beaten = false; D.glitch = 0; D.crashes = 0; D.finished = false; D.turn = null; D.freeze = 0; D.shake = 0; drive.car.rotation.y = 0; D.startT = clock.elapsedTime;
   villain.visible = false; stage.classList.remove('is-glitch', 'is-hit'); popEl.classList.remove('is-on');
   drive.car.position.set(0, 0.95, 0); camFollowX = 0; zoneNow = null;
   route.length = 1; for (const i in forkAlt) delete forkAlt[i];  // 경로는 드라이브마다 새로 고른다
@@ -1125,18 +1124,11 @@ function tickFx(cz, dt) {  // 입자 낙하 + 속도선(빠를수록 진하게)
     stGeo.attributes.position.needsUpdate = true;
   }
 }
-function tickSound(zone, t) {  // 엔진음(속도 따라 높아짐) + 구역별 배경음
+function tickSound() {  // 엔진음(속도 따라 높아짐)
   if (!actx) return;
   const S = TUNE.sound, now = actx.currentTime;
   engine.osc.frequency.setTargetAtTime(45 + D.speed * 3.2, now, 0.05);
   engine.g.gain.setTargetAtTime(D.finished ? 0 : S.engine, now, 0.1);
-  const step = Math.floor(t / S.beat);
-  if (step !== D.beat && S.music > 0 && !D.finished) {
-    D.beat = step;
-    const root = MUSIC_ROOT[zone.key];
-    tone(root * MUSIC_STEPS[step % 8], 0, S.beat * 0.9, 'triangle', S.music);
-    if (step % 8 === 0) tone(root / 2, 0, S.beat * 3, 'sine', S.music * 1.6);
-  }
 }
 // ===== 드라이브 한 프레임 — 기능별 함수. 순서는 driveTick 이 정한다 =====
 const wp = new THREE.Vector3();  // 월드 좌표를 받아 오는 임시 벡터(프레임마다 새로 만들지 않는다)
@@ -1363,7 +1355,7 @@ function driveTick(dt, t) {
   tickItems(cz, t);
   tickTraffic(cz, dt);
   tickFx(cz, dt);
-  tickSound(zone, t);
+  tickSound();
   tickBoards(cz, t);
   tickCamera(cz, dt, t);
   tickHud(zone);
@@ -1398,8 +1390,9 @@ function resize() {
 new ResizeObserver(resize).observe(stage);
 resize();
 
-// ===== 소리 — 음원 파일 없이 WebAudio 로 합성. 크기는 TUNE.sound, M 키로 전체 끄기 =====
-let actx = null, master = null, engine = null, muted = false;
+// ===== 소리 — 효과음·엔진음은 WebAudio 합성, 배경음은 assets/audio 의 반복 음원. 크기는 TUNE.sound, M 키로 전체 끄기 =====
+let actx = null, master = null, engine = null, muted = false, musicGain = null, musicSrc = null, musicKey = '';
+const tracks = {};  // 한 번 받은 곡은 다시 받지 않는다
 try { muted = localStorage.getItem('play-mute') === '1'; } catch (e) { /* 저장소를 못 써도 소리는 난다 */ }
 function audioOn() {  // 브라우저 정책상 첫 입력 뒤에만 켤 수 있다
   if (actx) { if (actx.state === 'suspended' && !document.hidden) actx.resume(); return; }
@@ -1409,6 +1402,17 @@ function audioOn() {  // 브라우저 정책상 첫 입력 뒤에만 켤 수 있
   const osc = actx.createOscillator(), lp = actx.createBiquadFilter(), g = actx.createGain();
   osc.type = 'sawtooth'; lp.type = 'lowpass'; lp.frequency.value = 500; g.gain.value = 0;
   osc.connect(lp).connect(g).connect(master); osc.start(); engine = { osc, g };
+  musicGain = actx.createGain(); musicGain.gain.value = TUNE.sound.music; musicGain.connect(master);
+}
+function setMusic(key) {  // 장면(roof·indoor·drive)이 바뀌면 그 곡으로 갈아 끼운다. 매 프레임 불러도 된다
+  if (!actx || key === musicKey) return;
+  musicKey = key; musicSrc?.stop(); musicSrc = null;
+  (tracks[key] ??= fetch(`/assets/audio/${key}.mp3`).then((r) => r.arrayBuffer()).then((b) => actx.decodeAudioData(b)))
+    .then((buf) => {
+      if (musicKey !== key) return;  // 받는 사이 장면이 또 바뀌었다
+      musicSrc = actx.createBufferSource(); musicSrc.buffer = buf; musicSrc.loop = true; musicSrc.connect(musicGain); musicSrc.start();
+    })
+    .catch(() => { delete tracks[key]; });  // 못 받으면 배경음 없이 진행하고, 다음 장면 전환 때 다시 시도한다
 }
 function tone(freq, at, dur, type, vol, to = freq) {  // 한 음: at 초 뒤에 dur 초 동안, to 가 다르면 음높이가 미끄러진다
   if (!actx) return;
@@ -1438,8 +1442,6 @@ const SFX = {
   finish: () => [523, 659, 784, 1047, 784, 1047].forEach((f, i) => blip(f, i * 0.12, 0.2)),
 };
 const sfx = (name) => SFX[name]();
-const MUSIC_ROOT = { city: 220, slum: 174.6, river: 261.6, park: 196, tower: 293.7 };  // 구역마다 으뜸음이 바뀐다
-const MUSIC_STEPS = [1, 1.5, 2, 1.5, 1.2, 1.5, 1.8, 1.5];                               // 단조 5음계 아르페지오
 function toggleMute() {
   muted = !muted;
   try { localStorage.setItem('play-mute', muted ? '1' : '0'); } catch (e) { /* 저장 못 해도 이번엔 꺼진다 */ }
@@ -1559,6 +1561,7 @@ function tick() {
   const dt = Math.min(clock.getDelta(), 0.1), t = clock.elapsedTime;
   const blinkOn = reduceMotion || Math.floor(t * 1.5) % 2 === 0;
   for (const b of blinkers) b.visible = blinkOn;
+  setMusic(mode === 'drive' ? 'drive' : place === FLOORS[0] ? 'roof' : 'indoor');
   if (mode === 'drive') {
     driveTick(dt, t);
     const bent = [...drive.bugs, ...drive.traffic, villain];
