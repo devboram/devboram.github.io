@@ -1477,7 +1477,7 @@ for (const btn of document.querySelectorAll('.pad-btn')) {
 }
 
 let dialogOpen = false, dialogAction = null, twirlT = -1, mode = 'roof', switching = false;
-let menu = null, floorBannerUntil = 0;  // 열려 있는 목록(엘리베이터·문제·도감, 없으면 null), 층 이름 배너를 내리는 시각
+let menu = null, talkTo = null, floorBannerUntil = 0;  // 열려 있는 목록(엘리베이터·문제·도감, 없으면 null), 지금 말을 걸거나 살펴보는 상대의 자리, 층 이름 배너를 내리는 시각
 const liftPrev = new Set();
 function switchMode(next) {
   if (switching) return;
@@ -1579,6 +1579,7 @@ function press(k) {
   if (menu) { const m = menu; closeDialog(); m.pick(m.sel); return; }
   if (dialogOpen) { const act = dialogAction; closeDialog(); act?.(); return; }
   const t = nearest();
+  talkTo = t?.type === 'npc' ? t.n.position.clone() : t?.type === 'thing' ? new THREE.Vector3(t.th.pos[0], 0, t.th.pos[1]) : null;
   if (t?.type === 'npc') {  // 말을 걸 때마다 다음 대사
     const u = t.n.userData, lines = u.lines || [u.info.quote];
     u.line = ((u.line ?? -1) + 1) % lines.length;
@@ -1648,10 +1649,12 @@ function tick() {
   hintEl.hidden = !hint; if (hint) hintEl.textContent = hint;
   // 카메라: 토끼 뒤 위에서 천천히 따라간다
   const sway = reduceMotion ? 0 : Math.sin(t * 0.25) * 0.8;
-  // 대화창이 열리면 다가가서 아래를 본다 — 창이 화면 아래를 덮어도 캐릭터가 그 위에 보이게
+  // 대화창이 열리면 토끼와 상대의 가운데로 다가가서 아래를 본다 — 창이 화면 아래를 덮어도 둘 다 그 위에 보이게
   const bp = bunny.position;
-  camPos.lerp(dialogOpen ? new THREE.Vector3(bp.x, 3.4, bp.z + 6.5) : new THREE.Vector3(bp.x * 0.6 + sway, 4.8, bp.z + 11), reduceMotion ? 1 : 0.05);
-  camLook.lerp(dialogOpen ? new THREE.Vector3(bp.x, -0.6, bp.z - 1) : new THREE.Vector3(bp.x * 0.8, 1.6, bp.z - 4), reduceMotion ? 1 : 0.08);
+  if (!dialogOpen) talkTo = null;
+  const mid = talkTo ? bp.clone().add(talkTo).multiplyScalar(0.5) : bp, span = talkTo ? Math.hypot(talkTo.x - bp.x, talkTo.z - bp.z) : 0;  // 둘이 멀수록 조금 물러난다
+  camPos.lerp(dialogOpen ? new THREE.Vector3(mid.x, 3.4, mid.z + 6.5 + span * 0.8) : new THREE.Vector3(bp.x * 0.6 + sway, 4.8, bp.z + 11), reduceMotion ? 1 : 0.05);
+  camLook.lerp(dialogOpen ? new THREE.Vector3(mid.x, -0.6, mid.z - 1) : new THREE.Vector3(bp.x * 0.8, 1.6, bp.z - 4), reduceMotion ? 1 : 0.08);
   camera.position.copy(camPos); camera.lookAt(camLook);
   composer.render(dt);
   requestAnimationFrame(tick);
