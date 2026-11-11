@@ -1,0 +1,142 @@
+# 버그 도감 — 건물 밖에서 만나는 버그와 채집 문제. (초안, 정답 검토 전 — 아직 게임에 연결하지 않았다)
+# q: 문제(짧게) · choices: 보기 2~3개(O/X 문제는 ["O", "X"]) · answer: 정답 보기의 순서(0부터) · why: 도감에 남는 해설
+- key: npe
+  name: 널이
+  desc: 비어 있는 값만 골라 밟는 버그.
+  q: "`name!!.length` — name 이 null 이면?"
+  choices: ["예외가 난다", "0 이 나온다"]
+  answer: 0
+  why: "`!!` 는 null 이면 NullPointerException 을 던진다. `?.` 와 `?:` 로 받는 편이 안전하다."
+- key: anr
+  name: 멈춤이
+  desc: 화면을 얼려 놓고 꼼짝 않는 달팽이.
+  q: "메인 스레드에서 오래 걸리는 일을 하면?"
+  choices: ["ANR 이 뜬다", "배터리가 절약된다"]
+  answer: 0
+  why: "메인 스레드가 입력에 약 5초 넘게 응답하지 못하면 '앱이 응답하지 않음(ANR)' 이 뜬다."
+- key: leak
+  name: 새는이
+  desc: 다 쓴 화면을 놓아주지 않는 거머리.
+  q: "Activity 를 companion object 변수에 담아 두면 메모리 누수 위험이 있다."
+  choices: ["O", "X"]
+  answer: 0
+  why: "화면이 끝나도 참조가 남아 가비지 컬렉터가 Activity 를 치우지 못한다."
+- key: rotate
+  name: 뒤집이
+  desc: 화면을 돌리면 값을 물고 달아난다.
+  q: "화면 회전 뒤에도 값을 지키는 것은?"
+  choices: ["remember", "rememberSaveable"]
+  answer: 1
+  why: "`remember` 는 리컴포지션만 견딘다. 회전 같은 구성 변경까지 견디려면 `rememberSaveable`."
+- key: recompose
+  name: 깜빡이
+  desc: 같은 화면을 자꾸 다시 그리게 만든다.
+  q: "Compose 에서 상태가 바뀌어 화면을 다시 그리는 일은?"
+  choices: ["리컴포지션", "리베이스", "리부팅"]
+  answer: 0
+  why: "상태를 읽는 Composable 만 다시 실행된다. 이것이 리컴포지션이다."
+- key: lazykey
+  name: 뒤섞이
+  desc: 목록 순서를 바꾸면 칸의 기억을 섞어 놓는다.
+  q: "LazyColumn 항목 순서가 바뀌어도 상태가 엉키지 않게 주는 것은?"
+  choices: ["key", "weight"]
+  answer: 0
+  why: "`items(list, key = { it.id })` 처럼 key 를 주면 항목이 위치가 아니라 정체로 구분된다."
+- key: sideeffect
+  name: 되풀이
+  desc: 같은 요청을 몇 번이고 다시 보낸다.
+  q: "Composable 본문에서 네트워크를 바로 호출해도 된다."
+  choices: ["O", "X"]
+  answer: 1
+  why: "본문은 리컴포지션마다 다시 실행될 수 있다. `LaunchedEffect` 안이나 ViewModel 에서 호출한다."
+- key: lifecycle
+  name: 밤샘이
+  desc: 화면이 꺼져도 혼자 일을 계속한다.
+  q: "화면이 안 보이면 Flow 수집을 멈춰 주는 것은?"
+  choices: ["collectAsState", "collectAsStateWithLifecycle"]
+  answer: 1
+  why: "`collectAsStateWithLifecycle` 은 화면이 STARTED 아래로 내려가면 수집을 멈춘다."
+- key: scope
+  name: 떠돌이
+  desc: 주인이 사라져도 떠돌아다니는 코루틴.
+  q: "ViewModel 에서 코루틴을 띄울 때 쓰는 스코프는?"
+  choices: ["GlobalScope", "viewModelScope"]
+  answer: 1
+  why: "`viewModelScope` 는 ViewModel 이 없어질 때 함께 취소된다. GlobalScope 는 끝까지 남는다."
+- key: cancel
+  name: 삼킴이
+  desc: 그만하라는 신호까지 삼켜 버린다.
+  q: "`catch (e: Exception)` 이 CancellationException 까지 삼키면 코루틴 취소가 깨질 수 있다."
+  choices: ["O", "X"]
+  answer: 0
+  why: "취소도 예외로 전달된다. 삼켰다면 다시 던져야 취소가 위로 전해진다."
+- key: dispatcher
+  name: 길막이
+  desc: 좁은 길 한가운데에서 짐을 푼다.
+  q: "파일 읽기 같은 입출력에 맞는 디스패처는?"
+  choices: ["Dispatchers.Main", "Dispatchers.IO"]
+  answer: 1
+  why: "Main 은 화면을 그리는 스레드다. 기다리는 일이 많은 입출력은 IO 로 보낸다."
+- key: lateinit
+  name: 성급이
+  desc: 준비되기도 전에 손부터 뻗는다.
+  q: "초기화 전에 `lateinit var` 를 읽으면?"
+  choices: ["null 이 나온다", "예외가 난다"]
+  answer: 1
+  why: "UninitializedPropertyAccessException 이 난다. `::변수.isInitialized` 로 확인할 수 있다."
+- key: equals
+  name: 쌍둥이
+  desc: 똑같이 생겼지만 같은 개체는 아니다.
+  q: "Kotlin 에서 `==` 는 내용 비교, `===` 는 참조 비교다."
+  choices: ["O", "X"]
+  answer: 0
+  why: "`==` 는 `equals()` 를 부른다. 같은 객체인지 보려면 `===`."
+- key: val
+  name: 슬쩍이
+  desc: 잠가 둔 상자 안을 슬쩍 바꿔 놓는다.
+  q: "`val list = mutableListOf(1)` 에 `list.add(2)` 를 할 수 있다."
+  choices: ["O", "X"]
+  answer: 0
+  why: "`val` 은 다시 대입하는 것만 막는다. 안의 내용까지 막으려면 `List` 로 드러낸다."
+- key: context
+  name: 붙잡이
+  desc: 오래 사는 객체에 화면을 붙들어 맨다.
+  q: "싱글턴처럼 오래 사는 객체에 넘길 Context 는?"
+  choices: ["Activity", "applicationContext"]
+  answer: 1
+  why: "Activity 를 넘기면 화면이 끝나도 놓아주지 못한다. 앱 수명과 같은 applicationContext 를 쓴다."
+- key: r8
+  name: 이름지움이
+  desc: 릴리즈 빌드에서만 나타나 이름표를 떼어 간다.
+  q: "릴리즈 빌드에서만 죽는다. 먼저 의심할 것은?"
+  choices: ["R8 축소·난독화 규칙", "글꼴 크기"]
+  answer: 0
+  why: "리플렉션·직렬화로 쓰는 클래스의 이름이 바뀌거나 지워졌을 수 있다. keep 규칙을 확인한다."
+- key: wrongthread
+  name: 끼어들이
+  desc: 남의 스레드에서 화면에 손을 댄다.
+  q: "백그라운드 스레드에서 View 를 직접 고쳐도 된다."
+  choices: ["O", "X"]
+  answer: 1
+  why: "View 는 만든 스레드(메인)에서만 고칠 수 있다. 어기면 CalledFromWrongThreadException."
+- key: notify
+  name: 조용이
+  desc: 알림을 보내도 아무 소리가 나지 않게 한다.
+  q: "Android 13 부터 알림을 띄우려면 필요한 런타임 권한은?"
+  choices: ["POST_NOTIFICATIONS", "INTERNET"]
+  answer: 0
+  why: "API 33 부터 알림 권한을 사용자에게 직접 받아야 한다."
+- key: stateflow
+  name: 메아리
+  desc: 같은 말을 두 번 하면 한 번만 들린다.
+  q: "StateFlow 는 같은 값을 연달아 넣으면 다시 내보내지 않는다."
+  choices: ["O", "X"]
+  answer: 0
+  why: "이전 값과 `equals` 로 같으면 건너뛴다. 같은 값도 매번 알리려면 SharedFlow."
+- key: processdeath
+  name: 유령이
+  desc: 앱이 뒤에서 조용히 죽으면 기억을 지워 간다.
+  q: "ViewModel 은 프로세스가 죽어도 값을 지킨다."
+  choices: ["O", "X"]
+  answer: 1
+  why: "ViewModel 은 구성 변경만 견딘다. 프로세스 종료까지 견디려면 SavedStateHandle 에 담는다."

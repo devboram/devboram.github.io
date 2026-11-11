@@ -81,7 +81,7 @@ function room(canvasTexture, w, d, { floorA, floorB, wall, trim, light }) {
 }
 
 // 5F 기록실 — 미누가 지키는 방. 책장 한 칸 = 글 한 편
-function archive({ canvasTexture, colors, data, skyline }) {
+function archive({ canvasTexture, colors, data, skyline, bugDex }) {
   const { PINK, CYAN, GOLD, VIOLET } = colors;
   const w = 16, d = 10, back = -d / 2;
   const scene = room(canvasTexture, w, d, { floorA: '#2a1f3d', floorB: '#34264a', wall: 0x2e2558, trim: PINK, light: 0xc9a8ff });
@@ -137,6 +137,7 @@ function archive({ canvasTexture, colors, data, skyline }) {
   box(scene, 1.6, 0.12, 1, -3, 0.5, 1, std(0x4a3a7a)); box(scene, 0.2, 0.5, 0.2, -3, 0.25, 1, std(0x2a2456));
   for (const [x, c] of [[-4.6, PINK], [-1.4, CYAN]]) box(scene, 0.8, 0.25, 0.8, x, 0.13, 1, std(c));
   box(scene, 0.5, 0.08, 0.35, -3.2, 0.6, 1, std(0xffd76a));  // 탁자 위 펼친 노트
+  things.push({ pos: [-3, 1.9], hint: '버그 도감 펼치기', act: () => bugDex() });  // 그 노트가 버그 도감·오답노트
 
   const liftX = 7;
   const lift = liftDoor(canvasTexture, CYAN, GOLD); lift.position.set(liftX, 0, back + 0.3); scene.add(lift);
@@ -210,7 +211,7 @@ function control({ canvasTexture, colors, data }) {
 }
 
 // 3F 실험실 — 큐링의 QA 실험실. 방 안에 숨은 반짝이 버그 6마리를 A 로 채집한다
-function lab({ canvasTexture, colors }) {
+function lab({ canvasTexture, colors, quiz }) {
   const { PINK, CYAN, GOLD, VIOLET } = colors;
   const GREEN = 0x7cf29c;
   const w = 16, d = 10, back = -d / 2;
@@ -241,13 +242,14 @@ function lab({ canvasTexture, colors }) {
   const bugs = SPOTS.map(([x, z], i) => {
     const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.22), glow([PINK, GOLD, VIOLET][i % 3]));
     m.position.set(x, 0.9, z); scene.add(m);
-    const th = { pos: [x, z], hint: '반짝이 버그 잡기', act: ({ showDialog }) => {
+    const th = { pos: [x, z], hint: '반짝이 버그 잡기', act: ({ showDialog }) => quiz((bug) => {  // 문제를 맞혀야 잡힌다
       caught++; th.pos = [999, 999];  // 잡힌 버그는 더 안 잡히게 멀리 치운다
       m.position.set(3.3 + (caught % 3 - 1) * 0.15, 1.25 + Math.floor((caught - 1) / 3) * 0.3 + (caught % 2) * 0.12, back + 0.9); m.scale.setScalar(0.45);
-      showDialog(caught === SPOTS.length ? '전부 채집!' : `반짝이 버그 ${caught}/${SPOTS.length}`, caught === SPOTS.length
+      const why = bug ? `${bug.why}\n` : '';
+      showDialog(`${bug ? `${bug.name} 채집!` : '채집!'} ${caught}/${SPOTS.length}`, why + (caught === SPOTS.length
         ? '큐링: "한 번 더! 이번엔 실기기로!"\n(엘리베이터를 다시 타고 오면 새 버그가 숨어 있어요.)'
-        : '살살 떠서 채집통에 넣었다. 아직 어딘가에서 반짝인다.');
-    } };
+        : '아직 어딘가에서 반짝인다.'));
+    }) };
     things.push(th);
     return { m, th, home: [x, z] };
   });

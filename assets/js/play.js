@@ -158,6 +158,10 @@ const RARE = { city: 3, slum: 10, river: 24, park: 19, tower: 1 };
 const RARE_SET = new Set(Object.values(RARE));
 const dex = new Set((() => { try { return JSON.parse(localStorage.getItem('play-dex') || '[]'); } catch (e) { return []; } })());
 function saveDex() { try { localStorage.setItem('play-dex', JSON.stringify([...dex])); } catch (e) { /* 저장 못 해도 게임은 된다 */ } }
+// 버그 도감: 문제를 맞혀 채집한 버그('caught')와 틀려서 놓친 버그('missed')를 기기에 남긴다. 문제는 _data/bugs.yml
+const BUGS = (data.bugs || []).map((b) => ({ ...b, q: b.q.replace(/`/g, ''), why: b.why.replace(/`/g, '') }));
+const bugLog = (() => { try { return JSON.parse(localStorage.getItem('play-bugs') || '{}'); } catch (e) { return {}; } })();
+function markBug(key, state) { bugLog[key] = state; try { localStorage.setItem('play-bugs', JSON.stringify(bugLog)); } catch (e) { /* 저장 못 해도 게임은 된다 */ } }
 function itemFor(zoneKey) {
   if (RARE[zoneKey] && rnd() < TUNE.rareChance) return RARE[zoneKey];
   let n; do n = 1 + Math.floor(rnd() * 24); while (RARE_SET.has(n));
@@ -368,7 +372,7 @@ const me = data.cast.find((c) => c.key === 'bunny');
 // ===== 층: 옥상(RF) + 실내 층(play-floors.js). 걷기·대화·엘리베이터는 층 공통 — 지금 있는 층이 place =====
 const roofLift = liftDoor(canvasTexture, CYAN, GOLD); roofLift.position.set(3.8, 0, -ROOF.d / 2 + 0.3); scene.add(roofLift);
 // 동료는 각자 맡은 층에 있다(5F 미누 · 4F 모니 · 3F 큐링 · B1 글리치 킹). 옥상은 소품을 살펴보는 허브
-const floorCtx = { canvasTexture, colors: { PINK, CYAN, GOLD, VIOLET, LAV }, data, skyline: skylineTexs[0], dex, drive: () => switchMode('drive') };
+const floorCtx = { canvasTexture, colors: { PINK, CYAN, GOLD, VIOLET, LAV }, data, skyline: skylineTexs[0], dex, drive: () => switchMode('drive'), quiz: (onCatch) => askBug(onCatch), bugDex: () => openBugDex() };
 const FLOORS = [
   { key: 'RF', name: 'RF 달빛 옥상', music: 'roof', scene, w: ROOF.w, d: ROOF.d, spawn: [3.8, -3.6], npcs: [], things: [
     { pos: [7.2, -ROOF.d / 2 + 0.3], hint: '드라이브 하러 가기', act: () => switchMode('drive') },
@@ -1473,7 +1477,7 @@ for (const btn of document.querySelectorAll('.pad-btn')) {
 }
 
 let dialogOpen = false, dialogAction = null, twirlT = -1, mode = 'roof', switching = false;
-let liftSel = -1, floorBannerUntil = 0;  // 엘리베이터에서 고르는 층(-1 = 닫힘), 층 이름 배너를 내리는 시각
+let menu = null, floorBannerUntil = 0;  // 열려 있는 목록(엘리베이터·문제·도감, 없으면 null), 층 이름 배너를 내리는 시각
 const liftPrev = new Set();
 function switchMode(next) {
   if (switching) return;
@@ -1500,12 +1504,42 @@ function showDialog(name, text, onA = null) {  // onA 가 있으면 A 를 눌렀
   dialogEl.querySelector('.play-dialog-text').textContent = text;
   dialogEl.hidden = false; dialogOpen = true; dialogAction = onA;
 }
-function closeDialog() { dialogEl.hidden = true; dialogOpen = false; dialogAction = null; liftSel = -1; }
+function closeDialog() { dialogEl.hidden = true; dialogOpen = false; dialogAction = null; menu = null; }
 
-// 엘리베이터: 층 목록에서 ▲▼ 로 고르고 A 로 이동
+// 목록 고르기(엘리베이터·버그 문제·버그 도감): ▲▼ 로 고르고 A 로 정한다
 const lifts = () => FLOORS.filter((f) => !f.locked?.());  // 잠긴 층(숨은 층)은 목록에서 뺀다
-function drawLift() { showDialog('엘리베이터 — ▲▼ 고르기 · A 이동', lifts().map((f, i) => `${i === liftSel ? '▶' : '▷'} ${f.name}${f === place ? ' (지금 층)' : ''}`).join('\n')); }
-function openLift() { const at = lifts().indexOf(place); drawLift(liftSel = at); }
+const MENU_ROWS = 6;  // 한 번에 보이는 줄 수. 넘으면 고른 줄을 따라 목록이 밀린다
+function drawMenu() {
+  const { title, head, rows, sel } = menu, from = Math.max(0, Math.min(sel - 2, rows.length - MENU_ROWS));
+  const body = rows.slice(from, from + MENU_ROWS).map((r, k) => `${from + k === sel ? '▶' : '▷'} ${r}`);
+  showDialog(title, [head, ...body].filter(Boolean).join('\n'));
+}
+function openMenu(title, rows, pick, sel = 0, head = '') { menu = { title, head, rows, sel, pick }; drawMenu(); }  // ▲▼ 로 고르고 A 로 pick(고른 순서)
+function openLift() {
+  const fs = lifts();
+  openMenu('엘리베이터 — ▲▼ 고르기 · A 이동', fs.map((f) => `${f.name}${f === place ? ' (지금 층)' : ''}`), (k) => { if (fs[k] !== place) gotoFloor(fs[k]); }, fs.indexOf(place));
+}
+// 버그 문제: 아직 못 잡은 버그 가운데 하나가 나온다. 맞히면 채집(onCatch), 틀리면 도망가고 오답노트에 남는다
+function askBug(onCatch) {
+  if (!BUGS.length) return onCatch?.(null);
+  const fresh = BUGS.filter((b) => bugLog[b.key] !== 'caught'), b = pick(fresh.length ? fresh : BUGS);
+  openMenu(`${b.name} 출현! — ▲▼ 고르기 · A 답하기`, b.choices, (k) => {
+    if (k === b.answer) { markBug(b.key, 'caught'); sfx('rare'); onCatch ? onCatch(b) : showDialog(`${b.name} 채집!`, b.why); }
+    else {
+      if (bugLog[b.key] !== 'caught') markBug(b.key, 'missed');
+      sfx('crash'); showDialog(`${b.name} — 놓쳤다!`, '오답! 버그가 도망갔어요.\n5F 기록실 버그 도감의 오답노트에 남았어요.');
+    }
+  }, 0, `Q. ${b.q}`);
+}
+function openBugDex(sel = 0) {  // 5F 기록실: 만난 버그의 문제·정답·해설. 놓친 버그는 오답노트로 표시
+  if (!BUGS.length) return showDialog('버그 도감', '아직 기록된 버그가 없어요.');
+  const count = (st) => BUGS.filter((b) => bugLog[b.key] === st).length;
+  openMenu('버그 도감 — ▲▼ 고르기 · A 펼치기', BUGS.map((b, k) => `No.${String(k + 1).padStart(2, '0')} ${bugLog[b.key] ? b.name : '???'}${bugLog[b.key] === 'missed' ? ' (놓침 · 오답노트)' : ''}`), (k) => {
+    const b = BUGS[k], st = bugLog[b.key];
+    showDialog(st ? `${b.name}${st === 'missed' ? ' — 오답노트' : ''}` : '???',
+      st ? `${b.desc}\nQ. ${b.q}\n정답: ${b.choices[b.answer]}\n${b.why}` : '아직 만나지 못한 버그예요. 밖에서 찾아보세요.', () => openBugDex(k));
+  }, sel, `채집 ${count('caught')}/${BUGS.length} · 놓침 ${count('missed')}`);
+}
 function gotoFloor(f) {
   if (switching) return;
   switching = true; wipeEl.classList.add('is-on'); sfx('turn');
@@ -1542,7 +1576,7 @@ function press(k) {
     return;
   }
   if (k === 'b') { closeDialog(); return; }
-  if (liftSel >= 0) { const f = lifts()[liftSel]; closeDialog(); if (f !== place) gotoFloor(f); return; }
+  if (menu) { const m = menu; closeDialog(); m.pick(m.sel); return; }
   if (dialogOpen) { const act = dialogAction; closeDialog(); act?.(); return; }
   const t = nearest();
   if (t?.type === 'npc') {  // 말을 걸 때마다 다음 대사
@@ -1570,9 +1604,9 @@ function tick() {
     requestAnimationFrame(tick);
     return;
   }
-  // 엘리베이터 층 고르기(누르는 순간 한 칸)
-  if (liftSel >= 0) for (const [k, d] of [['up', -1], ['down', 1]]) {
-    if (held.has(k) && !liftPrev.has(k)) { liftSel = THREE.MathUtils.clamp(liftSel + d, 0, lifts().length - 1); drawLift(); sfx('lane'); }
+  // 목록에서 고르기(누르는 순간 한 칸)
+  if (menu) for (const [k, d] of [['up', -1], ['down', 1]]) {
+    if (held.has(k) && !liftPrev.has(k)) { menu.sel = THREE.MathUtils.clamp(menu.sel + d, 0, menu.rows.length - 1); drawMenu(); sfx('lane'); }
   }
   liftPrev.clear(); for (const k of held) liftPrev.add(k);
   if (t >= floorBannerUntil) zoneEl.hidden = true;
@@ -1614,8 +1648,10 @@ function tick() {
   hintEl.hidden = !hint; if (hint) hintEl.textContent = hint;
   // 카메라: 토끼 뒤 위에서 천천히 따라간다
   const sway = reduceMotion ? 0 : Math.sin(t * 0.25) * 0.8;
-  camPos.lerp(new THREE.Vector3(bunny.position.x * 0.6 + sway, 4.8, bunny.position.z + 11), reduceMotion ? 1 : 0.05);
-  camLook.lerp(new THREE.Vector3(bunny.position.x * 0.8, 1.6, bunny.position.z - 4), reduceMotion ? 1 : 0.08);
+  // 대화창이 열리면 다가가서 아래를 본다 — 창이 화면 아래를 덮어도 캐릭터가 그 위에 보이게
+  const bp = bunny.position;
+  camPos.lerp(dialogOpen ? new THREE.Vector3(bp.x, 3.4, bp.z + 6.5) : new THREE.Vector3(bp.x * 0.6 + sway, 4.8, bp.z + 11), reduceMotion ? 1 : 0.05);
+  camLook.lerp(dialogOpen ? new THREE.Vector3(bp.x, -0.6, bp.z - 1) : new THREE.Vector3(bp.x * 0.8, 1.6, bp.z - 4), reduceMotion ? 1 : 0.08);
   camera.position.copy(camPos); camera.lookAt(camLook);
   composer.render(dt);
   requestAnimationFrame(tick);
