@@ -373,7 +373,7 @@ const me = data.cast.find((c) => c.key === 'bunny');
 // ===== 층: 옥상(RF) + 실내 층(play-floors.js). 걷기·대화·엘리베이터는 층 공통 — 지금 있는 층이 place =====
 const roofLift = liftDoor(canvasTexture, CYAN, GOLD); roofLift.position.set(3.8, 0, -ROOF.d / 2 + 0.3); scene.add(roofLift);
 // 동료는 각자 맡은 층에 있다(5F 미누 · 4F 모니 · 3F 큐링 · B1 글리치 킹). 옥상은 소품을 살펴보는 허브
-const floorCtx = { canvasTexture, colors: { PINK, CYAN, GOLD, VIOLET, LAV }, data, skyline: skylineTexs[0], dex, drive: () => switchMode('drive'), quiz: (onCatch) => askBug(onCatch), bugDex: () => openBugDex() };
+const floorCtx = { canvasTexture, colors: { PINK, CYAN, GOLD, VIOLET, LAV }, data, skyline: skylineTexs[0], dex, drive: () => switchMode('drive'), quiz: (onCatch, onMiss) => askBug(onCatch, onMiss), bugDex: () => openBugDex(), goto: (key) => gotoFloor(FLOORS.find((f) => f.key === key)) };
 const FLOORS = [
   { key: 'RF', name: 'RF 달빛 옥상', music: 'roof', scene, w: ROOF.w, d: ROOF.d, spawn: [3.8, -3.6], npcs: [], things: [
     { pos: [7.2, -ROOF.d / 2 + 0.3], hint: '드라이브 하러 가기', act: () => switchMode('drive') },
@@ -388,7 +388,7 @@ const FLOORS = [
       spr.userData.info = data.cast.find((c) => c.key === n.key); spr.userData.lines = n.lines;
       return spr;
     }),
-    things: [...f.things, { pos: f.lift, hint: '엘리베이터 타기', act: () => openLift() }],
+    things: f.noLift ? f.things : [...f.things, { pos: f.lift, hint: '엘리베이터 타기', act: () => openLift() }],  // 들판처럼 엘리베이터가 없는 곳도 있다
   })),
 ];
 let place = FLOORS[0];
@@ -1508,7 +1508,7 @@ function showDialog(name, text, onA = null) {  // onA 가 있으면 A 를 눌렀
 function closeDialog() { dialogEl.hidden = bookEl.hidden = true; dialogOpen = false; dialogAction = null; menu = null; }
 
 // 목록 고르기(엘리베이터·버그 문제·버그 도감): ▲▼ 로 고르고 A 로 정한다
-const lifts = () => FLOORS.filter((f) => !f.locked?.());  // 잠긴 층(숨은 층)은 목록에서 뺀다
+const lifts = () => FLOORS.filter((f) => !f.noLift && !f.locked?.());  // 잠긴 층(숨은 층)과 엘리베이터가 없는 곳은 목록에서 뺀다
 const MENU_ROWS = 6, BOOK_ROWS = 12;  // 한 번에 보이는 줄 수(대화창·펼친 책). 넘으면 고른 줄을 따라 목록이 밀린다
 function drawMenu() {
   const { title, head, rows, sel } = menu, show = menu.book ? BOOK_ROWS : MENU_ROWS, from = Math.max(0, Math.min(sel - 2, rows.length - show));
@@ -1523,15 +1523,15 @@ function openLift() {
   const fs = lifts();
   openMenu('엘리베이터 — ▲▼ 고르기 · A 이동', fs.map((f) => `${f.name}${f === place ? ' (지금 층)' : ''}`), (k) => { if (fs[k] !== place) gotoFloor(fs[k]); }, fs.indexOf(place));
 }
-// 버그 문제: 아직 못 잡은 버그 가운데 하나가 나온다. 맞히면 채집(onCatch), 틀리면 도망가고 오답노트에 남는다
-function askBug(onCatch) {
+// 버그 문제: 아직 못 잡은 버그 가운데 하나가 나온다. 맞히면 채집(onCatch), 틀리면 도망가고(onMiss) 오답노트에 남는다
+function askBug(onCatch, onMiss) {
   if (!BUGS.length) return onCatch?.(null);
   const fresh = BUGS.filter((b) => bugLog[b.key] !== 'caught'), b = pick(fresh.length ? fresh : BUGS);
   openMenu(`${b.name} 출현! — ▲▼ 고르기 · A 답하기`, b.choices, (k) => {
     if (k === b.answer) { markBug(b.key, 'caught'); sfx('rare'); onCatch ? onCatch(b) : showDialog(`${b.name} 채집!`, b.why); }
     else {
       if (bugLog[b.key] !== 'caught') markBug(b.key, 'missed');
-      sfx('crash'); showDialog(`${b.name} — 놓쳤다!`, '오답! 버그가 도망갔어요.\n5F 기록실 버그 도감의 오답노트에 남았어요.');
+      onMiss?.(b); sfx('crash'); showDialog(`${b.name} — 놓쳤다!`, '오답! 버그가 도망갔어요.\n5F 기록실 버그 도감의 오답노트에 남았어요.');
     }
   }, 0, `Q. ${b.q}`);
 }
@@ -1621,6 +1621,7 @@ function tick() {
   }
   liftPrev.clear(); for (const k of held) liftPrev.add(k);
   if (t >= floorBannerUntil) zoneEl.hidden = true;
+  place.tick?.(t);  // 그 장소만의 움직임(들판의 버그)
   // 이동
   if (!dialogOpen && twirlT < 0) {
     const v = new THREE.Vector2((held.has('right') ? 1 : 0) - (held.has('left') ? 1 : 0), (held.has('down') ? 1 : 0) - (held.has('up') ? 1 : 0));

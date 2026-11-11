@@ -47,8 +47,14 @@ function model(parent, file, size, x, z, rotY = 0) {
   gltf.load(`/assets/models/${file}.glb`, (g) => {
     const o = g.scene, b = new THREE.Box3().setFromObject(o), s = b.getSize(new THREE.Vector3());
     const k = size / Math.max(s.x, s.y, s.z);
+    if (file.startsWith('nature/')) o.traverse((m) => { if (m.isMesh) m.material.metalness = 0; });  // 금속 재질로 들어와 간접광만으로는 검게 보인다
     o.scale.setScalar(k); o.rotation.y = rotY; o.position.set(x, -b.min.y * k, z); parent.add(o);
   }, undefined, () => { /* 모델이 없어도 방은 열린다 */ });
+}
+// 떠 있는 글자 표지(항상 카메라를 본다) — 옆벽 문처럼 정면 간판을 붙일 수 없는 곳에 쓴다
+function label(canvasTexture, parent, text, color, x, y, z) {
+  const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTexture(64, 16, (c) => { c.fillStyle = css(color); c.font = 'bold 12px monospace'; c.textAlign = 'center'; c.fillText(text, 32, 12); }) }));
+  m.position.set(x, y, z); m.scale.set(2.4, 0.6, 1); parent.add(m);
 }
 // 고정 난수(방 생김새가 매번 같게)
 function seeded(seed) { return () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff; }
@@ -323,7 +329,7 @@ function gallery({ canvasTexture, colors, dex }) {
 // 1F 차고 — 드라이브 출발점. 셔터 문으로 나가고, 고장 난 단추판을 건드리면 B1 이 열린다
 let b1Open = false;
 try { b1Open = !!localStorage.getItem('play-b1'); } catch (e) { /* 저장을 못 읽어도 게임은 된다 */ }
-function garage({ canvasTexture, colors, drive }) {
+function garage({ canvasTexture, colors, drive, goto }) {
   const { PINK, CYAN, GOLD } = colors;
   const w = 18, d = 11, back = -d / 2;
   const scene = room(canvasTexture, w, d, { floorA: '#2a2a3c', floorB: '#2f2f44', wall: 0x2c2c4a, trim: PINK, light: 0xd8d8ff });
@@ -337,6 +343,12 @@ function garage({ canvasTexture, colors, drive }) {
   for (const [bw, bh, x, y] of [[0.25, 3.9, -7.1, 1.95], [0.25, 3.9, -1.9, 1.95], [5.45, 0.25, -4.5, 3.9]]) box(scene, bw, bh, 0.25, x, y, back + 0.1, glow(PINK));
   sign(canvasTexture, scene, 'DRIVE ▶', GOLD, 3.4, -4.5, 4.6, back + 0.05);
   things.push({ pos: [-4.5, back + 1], hint: '드라이브 하러 가기', act: () => drive() });
+  // 왼쪽 벽의 초록 문: 걸어서 들판으로 나간다
+  const GREEN = 0x7dff9a, doorX = -w / 2 + 0.12;
+  for (const [bd, bh, z, y] of [[0.25, 2.8, -2.4, 1.4], [0.25, 2.8, -0.6, 1.4], [2.05, 0.25, -1.5, 2.8]]) box(scene, 0.25, bh, bd, doorX, y, z, glow(GREEN));
+  box(scene, 0.1, 2.6, 1.55, doorX - 0.05, 1.3, -1.5, std(0x1f4a3a));
+  label(canvasTexture, scene, '◀ FIELD', GREEN, doorX + 0.6, 3.5, -1.5);
+  things.push({ pos: [doorX + 0.9, -1.5], hint: '들판으로 나가기', act: () => goto('FIELD') });
   // 바닥 주차선 + 세워 둔 차(Kenney 모델)
   for (const x of [-6.6, -2.4, 1.8, 6]) { const l = new THREE.Mesh(new THREE.PlaneGeometry(0.15, 4.4), glow(GOLD)); l.rotation.x = -Math.PI / 2; l.position.set(x, 0.01, 1.2); scene.add(l); }
   [['race-future', -4.5, 0.2], ['taxi', -0.3, -0.2], ['van', 3.9, 0.1]].forEach(([f, x, r]) => model(scene, `cars/${f}`, 3.6, x, 1.2, r));
@@ -457,6 +469,84 @@ export function roofProps(scene, { canvasTexture, colors, data }, roof) {
   return things;
 }
 
+// 건물 밖 들판: 걸어 다니며 버그를 찾는다. 문제를 맞히면 채집, 틀리면 버그가 다른 곳으로 도망간다
+function field({ canvasTexture, colors, skyline, quiz, goto }) {
+  const { CYAN, GOLD } = colors, GREEN = 0x7dff9a;
+  const w = 30, d = 18, back = -d / 2, rnd = seeded(77);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x120c2c); scene.fog = new THREE.Fog(0x120c2c, 22, 60);
+  scene.add(new THREE.HemisphereLight(0xb8c8ff, 0x1a3a2a, 2.8));
+  const tex = canvasTexture(16, 16, (g) => { g.fillStyle = '#1f4a3a'; g.fillRect(0, 0, 16, 16); g.fillStyle = '#245642'; g.fillRect(0, 0, 8, 8); g.fillRect(8, 8, 8, 8); });
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(w / 2, d / 2);
+  box(scene, w, 1, d, 0, -0.5, 0, new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9 }));
+  box(scene, 90, 1, 70, 0, -0.52, -6, std(0x173a2e));  // 걸을 수 없는 바깥 풀밭
+  const city = new THREE.Mesh(new THREE.PlaneGeometry(64, 14), new THREE.MeshBasicMaterial({ map: skyline, transparent: true, fog: false }));
+  city.position.set(0, 6.5, back - 14); scene.add(city);  // 멀리 보이는 도시
+
+  // 둘레의 나무·울타리(걷는 범위 밖), 안쪽의 덤불·꽃·풀
+  const TREES = ['tree_default', 'tree_oak', 'tree_detailed', 'tree_fat', 'tree_small'];
+  for (let x = -18; x <= 18; x += 3) model(scene, `nature/${TREES[Math.floor(rnd() * TREES.length)]}`, 3.6 + rnd() * 2, x + rnd(), back - 2 - rnd() * 3, rnd() * 6);
+  for (let z = back; z <= 9; z += 3.2) model(scene, `nature/${TREES[Math.floor(rnd() * TREES.length)]}`, 3.4 + rnd() * 2, -w / 2 - 2 - rnd() * 2, z, rnd() * 6);
+  for (let x = -13.5; x <= 13.5; x += 3) model(scene, 'nature/fence_simple', 3, x, back - 0.4);
+  for (let i = 0; i < 26; i++) {
+    const f = ['grass_large', 'grass_large', 'plant_bush', 'flower_purpleA', 'flower_redA', 'flower_yellowA', 'plant_bushLarge'][Math.floor(rnd() * 7)];
+    model(scene, `nature/${f}`, f.startsWith('plant') ? 1.6 : 1, (rnd() - 0.5) * (w - 3), (rnd() - 0.5) * (d - 3), rnd() * 6);
+  }
+  // 가로등 셋: 풀밭에 노란 불빛
+  for (const [x, z] of [[-9, -4], [2, 3], [10, -5]]) {
+    box(scene, 0.14, 2.6, 0.14, x, 1.3, z, std(0x2a2456)); box(scene, 0.5, 0.3, 0.5, x, 2.7, z, glow(GOLD));
+    const l = new THREE.PointLight(0xffd76a, 14, 10, 1.6); l.position.set(x, 2.6, z); scene.add(l);
+  }
+
+  // 차고로 돌아가는 문(오른쪽 끝)
+  const doorX = w / 2 - 0.4;
+  for (const [bd, bh, z, y] of [[0.25, 2.8, -0.9, 1.4], [0.25, 2.8, 0.9, 1.4], [2.05, 0.25, 0, 2.8]]) box(scene, 0.25, bh, bd, doorX, y, z, glow(CYAN));
+  box(scene, 0.1, 2.6, 1.55, doorX + 0.05, 1.3, 0, std(0x4a4290, { metalness: 0.5, roughness: 0.35 }));
+  label(canvasTexture, scene, 'GARAGE ▶', GOLD, doorX - 0.6, 3.5, 0);
+  const things = [{ pos: [doorX - 0.9, 0], hint: '차고로 돌아가기', act: () => goto('1F') }];
+  label(canvasTexture, scene, 'BUG FIELD', GREEN, 0, 4.6, back - 0.4);
+
+  // 버그: 풀밭 위를 날아다닌다. 얼굴 없이 빛나는 몸통 + 날개 한 쌍
+  const N = 8, spot = () => [(rnd() - 0.5) * (w - 6) - 1.5, (rnd() - 0.5) * (d - 4)];
+  let left = N;
+  const bugs = Array.from({ length: N }, (_, i) => {
+    const m = new THREE.Group(), color = [GREEN, CYAN, GOLD][i % 3];
+    const body = new THREE.Mesh(new THREE.OctahedronGeometry(0.24), glow(color)); body.scale.set(1, 0.7, 1.4); m.add(body);
+    for (const sx of [-1, 1]) { const wing = box(m, 0.34, 0.02, 0.22, sx * 0.26, 0.1, 0, glow(0xf6f3ff)); wing.rotation.z = sx * 0.5; }
+    scene.add(m);
+    const b = { m, home: spot(), alive: true };
+    b.th = { pos: [...b.home], hint: '버그 잡기', act: ({ showDialog }) => quiz((bug) => {
+      b.alive = false; m.visible = false; b.th.pos = [999, 999]; left -= 1;  // 잡힌 버그는 더 안 잡히게 멀리 치운다
+      showDialog(`${bug ? `${bug.name} 채집!` : '채집!'}`, `${bug ? `${bug.why}\n` : ''}${left ? `들판에 버그가 ${left}마리 남았다.` : '들판의 버그를 전부 잡았다! (다시 나오면 새 버그가 날아와 있어요.)'}`);
+    }, () => {  // 틀리면 멀리 달아난다
+      let to = spot(); for (let k = 0; k < 8 && Math.hypot(to[0] - b.home[0], to[1] - b.home[1]) < 7; k++) to = spot();
+      b.home = to;
+    }) };
+    things.push(b.th);
+    return b;
+  });
+
+  return {
+    key: 'FIELD', name: '버그 들판', music: 'roof', scene, w, d, glow: 0.5, noLift: true,
+    spawn: [doorX - 1.8, 0],
+    enter() {  // 전부 잡은 뒤 다시 오면 새 버그가 날아와 있다
+      if (left) return;
+      left = N;
+      for (const b of bugs) { b.alive = true; b.m.visible = true; b.home = spot(); }
+    },
+    tick(t) {  // 제자리 근처를 맴돈다. 잡는 자리(th.pos)도 따라 움직인다
+      bugs.forEach((b, i) => {
+        if (!b.alive) return;
+        const x = b.home[0] + Math.sin(t * 0.7 + i * 2) * 0.8, z = b.home[1] + Math.cos(t * 0.5 + i) * 0.5;
+        b.m.position.set(x, 0.8 + Math.sin(t * 3 + i) * 0.15, z); b.m.rotation.y = t * 1.5 + i;
+        b.th.pos = [x, z];
+      });
+    },
+    npcs: [],
+    things,
+  };
+}
+
 export function buildFloors(ctx) {
-  return [archive(ctx), control(ctx), lab(ctx), gallery(ctx), garage(ctx), lair(ctx)];
+  return [archive(ctx), control(ctx), lab(ctx), gallery(ctx), garage(ctx), lair(ctx), field(ctx)];
 }

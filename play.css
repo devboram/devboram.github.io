@@ -14,7 +14,7 @@
 .play-canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; opacity: 0; transition: opacity 0.6s; }
 .play-stage.is-ready .play-canvas { opacity: 1; }
 .play-hint { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); margin: 0; padding: 6px 14px; font-family: var(--font-pixel-sm); font-size: 14px; color: var(--text-on-light); background: var(--gold-400); animation: blink 1s steps(1, end) infinite; }
-.play-dialog { position: absolute; left: 16px; right: 16px; bottom: 16px; padding: 16px 20px; text-align: left; }
+.play-dialog { position: absolute; left: 16px; right: 16px; bottom: 16px; padding: 16px 40px; text-align: left; }  /* 좌우 40px: 창 모서리의 반짝이 아이콘(10~31px)과 글자가 겹치지 않게 */
 .play-dialog p { margin: 0; }
 .play-dialog-name { font-family: var(--font-pixel); font-weight: 700; font-size: 15px; color: var(--gold-400); }
 .play-dialog-text { margin-top: 6px !important; font-size: 15px; line-height: 1.7; white-space: pre-line; }
@@ -66,7 +66,7 @@
   .pad-dpad { grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(3, 48px); }
   .pad-btn { width: 48px; height: 48px; }
   .pad-a, .pad-b { width: 58px; height: 58px; }
-  .play-dialog { left: 8px; right: 8px; bottom: 8px; padding: 10px 14px; }
+  .play-dialog { left: 8px; right: 8px; bottom: 8px; padding: 10px 36px; }
 }
 @media (prefers-reduced-motion: reduce) { .play-hint { animation: none; } }
 /* 드라이브 HUD · 화면 전환(픽셀 페이드) */
