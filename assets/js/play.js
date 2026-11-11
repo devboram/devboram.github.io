@@ -15,6 +15,7 @@ const stage = document.querySelector('.play-stage');
 const canvas = stage.querySelector('.play-canvas');
 const hintEl = stage.querySelector('.play-hint');
 const dialogEl = stage.querySelector('.play-dialog');
+const bookEl = stage.querySelector('.play-book');
 const hudEl = stage.querySelector('.play-hud');
 const speedEl = stage.querySelector('.play-speed');
 const zoneEl = stage.querySelector('.play-zone');
@@ -1504,15 +1505,18 @@ function showDialog(name, text, onA = null) {  // onA 가 있으면 A 를 눌렀
   dialogEl.querySelector('.play-dialog-text').textContent = text;
   dialogEl.hidden = false; dialogOpen = true; dialogAction = onA;
 }
-function closeDialog() { dialogEl.hidden = true; dialogOpen = false; dialogAction = null; menu = null; }
+function closeDialog() { dialogEl.hidden = bookEl.hidden = true; dialogOpen = false; dialogAction = null; menu = null; }
 
 // 목록 고르기(엘리베이터·버그 문제·버그 도감): ▲▼ 로 고르고 A 로 정한다
 const lifts = () => FLOORS.filter((f) => !f.locked?.());  // 잠긴 층(숨은 층)은 목록에서 뺀다
-const MENU_ROWS = 6;  // 한 번에 보이는 줄 수. 넘으면 고른 줄을 따라 목록이 밀린다
+const MENU_ROWS = 6, BOOK_ROWS = 12;  // 한 번에 보이는 줄 수(대화창·펼친 책). 넘으면 고른 줄을 따라 목록이 밀린다
 function drawMenu() {
-  const { title, head, rows, sel } = menu, from = Math.max(0, Math.min(sel - 2, rows.length - MENU_ROWS));
-  const body = rows.slice(from, from + MENU_ROWS).map((r, k) => `${from + k === sel ? '▶' : '▷'} ${r}`);
-  showDialog(title, [head, ...body].filter(Boolean).join('\n'));
+  const { title, head, rows, sel } = menu, show = menu.book ? BOOK_ROWS : MENU_ROWS, from = Math.max(0, Math.min(sel - 2, rows.length - show));
+  const body = rows.slice(from, from + show).map((r, k) => `${from + k === sel ? '▶' : '▷'} ${r}`);
+  if (!menu.book) return showDialog(title, [head, ...body].filter(Boolean).join('\n'));
+  const page = menu.book(sel), set = (cls, text) => { bookEl.querySelector(cls).textContent = text; };  // 펼친 책: 왼쪽 목록, 오른쪽은 고른 줄의 내용
+  set('.play-book-title', title); set('.play-book-list', body.join('\n')); set('.play-book-name', page.name); set('.play-book-text', page.text);
+  bookEl.hidden = false; dialogOpen = true;
 }
 function openMenu(title, rows, pick, sel = 0, head = '') { menu = { title, head, rows, sel, pick }; drawMenu(); }  // ▲▼ 로 고르고 A 로 pick(고른 순서)
 function openLift() {
@@ -1531,14 +1535,19 @@ function askBug(onCatch) {
     }
   }, 0, `Q. ${b.q}`);
 }
-function openBugDex(sel = 0) {  // 5F 기록실: 만난 버그의 문제·정답·해설. 놓친 버그는 오답노트로 표시
+function openBugDex() {  // 5F 기록실: 도감을 펼친다. 만난 버그의 문제·정답·해설, 놓친 버그는 오답노트로 표시
   if (!BUGS.length) return showDialog('버그 도감', '아직 기록된 버그가 없어요.');
   const count = (st) => BUGS.filter((b) => bugLog[b.key] === st).length;
-  openMenu('버그 도감 — ▲▼ 고르기 · A 펼치기', BUGS.map((b, k) => `No.${String(k + 1).padStart(2, '0')} ${bugLog[b.key] ? b.name : '???'}${bugLog[b.key] === 'missed' ? ' (놓침 · 오답노트)' : ''}`), (k) => {
-    const b = BUGS[k], st = bugLog[b.key];
-    showDialog(st ? `${b.name}${st === 'missed' ? ' — 오답노트' : ''}` : '???',
-      st ? `${b.desc}\nQ. ${b.q}\n정답: ${b.choices[b.answer]}\n${b.why}` : '아직 만나지 못한 버그예요. 밖에서 찾아보세요.', () => openBugDex(k));
-  }, sel, `채집 ${count('caught')}/${BUGS.length} · 놓침 ${count('missed')}`);
+  menu = {
+    title: `버그 도감 · 채집 ${count('caught')}/${BUGS.length} · 놓침 ${count('missed')}`, sel: 0,
+    rows: BUGS.map((b, k) => `No.${String(k + 1).padStart(2, '0')} ${bugLog[b.key] ? b.name : '???'}${bugLog[b.key] === 'missed' ? ' ✗' : ''}`),
+    book: (k) => {
+      const b = BUGS[k], st = bugLog[b.key];
+      return st ? { name: `${b.name}${st === 'missed' ? ' — 오답노트' : ''}`, text: `${b.desc}\n\nQ. ${b.q}\n정답: ${b.choices[b.answer]}\n\n${b.why}` }
+        : { name: '???', text: '아직 만나지 못한 버그예요.\n밖에서 찾아보세요.' };
+    },
+  };
+  drawMenu();
 }
 function gotoFloor(f) {
   if (switching) return;
@@ -1576,6 +1585,7 @@ function press(k) {
     return;
   }
   if (k === 'b') { closeDialog(); return; }
+  if (menu?.book) return;  // 펼친 책은 ▲▼ 로 넘기기만 한다(B 로 덮기)
   if (menu) { const m = menu; closeDialog(); m.pick(m.sel); return; }
   if (dialogOpen) { const act = dialogAction; closeDialog(); act?.(); return; }
   const t = nearest();
@@ -1649,12 +1659,13 @@ function tick() {
   hintEl.hidden = !hint; if (hint) hintEl.textContent = hint;
   // 카메라: 토끼 뒤 위에서 천천히 따라간다
   const sway = reduceMotion ? 0 : Math.sin(t * 0.25) * 0.8;
-  // 대화창이 열리면 토끼와 상대의 가운데로 다가가서 아래를 본다 — 창이 화면 아래를 덮어도 둘 다 그 위에 보이게
+  // 대화창이 열리면 토끼와 상대 사이로 다가가서 아래를 본다 — 창이 화면 아래를 덮어도 둘 다 그 위에 보이게
   const bp = bunny.position;
   if (!dialogOpen) talkTo = null;
-  const mid = talkTo ? bp.clone().add(talkTo).multiplyScalar(0.5) : bp, span = talkTo ? Math.hypot(talkTo.x - bp.x, talkTo.z - bp.z) : 0;  // 둘이 멀수록 조금 물러난다
-  camPos.lerp(dialogOpen ? new THREE.Vector3(mid.x, 3.4, mid.z + 6.5 + span * 0.8) : new THREE.Vector3(bp.x * 0.6 + sway, 4.8, bp.z + 11), reduceMotion ? 1 : 0.05);
-  camLook.lerp(dialogOpen ? new THREE.Vector3(mid.x, -0.6, mid.z - 1) : new THREE.Vector3(bp.x * 0.8, 1.6, bp.z - 4), reduceMotion ? 1 : 0.08);
+  const zoom = dialogOpen && !menu?.book;  // 펼친 책은 화면을 다 덮으니 카메라를 그대로 둔다
+  const mid = talkTo ? bp.clone().lerp(talkTo, 0.6) : bp, span = talkTo ? Math.hypot(talkTo.x - bp.x, talkTo.z - bp.z) : 0;  // 상대 쪽으로 조금 더(높이 포함), 둘이 멀수록 물러난다
+  camPos.lerp(zoom ? new THREE.Vector3(mid.x, 3.4 + mid.y, mid.z + 6.5 + span * 0.8) : new THREE.Vector3(bp.x * 0.6 + sway, 4.8, bp.z + 11), reduceMotion ? 1 : 0.05);
+  camLook.lerp(zoom ? new THREE.Vector3(mid.x, -0.6 + mid.y, mid.z - 1) : new THREE.Vector3(bp.x * 0.8, 1.6, bp.z - 4), reduceMotion ? 1 : 0.08);
   camera.position.copy(camPos); camera.lookAt(camLook);
   composer.render(dt);
   requestAnimationFrame(tick);

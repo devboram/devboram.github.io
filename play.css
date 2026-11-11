@@ -19,6 +19,22 @@
 .play-dialog-name { font-family: var(--font-pixel); font-weight: 700; font-size: 15px; color: var(--gold-400); }
 .play-dialog-text { margin-top: 6px !important; font-size: 15px; line-height: 1.7; white-space: pre-line; }
 .play-dialog-close { margin-top: 6px !important; font-family: var(--font-pixel-sm); font-size: 14px; color: var(--text-muted); text-align: right; }
+/* 버그 도감: 펼친 책. 왼쪽 쪽은 목록, 오른쪽 쪽은 고른 버그의 문제·정답·해설 */
+.play-book { position: absolute; inset: 7% 6%; display: grid; grid-template-columns: 1fr 1fr; color: var(--text-on-light); background: #f6ecd2; box-shadow: 0 0 0 4px var(--night-950), 0 0 0 8px var(--gold-400), 0 0 28px var(--gold-400); }
+.play-book[hidden] { display: none; }
+.play-book-page { display: flex; flex-direction: column; min-width: 0; padding: 16px 20px; text-align: left; }
+.play-book-page + .play-book-page { border-left: 4px double #c9b78a; }
+.play-book p { margin: 0; }
+.play-book-title, .play-book-name { font-family: var(--font-pixel); font-weight: 700; font-size: 15px; color: var(--pink-700); padding-bottom: 6px; border-bottom: 2px solid #c9b78a; }
+.play-book-list, .play-book-text { margin-top: 8px !important; font-size: 14px; line-height: 1.75; white-space: pre-line; }
+.play-book-close { margin-top: auto !important; font-family: var(--font-pixel-sm); font-size: 13px; color: #7a6a44; text-align: right; }
+@media (max-width: 600px) {
+  .play-book { inset: 3% 2%; }
+  .play-book-page { padding: 6px 8px; }
+  .play-book-title, .play-book-name { font-size: 11px; padding-bottom: 2px; }
+  .play-book-list, .play-book-text { margin-top: 3px !important; font-size: 10px; line-height: 1.5; }
+  .play-book-close { font-size: 10px; }
+}
 .play-fallback { display: none; position: absolute; inset: auto 16px 16px 16px; margin: 0; padding: 12px; background: var(--night-950); }
 .play-stage.is-fallback .play-fallback { display: block; }
 .play-keys { margin: 20px 0 0 0; font-family: var(--font-pixel-sm); font-size: 14px; color: var(--text-muted); }
