@@ -142,7 +142,7 @@ function archive({ canvasTexture, colors, data, skyline }) {
   const lift = liftDoor(canvasTexture, CYAN, GOLD); lift.position.set(liftX, 0, back + 0.3); scene.add(lift);
 
   return {
-    key: '5F', name: '5F 기록실', scene, w, d, glow: 0.3,
+    key: '5F', name: '5F 기록실', music: 'archive', scene, w, d, glow: 0.3,
     spawn: [liftX, back + 1.7], lift: [liftX, back + 0.3],
     npcs: [{ key: 'cat', pos: [4.2, 0, -3.6], height: 2.1, lines: [
       '아까 그 말, 제가 적어 뒀어요.',
@@ -197,7 +197,7 @@ function control({ canvasTexture, colors, data }) {
   const liftX = 7;
   const lift = liftDoor(canvasTexture, CYAN, GOLD); lift.position.set(liftX, 0, back + 0.3); scene.add(lift);
   return {
-    key: '4F', name: '4F 관제실', scene, w, d, glow: 0.3,
+    key: '4F', name: '4F 관제실', music: 'indoor', scene, w, d, glow: 0.3,
     spawn: [liftX, back + 1.7], lift: [liftX, back + 0.3],
     npcs: [{ key: 'robot', pos: [3.2, 1.1, -1.2], height: 2.1, lines: [
       '지금 셋이 일하는 중, 하나는 쉬는 중!',
@@ -256,7 +256,7 @@ function lab({ canvasTexture, colors }) {
   const liftX = 7;
   const lift = liftDoor(canvasTexture, CYAN, GOLD); lift.position.set(liftX, 0, back + 0.3); scene.add(lift);
   return {
-    key: '3F', name: '3F 실험실', scene, w, d, glow: 0.3,
+    key: '3F', name: '3F 실험실', music: 'lab', scene, w, d, glow: 0.3,
     spawn: [liftX, back + 1.7], lift: [liftX, back + 0.3],
     enter() {  // 전부 잡은 뒤 다시 오면 버그가 제자리에 돌아와 있다
       if (caught < SPOTS.length) return;
@@ -310,7 +310,7 @@ function gallery({ canvasTexture, colors, dex }) {
   const liftX = 7;
   const lift = liftDoor(canvasTexture, CYAN, GOLD); lift.position.set(liftX, 0, 3); lift.rotation.y = -Math.PI / 2; lift.position.x = w / 2 - 0.3; scene.add(lift);
   return {
-    key: '2F', name: '2F 수집품 방', scene, w, d, glow: 0.3,
+    key: '2F', name: '2F 수집품 방', music: 'gallery', scene, w, d, glow: 0.3,
     spawn: [w / 2 - 1.8, 3], lift: [w / 2 - 0.3, 3],
     enter() { for (const s of slots) s.spr.material.color.set(dex.has(s.id) ? 0xffffff : 0x1c1638); },
     npcs: [],
@@ -364,7 +364,7 @@ function garage({ canvasTexture, colors, drive }) {
   const liftX = 8;
   const lift = liftDoor(canvasTexture, CYAN, GOLD); lift.position.set(liftX, 0, back + 0.3); scene.add(lift);
   return {
-    key: '1F', name: '1F 차고', scene, w, d, glow: 0.3,
+    key: '1F', name: '1F 차고', music: 'garage', scene, w, d, glow: 0.3,
     spawn: [liftX, back + 1.7], lift: [liftX, back + 0.3],
     npcs: [],
     things,
@@ -403,7 +403,7 @@ function lair({ canvasTexture, colors }) {
   const liftX = 6;
   const lift = liftDoor(canvasTexture, VIOLET, PINK); lift.position.set(liftX, 0, 2.5); lift.rotation.y = -Math.PI / 2; lift.position.x = w / 2 - 0.3; scene.add(lift);
   return {
-    key: 'B1', name: 'B1 ???', scene, w, d, glow: 0.45,
+    key: 'B1', name: 'B1 ???', music: 'lair', scene, w, d, glow: 0.45,
     spawn: [w / 2 - 1.8, 2.5], lift: [w / 2 - 0.3, 2.5],
     locked: () => !b1Open,
     npcs: [{ key: 'villain', pos: [0.4, 0, -1.2], height: 2.1, lines: [

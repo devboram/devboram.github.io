@@ -370,7 +370,7 @@ const roofLift = liftDoor(canvasTexture, CYAN, GOLD); roofLift.position.set(3.8,
 // 동료는 각자 맡은 층에 있다(5F 미누 · 4F 모니 · 3F 큐링 · B1 글리치 킹). 옥상은 소품을 살펴보는 허브
 const floorCtx = { canvasTexture, colors: { PINK, CYAN, GOLD, VIOLET, LAV }, data, skyline: skylineTexs[0], dex, drive: () => switchMode('drive') };
 const FLOORS = [
-  { key: 'RF', name: 'RF 달빛 옥상', scene, w: ROOF.w, d: ROOF.d, spawn: [3.8, -3.6], npcs: [], things: [
+  { key: 'RF', name: 'RF 달빛 옥상', music: 'roof', scene, w: ROOF.w, d: ROOF.d, spawn: [3.8, -3.6], npcs: [], things: [
     { pos: [7.2, -ROOF.d / 2 + 0.3], hint: '드라이브 하러 가기', act: () => switchMode('drive') },
     { pos: [3.8, -ROOF.d / 2 + 0.3], hint: '엘리베이터 타기', act: () => openLift() },
     ...roofProps(scene, floorCtx, ROOF),
@@ -568,10 +568,10 @@ const ZONE_LEN = 10;  // 조각 10개(200m)마다 다음 구역
 const FINISH_ZONE = TUNE.finishZones, FINISH_K = FINISH_ZONE * ZONE_LEN;  // 이 조각에 피니시 라인
 const ZONES = [
   { key: 'city', name: '도심 빌딩 숲', desc: '모든 빌딩이 하루치 로그를 네온으로 내보낸다', short: '도심', fog: 0x3a1850, sky: 0x9a7cff },
-  { key: 'slum', name: '뒷골목 슬럼', desc: '고장 난 간판과 전선 사이, 글리치 킹의 구역', short: '슬럼', fog: 0x3a2018, sky: 0xffa86b },
+  { key: 'slum', music: 'drive2', name: '뒷골목 슬럼', desc: '고장 난 간판과 전선 사이, 글리치 킹의 구역', short: '슬럼', fog: 0x3a2018, sky: 0xffa86b },
   { key: 'river', name: '한강 대교', desc: '강물에 비친 도시가 두 배로 반짝인다', short: '대교', fog: 0x2a1748, sky: 0x9a7cff },
   { key: 'park', name: '벚꽃 공원', desc: '가로등 불빛에 물든 벚나무 길', short: '공원', fog: 0x2a2050, sky: 0xc9a8ff },
-  { key: 'tower', name: '핑크 타워', desc: '빛 고리 5개를 통과하면 글리치가 걷힌다', short: '타워', fog: 0x4a1446, sky: 0xff7ad5 },
+  { key: 'tower', music: 'drive2', name: '핑크 타워', desc: '빛 고리 5개를 통과하면 글리치가 걷힌다', short: '타워', fog: 0x4a1446, sky: 0xff7ad5 },
 ];
 // 경로: 구역 순서는 고정 루프가 아니라 갈림길에서 고른 대로 쌓인다. 안 고르면 기본 순서(ZONES 차례)
 const route = [ZONES[0]];
@@ -1062,7 +1062,7 @@ function pop(delta) {  // 점수 옆에 +1 / -2 가 떠올랐다 사라진다
 function drawMap(zone) {  // 월드맵: 구역 5개 점. 가 본 곳은 켜지고 지금 있는 곳은 깜빡인다
   mapEl.replaceChildren(...ZONES.map((z) => { const s = document.createElement('span'); s.textContent = z.short; s.className = z === zone ? 'is-now' : D.seen?.has(z) ? 'is-seen' : ''; return s; }));
 }
-function discover(zone) {  // 처음 들어가는 구역: 가운데 큰 발견 카드
+function discover(zone) {  // 처음 들어가는 구역: 위쪽 발견 카드
   discoverEl.querySelector('.play-discover-name').textContent = zone.name;
   discoverEl.querySelector('.play-discover-desc').textContent = zone.desc;
   discoverEl.hidden = false; discoverUntil = clock.elapsedTime + 3;
@@ -1347,6 +1347,7 @@ function driveTick(dt, t) {
   tickTurn(dt);
   tickFinish(cz, t);
   const zone = tickZone(cz, t);
+  setMusic(zone.music ?? 'drive');  // 구역에 곡이 따로 없으면 기본 드라이브 곡
   tickVillain(cz, dt, t);
   tickRings(cz);
   tickAmbience(zone, dt, t);
@@ -1404,7 +1405,7 @@ function audioOn() {  // 브라우저 정책상 첫 입력 뒤에만 켤 수 있
   osc.connect(lp).connect(g).connect(master); osc.start(); engine = { osc, g };
   musicGain = actx.createGain(); musicGain.gain.value = TUNE.sound.music; musicGain.connect(master);
 }
-function setMusic(key) {  // 장면(roof·indoor·drive)이 바뀌면 그 곡으로 갈아 끼운다. 매 프레임 불러도 된다
+function setMusic(key) {  // 층(`music`)·드라이브 구역이 바뀌면 그 곡(assets/audio/{key}.mp3)으로 갈아 끼운다. 매 프레임 불러도 된다
   if (!actx || key === musicKey) return;
   musicKey = key; musicSrc?.stop(); musicSrc = null;
   (tracks[key] ??= fetch(`/assets/audio/${key}.mp3`).then((r) => r.arrayBuffer()).then((b) => actx.decodeAudioData(b)))
@@ -1488,7 +1489,7 @@ function switchMode(next) {
     if (next === 'drive') { resetDrive(); hintEl.hidden = false; hintEl.textContent = '◀ ▶ 차선 · ▲▼ 속도 · A 부스트 · B 옥상으로'; }
     else {
       bloom.strength = place.glow ?? TUNE.view.glow.roof; bunny.position.set(...(place === FLOORS[0] ? [7.2, 0, -4.4] : [-4.5, 0, -3.2])); stage.classList.remove('is-glitch'); villain.visible = false;
-      if (result) showDialog(D.finished ? 'FINISH!' : 'DRIVE 결과', `${result} — 오늘의 퀘스트: ${(data.posts || [])[0] || '새 글 준비 중'}`);
+      if (result) showDialog(D.finished ? 'FINISH!' : 'DRIVE 결과', result);
     }
     wipeEl.classList.remove('is-on');
     switching = false;
@@ -1561,7 +1562,7 @@ function tick() {
   const dt = Math.min(clock.getDelta(), 0.1), t = clock.elapsedTime;
   const blinkOn = reduceMotion || Math.floor(t * 1.5) % 2 === 0;
   for (const b of blinkers) b.visible = blinkOn;
-  setMusic(mode === 'drive' ? 'drive' : place === FLOORS[0] ? 'roof' : 'indoor');
+  if (mode !== 'drive') setMusic(place.music);
   if (mode === 'drive') {
     driveTick(dt, t);
     const bent = [...drive.bugs, ...drive.traffic, villain];

@@ -68,17 +68,17 @@
 .play-speed { position: absolute; top: 12px; right: 12px; margin: 0; padding: 4px 10px; font-family: var(--font-pixel); font-weight: 700; font-size: 18px; color: var(--cyan-400); background: rgba(7, 6, 26, 0.75); box-shadow: inset 0 0 0 2px var(--night-500); }
 .play-zone { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); margin: 0; padding: 6px 16px; font-family: var(--font-pixel); font-weight: 700; font-size: 16px; color: var(--text-on-light); background: linear-gradient(var(--gold-400) 0 3px, var(--pink-200) 3px calc(100% - 3px), var(--gold-400) calc(100% - 3px)); white-space: nowrap; }
 .play-event { position: absolute; left: 50%; bottom: 60px; transform: translateX(-50%); margin: 0; padding: 6px 14px; max-width: 90%; font-family: var(--font-pixel-sm); font-size: 14px; color: var(--text); background: rgba(58, 10, 40, 0.9); box-shadow: inset 0 0 0 2px var(--pink-500); text-align: center; }
-/* 탐험: 월드맵(가 본 구역은 켜지고 현재 구역은 깜빡인다) · 처음 들어간 구역의 발견 카드 */
+/* 탐험: 월드맵(가 본 구역은 켜지고 현재 구역은 깜빡인다) · 처음 들어간 구역의 발견 카드(위쪽에 작게 — 가운데에 두면 앞길을 가린다) */
 .play-map { position: absolute; top: 44px; left: 12px; margin: 0; padding: 4px 6px; display: flex; gap: 4px; font-family: var(--font-pixel-sm); font-size: 12px; background: rgba(7, 6, 26, 0.75); box-shadow: inset 0 0 0 2px var(--night-500); }
 .play-map span { padding: 0 4px; color: var(--text-muted); }
 .play-map .is-seen { color: var(--cyan-400); }
 .play-map .is-now { color: var(--text-on-light); background: var(--gold-400); animation: blink 1s steps(1, end) infinite; }
-.play-discover { position: absolute; left: 50%; top: 38%; transform: translate(-50%, -50%); padding: 14px 28px; text-align: center; background: rgba(7, 6, 26, 0.85); box-shadow: inset 0 0 0 3px var(--pink-500), 0 0 24px var(--pink-500); animation: discover-pop 0.4s steps(4, end); }
+.play-discover { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); padding: 6px 18px; white-space: nowrap; text-align: center; background: rgba(7, 6, 26, 0.85); box-shadow: inset 0 0 0 3px var(--pink-500), 0 0 24px var(--pink-500); animation: discover-pop 0.4s steps(4, end); }
 .play-discover p { margin: 0; }
-.play-discover-tag { font-family: var(--font-pixel-sm); font-size: 12px; letter-spacing: 2px; color: var(--gold-400); }
-.play-discover-name { font-family: var(--font-pixel); font-weight: 700; font-size: 24px; color: var(--text); }
-.play-discover-desc { margin-top: 4px !important; font-size: 13px; color: var(--text-muted); }
-@keyframes discover-pop { from { transform: translate(-50%, -50%) scale(0.6); opacity: 0; } }
+.play-discover-tag { font-family: var(--font-pixel-sm); font-size: 11px; letter-spacing: 2px; color: var(--gold-400); }
+.play-discover-name { font-family: var(--font-pixel); font-weight: 700; font-size: 18px; color: var(--text); }
+.play-discover-desc { font-size: 12px; color: var(--text-muted); }
+@keyframes discover-pop { from { transform: translateX(-50%) scale(0.6); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .play-map .is-now { animation: none; } .play-discover { animation: none; } }
 /* 글리치 킹 사건: 화면이 지글거린다 */
 .play-stage.is-glitch .play-canvas { animation: glitch-jitter 0.18s steps(2, end) infinite; filter: hue-rotate(40deg) saturate(1.4); }
@@ -86,8 +86,8 @@
 @media (max-width: 600px) {
   .play-zone { font-size: 13px; top: 72px; }
   .play-map { font-size: 10px; top: 40px; }
-  .play-discover { padding: 10px 16px; }
-  .play-discover-name { font-size: 18px; }
+  .play-discover { top: 72px; padding: 4px 12px; }
+  .play-discover-name { font-size: 15px; }
   .play-discover-desc { font-size: 11px; }
   .play-speed { font-size: 14px; }
   .play-event { bottom: 12px; font-size: 12px; }
