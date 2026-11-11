@@ -160,8 +160,11 @@ const RARE_SET = new Set(Object.values(RARE));
 const dex = new Set((() => { try { return JSON.parse(localStorage.getItem('play-dex') || '[]'); } catch (e) { return []; } })());
 function saveDex() { try { localStorage.setItem('play-dex', JSON.stringify([...dex])); } catch (e) { /* 저장 못 해도 게임은 된다 */ } }
 // 버그 도감: 문제를 맞혀 채집한 버그('caught')와 틀려서 놓친 버그('missed')를 기기에 남긴다. 문제는 _data/bugs.yml
-const BUGS = (data.bugs || []).map((b) => ({ ...b, q: b.q.replace(/`/g, ''), why: b.why.replace(/`/g, '') }));
+const BUGS = (data.bugs || []).map((b) => ({ ...b, q: b.q.replace(/`/g, ''), why: b.why.replace(/`/g, ''), hint: (b.hint || '').replace(/`/g, '') }));
 const bugLog = (() => { try { return JSON.parse(localStorage.getItem('play-bugs') || '{}'); } catch (e) { return {}; } })();
+// 아이템: 드라이브에서 하나 주울 때마다 1개. 문제의 힌트를 보거나 틀렸을 때 다시 푸는 데 1개씩 쓴다
+let items = (() => { try { return Number(localStorage.getItem('play-items')) || 0; } catch (e) { return 0; } })();
+function addItems(n) { items = Math.max(0, items + n); try { localStorage.setItem('play-items', String(items)); } catch (e) { /* 저장 못 해도 게임은 된다 */ } }
 function markBug(key, state) { bugLog[key] = state; try { localStorage.setItem('play-bugs', JSON.stringify(bugLog)); } catch (e) { /* 저장 못 해도 게임은 된다 */ } }
 function itemFor(zoneKey) {
   if (RARE[zoneKey] && rnd() < TUNE.rareChance) return RARE[zoneKey];
@@ -1287,7 +1290,7 @@ function tickItems(cz, t) {  // 아이템 줍기·도감·재배치
     const respawn = (dz) => { b.position.z -= dz; b.position.x = pick(LANES); setItem(b, itemFor(zoneOf(Math.round(-b.position.z / SEG)).key)); };
     if (Math.abs(b.position.z - cz) < 1.6 && Math.abs(b.position.x - car.position.x) < 1.3) {
       const n = b.userData.item, rare = RARE_SET.has(n), gain = rare ? TUNE.score.rare : TUNE.score.item;
-      D.stars += gain; pop(gain); sfx(rare ? 'rare' : 'item'); fxBurst(b.position, rare ? GOLD : CYAN, rare ? 28 : undefined);
+      D.stars += gain; addItems(1); pop(gain); sfx(rare ? 'rare' : 'item'); fxBurst(b.position, rare ? GOLD : CYAN, rare ? 28 : undefined);
       respawn(160 + rnd() * 80);
       if (D.glitch > 0) { D.glitch = 0; stage.classList.remove('is-glitch'); say('정화 완료! 반짝이 버그가 사라졌어요', 2); }
       else if (!dex.has(n)) { dex.add(n); D.newDex += 1; saveDex(); say(`NEW! 도감 ${dex.size}/24 ${rare ? `· 희귀 아이템 ★+${gain}` : ''}`, 2); }
@@ -1477,8 +1480,8 @@ for (const btn of document.querySelectorAll('.pad-btn')) {
   for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) btn.addEventListener(ev, up);
 }
 
-let dialogOpen = false, dialogAction = null, twirlT = -1, mode = 'roof', switching = false;
-let menu = null, talkTo = null, floorBannerUntil = 0;  // 열려 있는 목록(엘리베이터·문제·도감, 없으면 null), 지금 말을 걸거나 살펴보는 상대의 자리, 층 이름 배너를 내리는 시각
+let dialogOpen = false, dialogAction = null, dialogCancel = null, twirlT = -1, mode = 'roof', switching = false;
+let menu = null, talkTo = null, inBattle = false, battleTrack = 'battle', floorBannerUntil = 0;  // 열려 있는 목록(엘리베이터·문제·도감, 없으면 null), 지금 말을 걸거나 살펴보는 상대의 자리, 버그 문제를 푸는 중인지와 이번 전투 음악, 층 이름 배너를 내리는 시각
 const liftPrev = new Set();
 function switchMode(next) {
   if (switching) return;
@@ -1490,7 +1493,7 @@ function switchMode(next) {
     pixelPass.scene = next === 'drive' ? drive.s : place.scene;
     pixelPass.camera = next === 'drive' ? drive.cam : camera;
     hudEl.hidden = speedEl.hidden = mapEl.hidden = next !== 'drive'; zoneEl.hidden = eventEl.hidden = discoverEl.hidden = true;
-    const result = mode === 'roof' && D.dist > 30 ? `${D.finished ? `FINISH ${fmtTime(D.time)} · ` : ''}★ ${D.stars} · ${(D.dist / 1000).toFixed(2)} km · 탐험 ${D.seen.size}/${ZONES.length} 구역 · 도감 ${dex.size}/24${D.newDex ? ` (NEW ${D.newDex})` : ''} · 빛 고리 ${D.ringsTotal}개 · 충돌 ${D.crashes}회${D.beaten ? ' · 글리치 킹 격퇴!' : ''}` : '';
+    const result = mode === 'roof' && D.dist > 30 ? `${D.finished ? `FINISH ${fmtTime(D.time)} · ` : ''}★ ${D.stars} · ${(D.dist / 1000).toFixed(2)} km · 탐험 ${D.seen.size}/${ZONES.length} 구역 · 도감 ${dex.size}/24${D.newDex ? ` (NEW ${D.newDex})` : ''} · 빛 고리 ${D.ringsTotal}개 · 충돌 ${D.crashes}회${D.beaten ? ' · 글리치 킹 격퇴!' : ''} · 아이템 ${items}개 보유` : '';
     if (next === 'drive') { resetDrive(); hintEl.hidden = false; hintEl.textContent = '◀ ▶ 차선 · ▲▼ 속도 · A 부스트 · B 옥상으로'; }
     else {
       bloom.strength = place.glow ?? TUNE.view.glow.roof; bunny.position.set(...(place === FLOORS[0] ? [7.2, 0, -4.4] : [-4.5, 0, -3.2])); stage.classList.remove('is-glitch'); villain.visible = false;
@@ -1500,12 +1503,12 @@ function switchMode(next) {
     switching = false;
   }, reduceMotion ? 0 : 480);
 }
-function showDialog(name, text, onA = null) {  // onA 가 있으면 A 를 눌렀을 때 닫고 그 일을 한다
+function showDialog(name, text, onA = null, onB = null) {  // onA·onB 가 있으면 A·B 를 눌렀을 때 닫고 그 일을 한다
   dialogEl.querySelector('.play-dialog-name').textContent = name;
   dialogEl.querySelector('.play-dialog-text').textContent = text;
-  dialogEl.hidden = false; dialogOpen = true; dialogAction = onA;
+  dialogEl.hidden = false; dialogOpen = true; dialogAction = onA; dialogCancel = onB;
 }
-function closeDialog() { dialogEl.hidden = bookEl.hidden = true; dialogOpen = false; dialogAction = null; menu = null; }
+function closeDialog() { dialogEl.hidden = bookEl.hidden = true; dialogOpen = false; dialogAction = dialogCancel = null; menu = null; }
 
 // 목록 고르기(엘리베이터·버그 문제·버그 도감): ▲▼ 로 고르고 A 로 정한다
 const lifts = () => FLOORS.filter((f) => !f.noLift && !f.locked?.());  // 잠긴 층(숨은 층)과 엘리베이터가 없는 곳은 목록에서 뺀다
@@ -1523,17 +1526,48 @@ function openLift() {
   const fs = lifts();
   openMenu('엘리베이터 — ▲▼ 고르기 · A 이동', fs.map((f) => `${f.name}${f === place ? ' (지금 층)' : ''}`), (k) => { if (fs[k] !== place) gotoFloor(fs[k]); }, fs.indexOf(place));
 }
-// 버그 문제: 아직 못 잡은 버그 가운데 하나가 나온다. 맞히면 채집(onCatch), 틀리면 도망가고(onMiss) 오답노트에 남는다
-function askBug(onCatch, onMiss) {
+// 채집 연출: 요술봉을 휘두르면 빛줄기가 버그까지 뻗고, 닿으면 빛 구슬이 되어 요술봉으로 돌아온다
+const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1, 6), new THREE.MeshBasicMaterial({ color: GOLD, transparent: true }));
+const orb = new THREE.Mesh(new THREE.OctahedronGeometry(0.22), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+const UP = new THREE.Vector3(0, 1, 0), CAST = { reach: 0.45, back: 0.6 };  // 빛줄기가 닿기까지, 빛 구슬이 돌아오기까지(초)
+let catchFx = null;  // 진행 중인 채집 연출({ t, to, onHit, hit }), 없으면 null
+function castCatch(target, onHit) {  // onHit: 빛줄기가 닿는 순간 할 일(버그를 치우고 결과 창 띄우기)
+  if (reduceMotion || !target) return onHit();
+  catchFx = { t: 0, to: target.clone().setY(0.85), onHit, hit: false };
+  twirlT = 0; beam.material.opacity = 1; orb.visible = false; place.scene.add(beam, orb); sfx('boost');
+}
+function tickCatch(dt) {
+  const f = catchFx;
+  if (!f) return;
+  f.t += dt;
+  const wand = new THREE.Vector3(bunny.position.x - 0.55, 1.15, bunny.position.z + 0.1);
+  const tip = wand.clone().lerp(f.to, Math.min(1, f.t / CAST.reach)), len = Math.max(0.01, wand.distanceTo(tip));
+  beam.position.copy(wand).lerp(tip, 0.5); beam.scale.set(1, len, 1);
+  beam.quaternion.setFromUnitVectors(UP, tip.clone().sub(wand).normalize());
+  if (f.t < CAST.reach) return;
+  if (!f.hit) { f.hit = true; burst({ x: f.to.x, y: f.to.y - 1.6, z: f.to.z }); sfx('rare'); f.onHit(); }
+  const k = Math.min(1, (f.t - CAST.reach) / CAST.back);
+  orb.visible = true; orb.position.copy(f.to).lerp(wand, k); orb.rotation.y += dt * 12; orb.scale.setScalar(1 - k * 0.6);
+  beam.material.opacity = 1 - k;
+  if (k >= 1) { place.scene.remove(beam, orb); catchFx = null; }
+}
+// 버그 문제: 아직 못 잡은 버그 가운데 하나가 나온다. 맞히면 채집(onCatch), 틀리면 도망가고(onMiss) 오답노트에 남는다.
+// 아이템이 있으면 1개로 힌트를 보거나, 틀린 뒤 1개로 같은 문제를 다시 풀 수 있다
+function askBug(onCatch, onMiss, b = null, hinted = false, target = talkTo?.clone()) {
   if (!BUGS.length) return onCatch?.(null);
-  const fresh = BUGS.filter((b) => bugLog[b.key] !== 'caught'), b = pick(fresh.length ? fresh : BUGS);
-  openMenu(`${b.name} 출현! — ▲▼ 고르기 · A 답하기`, b.choices, (k) => {
-    if (k === b.answer) { markBug(b.key, 'caught'); sfx('rare'); onCatch ? onCatch(b) : showDialog(`${b.name} 채집!`, b.why); }
-    else {
-      if (bugLog[b.key] !== 'caught') markBug(b.key, 'missed');
-      onMiss?.(b); sfx('crash'); showDialog(`${b.name} — 놓쳤다!`, '오답! 버그가 도망갔어요.\n5F 기록실 버그 도감의 오답노트에 남았어요.');
-    }
-  }, 0, `Q. ${b.q}`);
+  if (!inBattle) battleTrack = pick(['battle', 'battle2', 'battle3']);  // 버그를 만날 때마다 전투 음악 셋 중 하나
+  inBattle = true;
+  if (!b) { const fresh = BUGS.filter((x) => bugLog[x.key] !== 'caught'); b = pick(fresh.length ? fresh : BUGS); }
+  const canHint = !hinted && items > 0 && b.hint;
+  openMenu(`${b.name} 출현! — ▲▼ 고르기 · A 답하기`, canHint ? [...b.choices, `힌트 보기 — 아이템 1개 (보유 ${items})`] : b.choices, (k) => {
+    if (canHint && k === b.choices.length) { addItems(-1); return askBug(onCatch, onMiss, b, true, target); }
+    if (k === b.answer) { markBug(b.key, 'caught'); inBattle = false; return castCatch(target, () => (onCatch ? onCatch(b) : showDialog(`${b.name} 채집!`, b.why))); }
+    if (bugLog[b.key] !== 'caught') markBug(b.key, 'missed');
+    sfx('crash');
+    const flee = () => { inBattle = false; onMiss?.(b); showDialog(`${b.name} — 놓쳤다!`, '버그가 도망갔어요.\n5F 기록실 버그 도감의 오답노트에 남았어요.'); };
+    if (items > 0) showDialog(`${b.name} — 오답!`, `아이템 1개로 다시 풀 수 있어요. (보유 ${items})\nA 다시 풀기 · B 놓아주기`, () => { addItems(-1); askBug(onCatch, onMiss, b, hinted, target); }, flee);
+    else flee();
+  }, 0, hinted ? `Q. ${b.q}\n힌트: ${b.hint}` : `Q. ${b.q}`);
 }
 function openBugDex() {  // 5F 기록실: 도감을 펼친다. 만난 버그의 문제·정답·해설, 놓친 버그는 오답노트로 표시
   if (!BUGS.length) return showDialog('버그 도감', '아직 기록된 버그가 없어요.');
@@ -1584,7 +1618,8 @@ function press(k) {
     }
     return;
   }
-  if (k === 'b') { closeDialog(); return; }
+  if (catchFx && !catchFx.hit) return;  // 빛줄기가 날아가는 동안은 기다린다
+  if (k === 'b') { const cancel = dialogCancel; closeDialog(); cancel?.(); return; }
   if (menu?.book) return;  // 펼친 책은 ▲▼ 로 넘기기만 한다(B 로 덮기)
   if (menu) { const m = menu; closeDialog(); m.pick(m.sel); return; }
   if (dialogOpen) { const act = dialogAction; closeDialog(); act?.(); return; }
@@ -1607,7 +1642,8 @@ function tick() {
   const dt = Math.min(clock.getDelta(), 0.1), t = clock.elapsedTime;
   const blinkOn = reduceMotion || Math.floor(t * 1.5) % 2 === 0;
   for (const b of blinkers) b.visible = blinkOn;
-  if (mode !== 'drive') setMusic(place.music);
+  if (!dialogOpen && !catchFx) inBattle = false;  // 문제 창을 그냥 닫고 물러난 경우
+  if (mode !== 'drive') setMusic(inBattle ? battleTrack : place.music);
   if (mode === 'drive') {
     driveTick(dt, t);
     const bent = [...drive.bugs, ...drive.traffic, villain];
@@ -1622,6 +1658,7 @@ function tick() {
   liftPrev.clear(); for (const k of held) liftPrev.add(k);
   if (t >= floorBannerUntil) zoneEl.hidden = true;
   place.tick?.(t);  // 그 장소만의 움직임(들판의 버그)
+  tickCatch(dt);
   // 이동
   if (!dialogOpen && twirlT < 0) {
     const v = new THREE.Vector2((held.has('right') ? 1 : 0) - (held.has('left') ? 1 : 0), (held.has('down') ? 1 : 0) - (held.has('up') ? 1 : 0));
