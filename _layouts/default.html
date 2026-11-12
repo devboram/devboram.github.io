@@ -35,6 +35,10 @@
       <a href="{{ n.href }}"{% if page.nav == n.key %} aria-current="page"{% endif %}><span class="cmd">{{ n.cmd }}</span>{{ n.label }}</a>
       {%- endfor %}
       <a class="external" href="https://github.com/devboram" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+      {%- comment -%} 사이트 배경음 버튼(assets/js/bgm.js). 자체 배경음이 있는 페이지는 front matter `bgm: false` 로 뺀다 {%- endcomment %}
+      {%- unless page.bgm == false %}
+      <button class="bgm-toggle" type="button" aria-pressed="true" aria-label="배경음 켜고 끄기">♪ BGM ON</button>
+      {%- endunless %}
     </nav>
   </header>
 {% endunless %}
@@ -74,5 +78,6 @@
     </div>
   </footer>
 {% endunless %}
-</body>
+{% unless page.bare or page.bgm == false %}  <script src="/assets/js/bgm.js" defer></script>
+{% endunless %}</body>
 </html>
