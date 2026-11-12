@@ -17,30 +17,31 @@
   {%- if page.css %}
   <link rel="stylesheet" href="{{ page.css }}">
   {%- endif %}
-  {% feed_meta %}
+  <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="https://h4r3.tistory.com/rss">
 </head>
 <body>
 {% unless page.bare %}
   <header class="site-header">
     <a class="logo" href="/"><img class="char-img char-img--logo" src="/assets/chars/bunny.png" alt="" height="36"><span>{{ site.title }}</span></a>
-    {%- comment -%} 게임 HUD: 레벨 = 글 수, 파티 = 캐릭터 수, 아이템 = 도감 수 {%- endcomment %}
+    {%- comment -%} 게임 HUD: 레벨 = 글 수, 파티 = 캐릭터 수, 아이템 = 아이템 도감 수, 버그 = 버그 도감 수 {%- endcomment %}
     <ul class="hud-stats" aria-label="플레이 기록">
-      <li><span class="hud-key">LV</span>{{ site.posts.size }}</li>
+      <li><span class="hud-key">LV</span>{{ site.data.tistory.size }}</li>
       <li class="hud-hp" aria-label="HP 가득">♥♥♥</li>
       <li><span class="hud-key">PARTY</span>{{ site.data.characters.cast.size }}</li>
       <li><span class="hud-key">ITEM</span>{{ site.data.characters.items.size }}</li>
+      <li><span class="hud-key">BUG</span>{{ site.data.bugs.size }}</li>
     </ul>
+    {%- comment -%} 아랫줄 커맨드 바: 메뉴만 한 줄. 좁으면 옆으로 민다 {%- endcomment %}
     <nav class="site-nav" aria-label="주 메뉴">
       {%- for n in site.data.nav %}
       <a href="{{ n.href }}"{% if page.nav == n.key %} aria-current="page"{% endif %}><span class="cmd">{{ n.cmd }}</span>{{ n.label }}</a>
       {%- endfor %}
-      <a class="external" href="https://github.com/devboram" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
-      {%- comment -%} 사이트 배경음 버튼(assets/js/bgm.js). 자체 배경음이 있는 페이지는 front matter `bgm: false` 로 뺀다 {%- endcomment %}
-      {%- unless page.bgm == false %}
-      <button class="bgm-toggle" type="button" aria-pressed="true" aria-label="배경음 켜고 끄기">♪ BGM ON</button>
-      {%- endunless %}
     </nav>
   </header>
+  {%- comment -%} 배경음 단추: 화면 오른쪽 아래에 떠 있다(assets/js/bgm.js). 자체 배경음이 있는 페이지는 front matter `bgm: false` 로 뺀다 {%- endcomment %}
+  {%- unless page.bgm == false %}
+  <button class="bgm-toggle" type="button" aria-pressed="true" aria-label="배경음 켜고 끄기">♪ BGM ON</button>
+  {%- endunless %}
 {% endunless %}
 
   <main{% if page.main_class %} class="{{ page.main_class }}"{% endif %}>
@@ -57,10 +58,12 @@
       <nav class="footer-links" aria-label="둘러보기">
         <h2>둘러보기</h2>
         <ul>
-          <li><a href="/posts.html">글 모음</a></li>
-          <li><a href="/projects.html">만든 도구들</a></li>
-          <li><a href="/characters.html">캐릭터 설정집</a></li>
-          <li><a href="/about.html">소개</a></li>
+          <li><a href="/play.html">버그 채집</a></li>
+          <li><a href="/bugs.html">버그 도감</a></li>
+          <li><a href="/posts.html">사냥 일지</a></li>
+          <li><a href="/characters.html">동료들</a></li>
+          <li><a href="/projects.html">사냥 장비</a></li>
+          <li><a href="/about.html">사냥꾼 소개</a></li>
           <li><a href="/guestbook.html">방명록</a></li>
         </ul>
       </nav>
@@ -68,7 +71,7 @@
         <h2>연결</h2>
         <ul>
           <li><a href="https://github.com/devboram" target="_blank" rel="noopener noreferrer">GitHub ↗</a></li>
-          <li><a href="/feed.xml">RSS 구독</a></li>
+          <li><a href="https://h4r3.tistory.com/" target="_blank" rel="noopener noreferrer">티스토리 블로그 ↗</a></li>
         </ul>
       </div>
     </div>

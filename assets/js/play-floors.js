@@ -120,7 +120,7 @@ function archive({ canvasTexture, colors, data, skyline, bugDex }) {
     things.push({
       pos: [x, back + 1], hint: '책장 살펴보기',
       act: ({ showDialog }) => post
-        ? showDialog(`퀘스트 로그 ${i + 1}권`, `「${post.title}」\nA 읽으러 가기 · B 덮기`, () => { location.href = post.url; })
+        ? showDialog(`사냥 일지 ${i + 1}권`, `「${post.title}」\nA 읽으러 가기 · B 덮기`, () => { location.href = post.url; })
         : showDialog('빈 책장', '아직 꽂힌 기록이 없어요. 다음 퀘스트를 기다리는 자리.'),
     });
   });
@@ -153,7 +153,7 @@ function archive({ canvasTexture, colors, data, skyline, bugDex }) {
     spawn: [liftX, back + 1.7], lift: [liftX, back + 0.3],
     npcs: [{ key: 'cat', pos: [4.2, 0, -3.6], height: 2.1, lines: [
       '아까 그 말, 제가 적어 뒀어요.',
-      '여긴 기록실이에요. 책장마다 퀘스트 로그가 한 권씩 꽂혀 있어요.',
+      '여긴 기록실이에요. 책장마다 사냥 일지가 한 권씩 꽂혀 있어요.',
       '회의록은 도시 밖으로 안 나가요. 제가 지키거든요.',
       '…졸린 게 아니에요. 눈을 감고 정리하는 중이에요.',
     ] }],
@@ -180,7 +180,7 @@ function control({ canvasTexture, colors, data }) {
     box(scene, 2.8, 0.9, 0.9, x, 0.45, back + 1, std(0x2f3a78));
     for (let b = 0; b < 6; b++) box(scene, 0.22, 0.08, 0.22, x - 1 + b * 0.4, 0.94, back + 1.1, glow([PINK, CYAN, GOLD][b % 3]));
     things.push({ pos: [x, back + 2], hint: `${pr.name} 화면 보기`, act: ({ showDialog }) =>
-      showDialog(pr.name, `${pr.summary}\nA 프로젝트 보러 가기 · B 닫기`, () => { location.href = data.projectsUrl; }) });
+      showDialog(pr.name, `${pr.summary}\nA 인벤토리 열기 · B 닫기`, () => { location.href = data.projectsUrl; }) });
   });
   sign(canvasTexture, scene, 'CONTROL ROOM', CYAN, 5.5, -2, 4.9, back + 0.05);
   // 서버 선반: 깜빡이는 불빛 줄

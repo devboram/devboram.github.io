@@ -19,69 +19,75 @@
       </div>
       {%- comment -%} 게임 타이틀 화면: 로고 · 시작 메뉴(▶ 커서) · PRESS START {%- endcomment %}
       <div class="px-window hero-dialog title-screen">
-        <p class="eyebrow">★ boram 의 작업노트 · 달빛 옥상 ★</p>
+        <p class="eyebrow">★ 달빛 옥상 ★</p>
         <h1 class="game-title"><span class="px-mark">NEON CITY</span> NOVA</h1>
-        <p class="title-sub">만들면서 배운 것을, 노트에 적어둡니다.</p>
+        <p class="title-sub">버그 잡는 개발자 log</p>
         <nav class="title-menu" aria-label="시작 메뉴">
           <ul>
             {% for n in site.data.nav %}<li><a href="{{ n.href }}"><span class="cmd">{{ n.cmd }}</span>{{ n.start }}</a></li>
             {% endfor %}
           </ul>
         </nav>
-        <p class="press-start"><a href="/posts.html">— PRESS START —</a></p>
-        <p class="title-credit">boram — Android 개발자. Kotlin 과 Jetpack Compose 로 스마트홈 앱을 만들고, 문제를 만나면 계측부터 하고, 반복되면 도구로 만듭니다.</p>
+        <p class="press-start"><a href="/play.html">— PRESS START —</a></p>
       </div>
     </section>
 
     <div class="home-grid">
       <div class="home-main">
-        <section aria-labelledby="recent-posts-heading">
+        <section aria-labelledby="bug-hunt-heading">
           <div class="section-title">
-            <h2 class="ribbon" id="recent-posts-heading">{% include sprite.html name="moon" size=2 %}<span>최근 글</span></h2>
+            <h2 class="ribbon" id="bug-hunt-heading">{% include sprite.html name="star" size=2 %}<span>버그 채집</span></h2>
+            <a class="text-link" href="/bugs.html">도감 보기 →</a>
+          </div>
+          <a class="px-window px-window--gold bug-entry" href="/play.html">
+            <span class="bug-entry-row" aria-hidden="true">{% for b in site.data.bugs limit: 8 %}<img src="/assets/chars/bugs/{{ b.key }}.png" alt="" width="64" height="64" loading="lazy">{% endfor %}</span>
+            <span>반짝이 버그 {{ site.data.bugs.size }}종이 들판에 풀려 있어요. 문제를 맞혀 잡고, 도감을 채워 보세요 — 스테이지 입장 →</span>
+          </a>
+        </section>
+
+        <section class="section-next" aria-labelledby="recent-posts-heading">
+          <div class="section-title">
+            <h2 class="ribbon" id="recent-posts-heading">{% include sprite.html name="moon" size=2 %}<span>최근 사냥 일지</span></h2>
             <a class="text-link" href="/posts.html">전체 보기 →</a>
           </div>
-          {%- assign latest = site.posts.first %}
+          {%- assign latest = site.data.tistory.first %}
           {% if latest %}
-          {%- assign latest_avatar = latest.avatar | default: "bunny" %}
           <article class="px-window px-window--pink post-feature">
-            <a class="post-cover" href="{{ latest.url }}" tabindex="-1" aria-hidden="true"><img class="char-img char-img--cover sprite--bob" src="/assets/chars/{{ latest_avatar }}.png" alt="" height="150"></a>
+            <a class="post-cover" href="{{ latest.url }}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true"><img class="char-img char-img--cover sprite--bob" src="/assets/chars/bunny.png" alt="" height="150"></a>
             <div>
               <div class="post-meta-row">
-                {% for tag in latest.tags %}<span class="px-chip px-chip--cyan">{{ tag }}</span>{% endfor %}
-                <time datetime="{{ latest.date | date: '%Y-%m-%d' }}">{{ latest.date | date: "%Y.%m.%d" }}</time>
-                {% if latest.minutes %}<span>· {{ latest.minutes }}분 읽기</span>{% endif %}
+                {% if latest.category != "" %}<span class="px-chip px-chip--cyan">{{ latest.category }}</span>{% endif %}
+                <time datetime="{{ latest.date }}">{{ latest.date | replace: "-", "." }}</time>
               </div>
-              <h3><a href="{{ latest.url }}">{{ latest.title }}</a></h3>
-              <p>{{ latest.summary | default: latest.description }}</p>
-              <a class="px-btn" href="{{ latest.url }}">이어서 읽기 →</a>
+              <h3><a href="{{ latest.url }}" target="_blank" rel="noopener noreferrer">{{ latest.title }}</a></h3>
+              <p>{{ latest.summary }}</p>
+              <a class="px-btn" href="{{ latest.url }}" target="_blank" rel="noopener noreferrer">이어서 읽기 ↗</a>
             </div>
           </article>
           {% endif %}
-          {%- if site.posts.size > 1 %}
           <ul class="post-list">
-            {% for post in site.posts offset: 1 limit: 5 %}
-            <li><a href="{{ post.url }}">{{ post.title }}</a><time datetime="{{ post.date | date: '%Y-%m-%d' }}">{{ post.date | date: "%Y.%m.%d" }}</time></li>
+            {% for post in site.data.tistory offset: 1 limit: 5 %}
+            <li><a href="{{ post.url }}" target="_blank" rel="noopener noreferrer">{{ post.title }}</a><time datetime="{{ post.date }}">{{ post.date | replace: "-", "." }}</time></li>
             {% endfor %}
           </ul>
-          {%- endif %}
         </section>
 
         <section class="section-next" aria-labelledby="projects-heading">
           <div class="section-title">
-            <h2 class="ribbon" id="projects-heading">{% include sprite.html name="heartgem" size=2 %}<span>만든 도구들</span></h2>
-            <a class="text-link" href="/projects.html">프로젝트 보기 →</a>
+            <h2 class="ribbon" id="projects-heading">{% include sprite.html name="heartgem" size=2 %}<span>사냥 장비</span></h2>
+            <a class="text-link" href="/projects.html">인벤토리 열기 →</a>
           </div>
           <div class="party-grid">
             {% for p in site.data.projects %}
             <article class="px-window party-card party-card--{% cycle 'pink', 'cyan', 'gold' %}">
               <div class="party-head">
-                <span class="px-chip px-chip--date">PARTY 0{{ forloop.index }}</span>
+                <span class="px-chip px-chip--date">GEAR 0{{ forloop.index }}</span>
                 <img class="char-img char-img--party sprite--bob" src="/assets/chars/{{ p.avatar }}.png" alt="" height="112">
               </div>
               <div class="party-body">
                 <h3>{{ p.name }}</h3>
                 <p>{{ p.summary }}</p>
-                <a class="text-link" href="/characters.html#{{ p.avatar }}">캐릭터 보기 →</a>
+                <a class="text-link" href="/characters.html#{{ p.avatar }}">장비를 든 동료 보기 →</a>
               </div>
             </article>
             {% endfor %}
@@ -94,26 +100,27 @@
           <div class="profile-avatar"><img class="char-img char-img--profile" src="/assets/chars/bunny.png" alt="" height="104"></div>
           <h2>boram</h2>
           <p class="role"><span class="px-chip px-chip--pink">Android Developer</span></p>
-          <p>스마트홈 입주민 앱을 만듭니다. 추측보다 계측, 두 번 반복하면 도구로.</p>
+          <p>버그가 반짝이면 지팡이를 들어요.</p>
           <ul class="link-list">
-            <li><a href="/about.html">소개 읽기 →</a></li>
+            <li><a href="/about.html">사냥꾼 소개 →</a></li>
             <li><a href="https://github.com/devboram" target="_blank" rel="noopener noreferrer">GitHub ↗</a></li>
             <li><a href="/guestbook.html">방명록에 한 줄 →</a></li>
           </ul>
         </section>
 
         <section class="px-window side-card" aria-labelledby="tags-heading">
-          <h2 id="tags-heading">태그</h2>
+          <h2 id="tags-heading">분류</h2>
           <ul class="tag-cloud">
-            {% for tag in site.tags %}<li><a class="px-chip px-chip--{% cycle 'cyan', 'gold', 'violet', 'pink' %}" href="/posts.html">{{ tag[0] }}<span class="count">{{ tag[1].size }}</span></a></li>
-            {% endfor %}
+            {%- assign cats = site.data.tistory | group_by: "category" %}
+            {% for cat in cats %}{% if cat.name != "" %}<li><a class="px-chip px-chip--{% cycle 'cyan', 'gold', 'violet', 'pink' %}" href="/posts.html">{{ cat.name }}<span class="count">{{ cat.items.size }}</span></a></li>
+            {% endif %}{% endfor %}
           </ul>
         </section>
 
         <section class="px-window px-window--gold side-card subscribe-card" aria-labelledby="subscribe-heading">
-          <h2 id="subscribe-heading">새 글 받아보기</h2>
-          <p>RSS 리더에 등록하면 새 퀘스트 기록이 올라올 때 바로 알 수 있어요.</p>
-          <a class="px-btn" href="/feed.xml">RSS 구독하기</a>
+          <h2 id="subscribe-heading">일지 책장</h2>
+          <p>새 사냥 일지는 티스토리 블로그에 꽂혀요.</p>
+          <a class="px-btn" href="https://h4r3.tistory.com/" target="_blank" rel="noopener noreferrer">블로그 가기 ↗</a>
         </section>
       </aside>
     </div>

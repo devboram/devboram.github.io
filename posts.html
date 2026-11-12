@@ -3,28 +3,56 @@ title: 글
 description: boram 이 쓴 글 목록.
 nav: posts
 ---
-    {% include page-banner.html bg="posts" icon="moon" title="퀘스트 로그" %}
-    <p class="lead">지금까지 클리어한 퀘스트 {{ site.posts.size }}개 — 해결한 사건마다 한 장씩 기록해요.</p>
+    {%- comment %} 글은 티스토리에 있다 — 목록은 tools/tistory_posts.py 가 만든 _data/tistory.json {% endcomment %}
+    {%- assign posts = site.data.tistory %}
+    {% include page-banner.html bg="posts" icon="moon" title="사냥 일지" %}
+    <p class="lead">지금까지 잡은 버그 이야기 {{ posts.size }}편 — 책장은 <a class="text-link" href="https://h4r3.tistory.com/" target="_blank" rel="noopener noreferrer">티스토리 블로그 ↗</a>에 있어요. 제목을 누르면 새 창으로 열려요.</p>
 
-    <!-- 태그 칩: 표시만(필터 미동작). 글 5편쯤 되면 JS 필터로 승격 예정. -->
+    <!-- 분류 칩: 표시만(필터 미동작) -->
     <ul class="tag-cloud page-tags">
-      <li><span class="px-chip px-chip--pink" aria-current="true">전체</span></li>
-      {% for tag in site.tags %}<li><span class="px-chip px-chip--{% cycle 'cyan', 'gold', 'violet' %}">{{ tag[0] }}<span class="count">{{ tag[1].size }}</span></span></li>
-      {% endfor %}
+      <li><span class="px-chip px-chip--pink" aria-current="true">전체<span class="count">{{ posts.size }}</span></span></li>
+      {%- assign cats = posts | group_by: "category" %}
+      {% for cat in cats %}{% if cat.name != "" %}<li><span class="px-chip px-chip--{% cycle 'cyan', 'gold', 'violet' %}">{{ cat.name }}<span class="count">{{ cat.items.size }}</span></span></li>
+      {% endif %}{% endfor %}
     </ul>
 
     <ol class="post-index">
-      {% for post in site.posts %}
+      {% for post in posts %}
       <li class="px-window post-index-item">
         <div class="post-meta-row">
-          <span class="px-chip px-chip--date">QUEST {{ forloop.rindex | prepend: "0" | slice: -2, 2 }}</span>
-          <span class="px-chip px-chip--green">CLEAR ✔</span>
-          {% for tag in post.tags %}<span class="px-chip px-chip--cyan">{{ tag }}</span>{% endfor %}
-          <time datetime="{{ post.date | date: '%Y-%m-%d' }}">{{ post.date | date: "%Y.%m.%d" }}</time>
-          {% if post.minutes %}<span>· {{ post.minutes }}분 읽기</span>{% endif %}
+          <span class="px-chip px-chip--date">LOG {{ forloop.rindex | prepend: "0" | slice: -2, 2 }}</span>
+          {% if post.category != "" %}<span class="px-chip px-chip--cyan">{{ post.category }}</span>{% endif %}
+          <time datetime="{{ post.date }}">{{ post.date | replace: "-", "." }}</time>
         </div>
-        <h2><a href="{{ post.url }}">{{ post.title }}</a></h2>
-        <p>{{ post.summary | default: post.description }}</p>
+        <h2><a href="{{ post.url }}" target="_blank" rel="noopener noreferrer">{{ post.title }}</a></h2>
+        <p>{{ post.summary }}</p>
       </li>
       {% endfor %}
     </ol>
+
+    <!-- 10개씩 쪽 나눔: 스크립트가 꺼져 있으면 전체가 그대로 보인다. 쪽 번호는 주소의 ?page= 에 남는다 -->
+    <nav class="post-pager" aria-label="쪽 이동" hidden>
+      <button class="px-btn px-btn--ghost" type="button" data-step="-1">← 이전</button>
+      <span class="post-pager-now" aria-live="polite"></span>
+      <button class="px-btn px-btn--ghost" type="button" data-step="1">다음 →</button>
+    </nav>
+    <script>
+      (() => {
+        const SIZE = 10, items = [...document.querySelectorAll('.post-index-item')], pager = document.querySelector('.post-pager');
+        const last = Math.ceil(items.length / SIZE), [prev, next] = pager.querySelectorAll('button');
+        let page = Math.min(last, Math.max(1, parseInt(new URLSearchParams(location.search).get('page'), 10) || 1));
+        const show = () => {
+          items.forEach((el, i) => { el.hidden = Math.floor(i / SIZE) + 1 !== page; });
+          pager.querySelector('.post-pager-now').textContent = `${page} / ${last}`;
+          prev.disabled = page === 1; next.disabled = page === last;
+        };
+        pager.addEventListener('click', (e) => {
+          const step = Number(e.target.dataset.step);
+          if (!step) return;
+          page += step; show();
+          history.replaceState(null, '', page === 1 ? location.pathname : `?page=${page}`);
+          document.querySelector('.post-index').scrollIntoView();
+        });
+        pager.hidden = last < 2; show();
+      })();
+    </script>

@@ -1,6 +1,6 @@
 # 소개(/about.html) 스테이터스 창의 능력치 (5점 만점, 재미용 자기평가)
 - { name: Kotlin, value: 5 }
 - { name: Compose, value: 5 }
-- { name: 계측력, value: 5 }
-- { name: 기록력, value: 4 }
+- { name: 발자국 추적, value: 5 }
+- { name: 기록, value: 4 }
 - { name: 체력, value: 2 }

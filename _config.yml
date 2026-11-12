@@ -1,6 +1,6 @@
 # 사이트 기본값 — 레이아웃에서 site.* 로 읽는다
-title: boram 의 작업노트
-description: Android 개발자 boram 이 만들면서 배운 것을 적어두는 노트.
+title: 버그 잡는 개발자 log
+description: 달빛 옥상에서 버그를 쫓는 개발자 boram 의 모험 기록.
 url: https://devboram.github.io
 lang: ko
 author: boram
@@ -15,7 +15,6 @@ kramdown:
 
 # GitHub Pages 가 기본 지원하는 플러그인만 쓴다
 plugins:
-  - jekyll-feed
   - jekyll-sitemap
   - jekyll-seo-tag
 

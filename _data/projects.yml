@@ -1,19 +1,31 @@
-# 홈 카드(summary)와 프로젝트 페이지 카드(description·stack)가 함께 읽는다. 순서가 곧 노출 순서.
-# avatar 는 assets/chars/<키>.png 캐릭터 일러스트 (설정집 /characters.html#<키> 로도 연결).
-- name: agent-monitor
-  summary: Claude 세션·서브에이전트 진행 상태를 보는 로컬 모니터.
-  description: Claude 세션·서브에이전트 진행 상태를 브라우저에서 3초 갱신으로 보여주는 로컬 모니터. 읽기 전용, 외부 통신 없음.
-  stack: python · vanilla-web
+# 사냥 장비 — 홈 카드(summary)·인벤토리 페이지 카드(description·real)·3D 스테이지 전시(앞 3개)가 함께 읽는다. 순서가 곧 노출 순서.
+# real = 이 장비가 빗댄 실제 디버깅 도구. avatar = 장비를 든 동료(assets/chars/<키>.png, 설정집 /characters.html#<키>)
+- name: 별빛 돋보기
+  real: Logcat
+  summary: 어둠 속 버그의 발자국을 환하게 비춘다.
+  description: 버그는 반드시 발자국을 남긴다. 돋보기로 로그를 비추면 지나간 길이 별빛처럼 떠오른다.
+  avatar: bunny
+
+- name: 달빛 망원경
+  real: Profiler
+  summary: 느려진 화면 뒤에 숨은 버그를 멀리서 찾아낸다.
+  description: 화면이 뚝뚝 끊기는 골목에는 꼭 누군가 숨어 있다. 망원경을 돌리면 어디서 시간이 새는지 보인다.
   avatar: robot
 
-- name: meeting-minutes
-  summary: 녹음 → 전사 → 화자분리 → 회의록 로컬 파이프라인.
-  description: 녹음 → 전사 → 화자분리 → 회의록 초안까지 전부 로컬에서 도는 파이프라인. 회의 내용이 밖으로 나가지 않는다.
-  stack: whisper · pyannote · python
+- name: 되감기 나침반
+  real: git bisect
+  summary: 바늘이 버그가 태어난 커밋을 가리킨다.
+  description: 어제까지 멀쩡했다면 그 사이 어딘가다. 밤을 반씩 접어 가며 버그가 처음 나타난 날을 짚어 낸다.
   avatar: cat
 
-- name: qa-runner
-  summary: Maestro 기반 앱 자동화 QA — 케이스 관리부터 회차 리포트까지.
-  description: Maestro 기반 앱 자동화 QA. 테스트 케이스를 Excel 로 관리하고 에뮬레이터·실기기에서 돌려 회차 리포트를 남긴다.
-  stack: maestro · python · excel
+- name: 시간 정지 그물
+  real: 브레이크포인트
+  summary: 달아나던 버그가 그 자리에 딱 멈춘다.
+  description: 던지면 시간이 멈춘다. 멈춘 버그 주위를 천천히 돌며 주머니에 무엇을 숨겼는지 들여다본다.
   avatar: slime
+
+- name: 표본 유리병
+  real: 재현 테스트
+  summary: 한번 잡은 버그는 다시 빠져나오지 못한다.
+  description: 잡은 버그를 넣고 뚜껑을 닫아 둔다. 글리치 킹이 이 세상에서 제일 싫어하는 병.
+  avatar: villain

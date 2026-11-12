@@ -1,26 +1,26 @@
 ---
-title: 프로젝트
-description: boram 이 만든 도구들.
+title: 사냥 장비
+description: 버그 사냥을 나설 때 챙기는 장비들.
 nav: projects
 ---
     {% include page-banner.html bg="projects" icon="heartgem" title="인벤토리" %}
-    <p class="lead">두 번 반복한 일을 도구로 만들어 가방에 넣어 뒀어요 — 아이템마다 파티 동료가 한 명씩 장착하고 있어요.</p>
+    <p class="lead">버그 사냥을 나설 때 가방에 챙기는 장비들이에요 — 장비마다 맡아 든 동료가 한 명씩 있어요.</p>
 
     <div class="party-grid page-section">
       {% for p in site.data.projects %}
       <article class="px-window party-card party-card--{% cycle 'pink', 'cyan', 'gold' %}">
         <div class="party-head">
-          <span class="px-chip px-chip--date">ITEM 0{{ forloop.index }}</span>
+          <span class="px-chip px-chip--date">GEAR 0{{ forloop.index }}</span>
           <img class="char-img char-img--party sprite--bob" src="/assets/chars/{{ p.avatar }}.png" alt="" height="112">
         </div>
         <div class="party-body">
           <h3>{{ p.name }}</h3>
           <p>{{ p.description }}</p>
-          <p class="party-stack">{{ p.stack }}</p>
-          <a class="text-link" href="/characters.html#{{ p.avatar }}">장착한 캐릭터 보기 →</a>
+          <p class="party-stack">현실에서는 · {{ p.real }}</p>
+          <a class="text-link" href="/characters.html#{{ p.avatar }}">장비를 든 동료 보기 →</a>
         </div>
       </article>
       {% endfor %}
     </div>
 
-    <p class="lead page-section">다음 도구는 뭐가 될까? 반복되는 일을 관찰하는 중...</p>
+    <p class="lead page-section">다음 장비는 아직 대장간에서 만드는 중...</p>

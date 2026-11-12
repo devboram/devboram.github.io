@@ -2,11 +2,12 @@
 title: 플레이
 description: 네온 시티 옥상을 직접 걸어 보는 시험 스테이지.
 css: /play.css
+nav: play
 noindex: true
 bgm: false
 ---
 {%- comment -%}
-3D 픽셀 네온 시티 시험 스테이지(1단계). 메뉴에 없다. 스크립트는 assets/js/play.js (three.js, 버전 고정).
+3D 픽셀 네온 시티 시험 스테이지(1단계). 스크립트는 assets/js/play.js (three.js, 버전 고정).
 대사는 _data/characters.yml 의 이름·말버릇을 그대로 읽는다.
 {%- endcomment %}
     <section class="play" aria-labelledby="play-heading">
@@ -67,8 +68,8 @@ bgm: false
     </section>
 
     <script type="application/json" id="play-data">{
-      "posts": [{% for post in site.posts limit: 8 %}{{ post.title | jsonify }}{% unless forloop.last %},{% endunless %}{% endfor %}],
-      "links": [{% for post in site.posts limit: 4 %}{"title": {{ post.title | jsonify }}, "url": {{ post.url | relative_url | jsonify }}}{% unless forloop.last %},{% endunless %}{% endfor %}],
+      "posts": [{% for post in site.data.tistory limit: 8 %}{{ post.title | jsonify }}{% unless forloop.last %},{% endunless %}{% endfor %}],
+      "links": [{% for post in site.data.tistory limit: 4 %}{"title": {{ post.title | jsonify }}, "url": {{ post.url | jsonify }}}{% unless forloop.last %},{% endunless %}{% endfor %}],
       "projects": [{% for pr in site.data.projects %}{"name": {{ pr.name | jsonify }}, "summary": {{ pr.summary | jsonify }}}{% unless forloop.last %},{% endunless %}{% endfor %}],
       "projectsUrl": {{ '/projects.html' | relative_url | jsonify }},
       "bugs": {{ site.data.bugs | jsonify }},

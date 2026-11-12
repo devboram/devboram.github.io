@@ -1,0 +1,632 @@
+[
+ {
+  "title": "🚀 hilt-navigation-compose 1.3.0 주요 변경 사항",
+  "url": "https://h4r3.tistory.com/entry/%F0%9F%9A%80-hilt-navigation-compose-130-%EC%A3%BC%EC%9A%94-%EB%B3%80%EA%B2%BD-%EC%82%AC%ED%95%AD",
+  "date": "2025-11-04",
+  "category": "Updates",
+  "summary": "hilt‑navigation‑compose 1.2.0 → 1.3.0 업데이트 가이드 1. 개요hilt-navigation-compose 라이브러리는 Compose + Navigation Graph …"
+ },
+ {
+  "title": "✅ Kotlin 2.1.10 → 2.2.0 & KSP 2.0.20-1.0.25 → 2.2.0-2.0.2 대응 완전 정리",
+  "url": "https://h4r3.tistory.com/entry/%E2%9C%85-Kotlin-2110-%E2%86%92-220-KSP-2020-1025-%E2%86%92-220-202-%EB%8C%80%EC%9D%91-%EC%99%84%EC%A0%84-%EC%A0%95%EB%A6%AC",
+  "date": "2025-06-30",
+  "category": "Updates",
+  "summary": "Kotlin 2.2.0과 KSP 2.2.0-2.0.2는 새로운 K2 컴파일러를 기본으로 적용하며, DSL 구성과 코드 생성 환경을 크게 개선합니다. 이 가이드에서는 변경사항 요약은 물론, Jetpa…"
+ },
+ {
+  "title": "[Android/Kotlin] kspDevDebugKotlin 빌드 오류 해결: useClasspathSnapshot 속성 관련 문제",
+  "url": "https://h4r3.tistory.com/entry/AndroidKotlin-kspDevDebugKotlin-%EB%B9%8C%EB%93%9C-%EC%98%A4%EB%A5%98-%ED%95%B4%EA%B2%B0-useClasspathSnapshot-%EC%86%8D%EC%84%B1-%EA%B4%80%EB%A0%A8-%EB%AC%B8%EC%A0%9C",
+  "date": "2025-06-30",
+  "category": "Error",
+  "summary": "Android 프로젝트에서 KSP(Kotlin Symbol Processing)를 사용하는 경우, 다음과 같은 Gradle 빌드 오류를 경험할 수 있습니다:Could not create task '…"
+ },
+ {
+  "title": "🔧 Firebase Android BoM 33.15.0 주요 라이브러리 버전 및 변경 사항",
+  "url": "https://h4r3.tistory.com/entry/%F0%9F%94%A7-Firebase-Android-BoM-33150-%EC%A3%BC%EC%9A%94-%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC-%EB%B2%84%EC%A0%84-%EB%B0%8F-%EB%B3%80%EA%B2%BD-%EC%82%AC%ED%95%AD",
+  "date": "2025-06-28",
+  "category": "Updates",
+  "summary": "Firebase Android BoM(Bill of Materials) 버전이 33.10.0에서 33.15.0으로 업데이트되면서, 주요 Firebase 라이브러리들의 버전이 변경되었습니다. 이러한 …"
+ },
+ {
+  "title": "Material3 1.3.1 → 1.3.2 업데이트 요약",
+  "url": "https://h4r3.tistory.com/entry/Material3-131-%E2%86%92-132-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EC%9A%94%EC%95%BD",
+  "date": "2025-06-27",
+  "category": "PersonalSpace",
+  "summary": "Compose Material3는 Material Design 3 가이드라인을 기반으로 한 최신 UI 컴포넌트 세트입니다.이번 1.3.2 버전에서는 주로 버그 수정과 플랫폼 호환성 개선에 집중된 안…"
+ },
+ {
+  "title": "📦 Compose UI 1.7.8 → 1.8.3 업데이트 정리",
+  "url": "https://h4r3.tistory.com/entry/%F0%9F%93%A6-Compose-UI-178-%E2%86%92-183-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EC%A0%95%EB%A6%AC",
+  "date": "2025-06-27",
+  "category": "",
+  "summary": "🎯 요약버전 1.8.3 (2025년 6월 18일) 릴리즈기능 변화 없음: 기존 API는 그대로 유지되고, 버그 수정 중심코드 레벨 변경 발생 → 프로덕션 코드 안정성 향상포커스 커서 문제스크롤 동작…"
+ },
+ {
+  "title": "🎯 PredictiveBackHandler 완전 이해 및 커스텀 예제",
+  "url": "https://h4r3.tistory.com/entry/%F0%9F%8E%AF-PredictiveBackHandler-%EC%99%84%EC%A0%84-%EC%9D%B4%ED%95%B4-%EB%B0%8F-%EC%BB%A4%EC%8A%A4%ED%85%80-%EC%98%88%EC%A0%9C",
+  "date": "2025-06-27",
+  "category": "",
+  "summary": "🧠 Predictive Back이란?Android 13~14 이상에서는 \"뒤로 가기 제스처\"를 미리 시각적으로 미리 보기(preview) 할 수 있도록 하는 기능입니다.Jetpack Compose에…"
+ },
+ {
+  "title": "🎨 AndroidX Compose BOM 2025.06.00 → 2025.06.01 변경사항 정리",
+  "url": "https://h4r3.tistory.com/entry/%F0%9F%8E%A8-AndroidX-Compose-BOM-20250600-%E2%86%92-20250601-%EB%B3%80%EA%B2%BD%EC%82%AC%ED%95%AD-%EC%A0%95%EB%A6%AC",
+  "date": "2025-06-26",
+  "category": "",
+  "summary": "Compose BOM은 androidx.compose:compose-bom이 포함하는모든 Compose 관련 라이브러리의 버전을 한 번에 관리할 수 있는 편리한 도구입니다.2025.06.01 버전은…"
+ },
+ {
+  "title": "🧩 AndroidX activity-compose 1.10.0 → 1.10.1 업데이트 정리",
+  "url": "https://h4r3.tistory.com/entry/%F0%9F%A7%A9-AndroidX-activity-compose-1100-%E2%86%92-1101-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EC%A0%95%EB%A6%AC",
+  "date": "2025-06-26",
+  "category": "Updates",
+  "summary": "아래는 AndroidX Activity Compose 의 최신 안정 버전인 1.10.1에 대한 변경 사항입니다.1.10.0에서 이어진 수정 사항 중심으로 정리했어요. Jetpack Compose 기…"
+ },
+ {
+  "title": "🚀 AndroidX Lifecycle 2.8.7 → 2.9.1 업데이트 종합 가이드",
+  "url": "https://h4r3.tistory.com/entry/%F0%9F%9A%80-AndroidX-Lifecycle-287-%E2%86%92-291-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EC%A2%85%ED%95%A9-%EA%B0%80%EC%9D%B4%EB%93%9C",
+  "date": "2025-06-26",
+  "category": "Updates",
+  "summary": "Lifecycle 라이브러리는 Activity, Fragment, ViewModel 등의 생명주기 관리를 돕는 핵심 구성 요소입니다.2.9.1 버전은 Compose 통합, Kotlin 2.0 대응,…"
+ },
+ {
+  "title": "🧭 Jetpack Navigation Compose 2.9.0 완벽 정리: argsType, SupportingPane, 최신 네비게이션 API 사용법",
+  "url": "https://h4r3.tistory.com/entry/%F0%9F%A7%AD-Jetpack-Navigation-Compose-290-%EC%99%84%EB%B2%BD-%EC%A0%95%EB%A6%AC-argsType-SupportingPane-%EC%B5%9C%EC%8B%A0-%EB%84%A4%EB%B9%84%EA%B2%8C%EC%9D%B4%EC%85%98-API-%EC%82%AC%EC%9A%A9%EB%B2%95",
+  "date": "2025-06-26",
+  "category": "Updates",
+  "summary": "2025년 5월 릴리즈된 2.9.0 버전은 대규모 기능 개선과 함께 KMP 호환성, 타입 안전성, 멀티 UI 지원을 도입했습니다.이번 글에서는 다음 세 가지 주제를 집중적으로 다룹니다:1. args…"
+ },
+ {
+  "title": "AndroidX ConstraintLayout 2.2.0 → 2.2.1 업데이트 총정리: 변경사항·예제·마이그레이션 팁",
+  "url": "https://h4r3.tistory.com/entry/AndroidX-ConstraintLayout-220-%E2%86%92-221-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EC%B4%9D%EC%A0%95%EB%A6%AC-%EB%B3%80%EA%B2%BD%EC%82%AC%ED%95%AD%C2%B7%EC%98%88%EC%A0%9C%C2%B7%EB%A7%88%EC%9D%B4%EA%B7%B8%EB%A0%88%EC%9D%B4%EC%85%98-%ED%8C%81",
+  "date": "2025-06-26",
+  "category": "Updates",
+  "summary": "ConstraintLayout은 안드로이드에서레이아웃 구조를 단순하게 유지하면서 복잡한 UI를 구현할 수 있는 핵심 레이아웃 라이브러리입니다.이번에 2.2.1로 마이너 업데이트되었는데, 주로 버그 …"
+ },
+ {
+  "title": "kotlinx.coroutines 1.9.0 → 1.10.2 업데이트 총정리: 변경사항·예제·마이그레이션 팁",
+  "url": "https://h4r3.tistory.com/entry/kotlinxcoroutines-190-%E2%86%92-1102-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EC%B4%9D%EC%A0%95%EB%A6%AC-%EB%B3%80%EA%B2%BD%EC%82%AC%ED%95%AD%C2%B7%EC%98%88%EC%A0%9C%C2%B7%EB%A7%88%EC%9D%B4%EA%B7%B8%EB%A0%88%EC%9D%B4%EC%85%98-%ED%8C%81",
+  "date": "2025-06-26",
+  "category": "Updates",
+  "summary": "kotlinx.coroutines는 Kotlin의 비동기 프로그래밍을 책임지는 핵심 라이브러리입니다.1.9.0 이후 1.10.2까지의 변경 사항을 정리하며 최신 안정성과 성능, 디버깅 기능을 확인해…"
+ },
+ {
+  "title": "AndroidX Core KTX 1.15.0 → 1.16.0 업데이트 총정리: 변경사항, 예제 및 마이그레이션 팁",
+  "url": "https://h4r3.tistory.com/entry/AndroidX-Core-KTX-1150-%E2%86%92-1160-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EC%B4%9D%EC%A0%95%EB%A6%AC-%EB%B3%80%EA%B2%BD%EC%82%AC%ED%95%AD-%EC%98%88%EC%A0%9C-%EB%B0%8F-%EB%A7%88%EC%9D%B4%EA%B7%B8%EB%A0%88%EC%9D%B4%EC%85%98-%ED%8C%81",
+  "date": "2025-06-26",
+  "category": "Updates",
+  "summary": "2025년 1분기, AndroidX Core KTX 라이브러리가 1.15.0에서 1.16.0으로 업데이트 되었습니다. 이번 업데이트는 안정성 향상과 Kotlin 최신 버전 호환성 강화, 편의성 개선…"
+ },
+ {
+  "title": "그래서 @NonRestartableComposable 이 뭐야 ?",
+  "url": "https://h4r3.tistory.com/entry/%EA%B7%B8%EB%9E%98%EC%84%9C-NonRestartableComposable-%EC%9D%B4-%EB%AD%90%EC%95%BC",
+  "date": "2025-06-26",
+  "category": "",
+  "summary": "🧠 먼저, \"리컴포지션(Recomposition)\"이 뭐야?Jetpack Compose는 UI를 그리는 코드이자 데이터가 바뀌었을 때 그리기 다시 해주는 코드야.예를 들어 이런 코드가 있다고 해보자…"
+ },
+ {
+  "title": "Kotlin 2.1.0부터 2.1.10까지 주요 업데이트 총정리 (버전별 변경 사항)",
+  "url": "https://h4r3.tistory.com/entry/Kotlin-210%EB%B6%80%ED%84%B0-2110%EA%B9%8C%EC%A7%80-%EC%A3%BC%EC%9A%94-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EC%B4%9D%EC%A0%95%EB%A6%AC-%EB%B2%84%EC%A0%84%EB%B3%84-%EB%B3%80%EA%B2%BD-%EC%82%AC%ED%95%AD",
+  "date": "2025-06-26",
+  "category": "Updates",
+  "summary": "Kotlin 2.1.x 버전은 새로운 언어 기능, K2 컴파일러 안정화, 멀티플랫폼 지원 강화를 중심으로 중요한 개선이 이루어졌습니다. 이번 포스트에서는 버전별 변경 사항과 활용 팁을 소개합니다.🔹…"
+ },
+ {
+  "title": "AndroidX DataStore 1.1.1부터 1.1.7까지의 주요 변경 사항 총정리 (버전별 비교)",
+  "url": "https://h4r3.tistory.com/entry/AndroidX-DataStore-111%EB%B6%80%ED%84%B0-117%EA%B9%8C%EC%A7%80%EC%9D%98-%EC%A3%BC%EC%9A%94-%EB%B3%80%EA%B2%BD-%EC%82%AC%ED%95%AD-%EC%B4%9D%EC%A0%95%EB%A6%AC-%EB%B2%84%EC%A0%84%EB%B3%84-%EB%B9%84%EA%B5%90",
+  "date": "2025-06-26",
+  "category": "Updates",
+  "summary": "Android 앱 개발에서 SharedPreferences의 대체제로 사용되는 Jetpack DataStore는 지속적인 업데이트를 통해 안정성과 성능을 개선해왔습니다. 이번 글에서는 DataSto…"
+ },
+ {
+  "title": "✅ [해결 방법] Jetpack Compose SnapshotStateList.conditionalUpdate failed lock verification 경고 해결 방법",
+  "url": "https://h4r3.tistory.com/entry/%E2%9C%85-%ED%95%B4%EA%B2%B0-%EB%B0%A9%EB%B2%95-Jetpack-Compose-SnapshotStateListconditionalUpdate-failed-lock-verification-%EA%B2%BD%EA%B3%A0-%ED%95%B4%EA%B2%B0-%EB%B0%A9%EB%B2%95",
+  "date": "2025-06-17",
+  "category": "Error",
+  "summary": "Jetpack Compose를 사용 중 아래와 같은 경고 로그가 출력된다면, 이는 성능 저하의 신호일 수 있습니다Method boolean androidx.compose.runtime.snapsho…"
+ },
+ {
+  "title": "[해결방법] java.lang.IllegalStateException: Unable to read Kotlin metadata due to unsupported metadata version 오류 해결하기",
+  "url": "https://h4r3.tistory.com/entry/%ED%95%B4%EA%B2%B0%EB%B0%A9%EB%B2%95-javalangIllegalStateException-Unable-to-read-Kotlin-metadata-due-to-unsupported-metadata-version-%EC%98%A4%EB%A5%98-%ED%95%B4%EA%B2%B0%ED%95%98%EA%B8%B0",
+  "date": "2025-06-16",
+  "category": "Error",
+  "summary": "Android 프로젝트에서 Gradle 빌드 중 hiltJavaCompileDevDebug 단계에서 다음과 같은 오류가 발생할 수 있습니다:Execution failed for task ':app:…"
+ },
+ {
+  "title": "EGL_emulation 이 로그 뭐에요 ?",
+  "url": "https://h4r3.tistory.com/entry/EGLemulation-%EC%9D%B4-%EB%A1%9C%EA%B7%B8-%EB%AD%90%EC%97%90%EC%9A%94",
+  "date": "2025-06-05",
+  "category": "",
+  "summary": "이 로그는 왜 나오는걸까 ? 이 로그는 Android Emulator 또는 GPU 에뮬레이션 환경에서 나오는EGL (Embedded-System Graphics Library) 관련 디버그 로그입니…"
+ },
+ {
+  "title": "Jetpack Compose에서 위젯 높이 측정하는 4가지 방법 (정확도별 정리)",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose%EC%97%90%EC%84%9C-%EC%9C%84%EC%A0%AF-%EB%86%92%EC%9D%B4-%EC%B8%A1%EC%A0%95%ED%95%98%EB%8A%94-4%EA%B0%80%EC%A7%80-%EB%B0%A9%EB%B2%95-%EC%A0%95%ED%99%95%EB%8F%84%EB%B3%84-%EC%A0%95%EB%A6%AC",
+  "date": "2025-04-17",
+  "category": "",
+  "summary": "Jetpack Compose로 UI를 개발하다 보면 위젯의 높이(height) 를 측정해야 하는 상황이 자주 발생합니다.예를 들어, 특정 위젯의 높이에 따라 다른 컴포넌트의 배치를 조정하거나 애니메…"
+ },
+ {
+  "title": "Android 15(API 35)에서 백그라운드 서비스 구현하는 방법",
+  "url": "https://h4r3.tistory.com/entry/Android-15API-35%EC%97%90%EC%84%9C-%EB%B0%B1%EA%B7%B8%EB%9D%BC%EC%9A%B4%EB%93%9C-%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B5%AC%ED%98%84%ED%95%98%EB%8A%94-%EB%B0%A9%EB%B2%95",
+  "date": "2025-04-10",
+  "category": "",
+  "summary": "Android 14(API 34) 및 Android 15(API 35)에서는 백그라운드 서비스 제한이 더욱 강화되었습니다.기존처럼 단순히 Service를 사용해도 대부분의 경우 실행이 차단되며, 사…"
+ },
+ {
+  "title": "Android DELETE 요청 시 \"Non-body HTTP method cannot contain Body\" 오류 해결 방법",
+  "url": "https://h4r3.tistory.com/entry/Android-DELETE-%EC%9A%94%EC%B2%AD-%EC%8B%9C-Non-body-HTTP-method-cannot-contain-Body-%EC%98%A4%EB%A5%98-%ED%95%B4%EA%B2%B0-%EB%B0%A9%EB%B2%95",
+  "date": "2025-04-04",
+  "category": "Error",
+  "summary": "1. 개요Android 앱에서 Retrofit을 사용하여 DELETE 요청을 보낼 때 다음과 같은 오류가 발생할 수 있습니다.Non-body HTTP method cannot contain Body…"
+ },
+ {
+  "title": "Jetpack Navigation Deeplink에서 @Serializable을 사용하는 이유",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Navigation-Deeplink%EC%97%90%EC%84%9C-Serializable%EC%9D%84-%EC%82%AC%EC%9A%A9%ED%95%98%EB%8A%94-%EC%9D%B4%EC%9C%A0",
+  "date": "2025-04-02",
+  "category": "",
+  "summary": "1. 개요Jetpack Navigation을 사용하여 Deeplink로 데이터를 전달할 때 @Serializable을 사용해야 하는 이유를 설명합니다. 많은 개발자들이 기존에 사용하던 @Parcel…"
+ },
+ {
+  "title": "Navigation Compose 2.8.8 -> 2.8.9 변경 사항 및 적용 방법",
+  "url": "https://h4r3.tistory.com/entry/Navigation-Compose-288-289-%EB%B3%80%EA%B2%BD-%EC%82%AC%ED%95%AD-%EB%B0%8F-%EC%A0%81%EC%9A%A9-%EB%B0%A9%EB%B2%95",
+  "date": "2025-03-25",
+  "category": "Updates",
+  "summary": "1. Navigation Compose 2.8.9 업데이트 개요Android Jetpack의 Navigation Compose 2.8.9 버전이 2025년 3월 12일에 출시되었습니다.이번 업데이트…"
+ },
+ {
+  "title": "📈 rememberSaveable 에서의 새로운 개선점 (Compose BOM 2025.03.00)",
+  "url": "https://h4r3.tistory.com/entry/%F0%9F%93%88-rememberSaveable-%EC%97%90%EC%84%9C%EC%9D%98-%EC%83%88%EB%A1%9C%EC%9A%B4-%EA%B0%9C%EC%84%A0%EC%A0%90-Compose-BOM-20250300",
+  "date": "2025-03-25",
+  "category": "",
+  "summary": "✨ rememberSaveable 에서 어떤 개선점이 있었나?Jetpack Compose BOM 2025.03.00 에서 rememberSaveable이 더 안전하고 가능한 것이나 개선되었습니다. …"
+ },
+ {
+  "title": "🚀 Jetpack Compose BOM 2025.03.00 업데이트 정리 및 변경 사항 분석",
+  "url": "https://h4r3.tistory.com/entry/%F0%9F%9A%80-Jetpack-Compose-BOM-20250300-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EC%A0%95%EB%A6%AC-%EB%B0%8F-%EB%B3%80%EA%B2%BD-%EC%82%AC%ED%95%AD-%EB%B6%84%EC%84%9D",
+  "date": "2025-03-25",
+  "category": "Updates",
+  "summary": "안녀하세요Jetpack Compose BOM 2025.03.00 버전이 업데이트되었습니다~! 이번 버전에서는 다양한 최적화와 기능 추가가 이루어졌으며, 몇 가지 API 변경 사항도 포함되어 있습니다…"
+ },
+ {
+  "title": "Jetpack Compose 환경에서 액티비티 전환 애니메이션을 효과적으로 설정하는 방법",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose-%ED%99%98%EA%B2%BD%EC%97%90%EC%84%9C-%EC%95%A1%ED%8B%B0%EB%B9%84%ED%8B%B0-%EC%A0%84%ED%99%98-%EC%95%A0%EB%8B%88%EB%A9%94%EC%9D%B4%EC%85%98%EC%9D%84-%ED%9A%A8%EA%B3%BC%EC%A0%81%EC%9C%BC%EB%A1%9C-%EC%84%A4%EC%A0%95%ED%95%98%EB%8A%94-%EB%B0%A9%EB%B2%95",
+  "date": "2025-03-11",
+  "category": "",
+  "summary": "개요Jetpack Compose를 사용하여 Android 앱을 개발할 때, 화면 전환 애니메이션을 제어하는 것이 중요합니다. 특히 Android 14(API 34, Upside Down Cake) …"
+ },
+ {
+  "title": "Android Gradle 빌드 오류 해결: Cached Files 문제 해결 방법개요",
+  "url": "https://h4r3.tistory.com/entry/Android-Gradle-%EB%B9%8C%EB%93%9C-%EC%98%A4%EB%A5%98-%ED%95%B4%EA%B2%B0-Cached-Files-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0-%EB%B0%A9%EB%B2%95%EA%B0%9C%EC%9A%94",
+  "date": "2025-03-11",
+  "category": "Error",
+  "summary": "Android 프로젝트를 Gradle로 빌드하는 과정에서 metadata.bin (No such file or directory) 오류가 발생할 수 있습니다. 이 오류는 손상된 Gradle 캐시 파…"
+ },
+ {
+  "title": "Jetpack Compose 환경에서 overrideActivityTransition() 및 overridePendingTransition() 활용하기",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose-%ED%99%98%EA%B2%BD%EC%97%90%EC%84%9C-overrideActivityTransition-%EB%B0%8F-overridePendingTransition-%ED%99%9C%EC%9A%A9%ED%95%98%EA%B8%B0",
+  "date": "2025-03-10",
+  "category": "",
+  "summary": "개요Jetpack Compose를 사용하여 Android 앱을 개발할 때, 화면 전환 애니메이션을 제어하는 것이 중요합니다. 특히 Android 14(API 34, Upside Down Cake) …"
+ },
+ {
+  "title": "🚀 Jetpack Compose에서 ViewTreeObserver.OnPreDrawListener 사용 방법",
+  "url": "https://h4r3.tistory.com/entry/%F0%9F%9A%80-Jetpack-Compose%EC%97%90%EC%84%9C-ViewTreeObserverOnPreDrawListener-%EC%82%AC%EC%9A%A9-%EB%B0%A9%EB%B2%95",
+  "date": "2025-03-10",
+  "category": "",
+  "summary": "Jetpack Compose는 기본적으로 XML 기반의 View 시스템을 사용하지 않지만, 때때로 기존 View 시스템과 상호작용해야 하는 경우가 있습니다. 특히 화면이 완전히 렌더링되기 전에 특정…"
+ },
+ {
+  "title": "Jetpack Compose에서 Paging 3 라이브러리 사용하는 방법",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose%EC%97%90%EC%84%9C-Paging-3-%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC-%EC%82%AC%EC%9A%A9%ED%95%98%EB%8A%94-%EB%B0%A9%EB%B2%95",
+  "date": "2025-03-10",
+  "category": "",
+  "summary": "Jetpack Compose에서 대용량 데이터를 효율적으로 로드하려면 Paging 3 라이브러리를 사용해야 합니다. Paging 3은 데이터 스트리밍 및 페이징을 간편하게 처리할 수 있도록 도와줍니…"
+ },
+ {
+  "title": "🚀 Jetpack Compose에서 키보드 제어하는 법! (보이기, 숨기기, 화면 크기 대응)",
+  "url": "https://h4r3.tistory.com/entry/%F0%9F%9A%80-Jetpack-Compose%EC%97%90%EC%84%9C-%ED%82%A4%EB%B3%B4%EB%93%9C-%EC%A0%9C%EC%96%B4%ED%95%98%EB%8A%94-%EB%B2%95-%EB%B3%B4%EC%9D%B4%EA%B8%B0-%EC%88%A8%EA%B8%B0%EA%B8%B0-%ED%99%94%EB%A9%B4-%ED%81%AC%EA%B8%B0-%EB%8C%80%EC%9D%91",
+  "date": "2025-02-28",
+  "category": "",
+  "summary": "안녕하세요! 오늘은 Jetpack Compose에서 키보드를 다루는 방법에 대해 정리해보려고 합니다.Compose를 사용할 때 키보드가 화면을 가리거나, 자동으로 내리지 않는 문제를 경험한 적 있으…"
+ },
+ {
+  "title": "Android Lifecycle.State 🧐 가이드",
+  "url": "https://h4r3.tistory.com/entry/Android-LifecycleState-%F0%9F%A7%90-%EA%B0%80%EC%9D%B4%EB%93%9C",
+  "date": "2025-02-27",
+  "category": "",
+  "summary": "Android의 Lifecycle.State란?Lifecycle.State는 Android 컴포넌트(예: Activity, Fragment)의 생명 주기 상태를 나타내며, 특정 상태에서 어떤 작업을…"
+ },
+ {
+  "title": "Jetpack Compose 키보드 올라올 때 뷰 올리기 (IME Padding 적용 방법)",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose-%ED%82%A4%EB%B3%B4%EB%93%9C-%EC%98%AC%EB%9D%BC%EC%98%AC-%EB%95%8C-%EB%B7%B0-%EC%98%AC%EB%A6%AC%EA%B8%B0-IME-Padding-%EC%A0%81%EC%9A%A9-%EB%B0%A9%EB%B2%95",
+  "date": "2025-02-25",
+  "category": "",
+  "summary": "1. 개요안드로이드 Jetpack Compose에서 키보드(IME)가 올라올 때 특정 뷰를 자동으로 올려 UI가 가려지지 않도록 하는 방법을 소개합니다. Compose의 WindowInsets 또는…"
+ },
+ {
+  "title": "🚀 Android App Startup vs ContentProvider - 앱 초기화 최적화 비교 분석",
+  "url": "https://h4r3.tistory.com/entry/%F0%9F%9A%80-Android-App-Startup-vs-ContentProvider-%EC%95%B1-%EC%B4%88%EA%B8%B0%ED%99%94-%EC%B5%9C%EC%A0%81%ED%99%94-%EB%B9%84%EA%B5%90-%EB%B6%84%EC%84%9D",
+  "date": "2025-02-23",
+  "category": "",
+  "summary": "📌 앱 초기화, 어떻게 처리해야 할까?Android 앱이 실행될 때 초기화해야 할 작업들이 많습니다. 예를 들어, 데이터베이스 로딩, 로그 시스템 설정, 네트워크 라이브러리 초기화 등이 있습니다. …"
+ },
+ {
+  "title": "🚀 Android App Startup 라이브러리 가이드 - 빠르고 효율적인 초기화 방법",
+  "url": "https://h4r3.tistory.com/entry/%F0%9F%9A%80-Android-App-Startup-%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC-%EA%B0%80%EC%9D%B4%EB%93%9C-%EB%B9%A0%EB%A5%B4%EA%B3%A0-%ED%9A%A8%EC%9C%A8%EC%A0%81%EC%9D%B8-%EC%B4%88%EA%B8%B0%ED%99%94-%EB%B0%A9%EB%B2%95",
+  "date": "2025-02-22",
+  "category": "",
+  "summary": "📌 App Startup 라이브러리란?Android의 App Startup 라이브러리는 앱이 실행될 때 필요한 초기화 작업을 효율적으로 수행하도록 도와주는 Jetpack 라이브러리입니다. 기존에는 …"
+ },
+ {
+  "title": "🚀 displayMetrics 없이 변환하면 어떻게 될까?",
+  "url": "https://h4r3.tistory.com/entry/%F0%9F%9A%80-displayMetrics-%EC%97%86%EC%9D%B4-%EB%B3%80%ED%99%98%ED%95%98%EB%A9%B4-%EC%96%B4%EB%96%BB%EA%B2%8C-%EB%90%A0%EA%B9%8C",
+  "date": "2025-02-21",
+  "category": "",
+  "summary": "📌 displayMetrics 없이 변환하면 생기는 문제점안드로이드에서 context.resources.displayMetrics를 사용하지 않으면 픽셀(px) 값을 그대로 사용하게 됩니다.이 경우…"
+ },
+ {
+  "title": "[build] Gradle과 Kotlin Kapt 버전 충돌 문제 해결 가이드",
+  "url": "https://h4r3.tistory.com/entry/build-Gradle%EA%B3%BC-Kotlin-Kapt-%EB%B2%84%EC%A0%84-%EC%B6%A9%EB%8F%8C-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0-%EA%B0%80%EC%9D%B4%EB%93%9C",
+  "date": "2025-02-20",
+  "category": "Error",
+  "summary": "예전에 개발했던 오래된 프로젝트 다시 실행해보면 종종 발생하는 에러 🚀 개요Android 개발을 하다 보면 Gradle과 Kotlin Kapt 버전 간의 충돌로 인해 빌드 오류가 발생하는 경우가 있…"
+ },
+ {
+  "title": "📌 AndroidView란? Jetpack Compose에서 기존 Android View 사용하기!",
+  "url": "https://h4r3.tistory.com/entry/%F0%9F%93%8C-AndroidView%EB%9E%80-Jetpack-Compose%EC%97%90%EC%84%9C-%EA%B8%B0%EC%A1%B4-Android-View-%EC%82%AC%EC%9A%A9%ED%95%98%EA%B8%B0",
+  "date": "2025-02-19",
+  "category": "",
+  "summary": "🔥 AndroidView란 무엇인가요?AndroidView는 Jetpack Compose에서 기존의 Android 뷰(UI 컴포넌트)를 사용할 수 있도록 해주는 기능입니다. 예를 들어, WebVie…"
+ },
+ {
+  "title": "Jetpack Compose key() 함수: 재구성 최적화와 상태 유지 방법",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose-key-%ED%95%A8%EC%88%98-%EC%9E%AC%EA%B5%AC%EC%84%B1-%EC%B5%9C%EC%A0%81%ED%99%94%EC%99%80-%EC%83%81%ED%83%9C-%EC%9C%A0%EC%A7%80-%EB%B0%A9%EB%B2%95",
+  "date": "2025-02-18",
+  "category": "",
+  "summary": "Jetpack Compose의 key() 함수는 컴포저블의 재구성을 최적화하고 상태를 유지하는 데 중요한 역할을 합니다. 특히, LazyColumn과 같은 리스트에서 아이템의 상태를 보존하고 불필요…"
+ },
+ {
+  "title": "Jetpack Compose에서 SideEffect란?",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose%EC%97%90%EC%84%9C-SideEffect%EB%9E%80",
+  "date": "2025-02-17",
+  "category": "",
+  "summary": "Jetpack Compose에서 SideEffect는 컴포저블이 리컴포지션될 때마다 실행되는 코드 블록을 정의하는 데 사용됩니다. 이는 주로 Compose의 상태 관리와 관계없는 작업(예: 로그 출…"
+ },
+ {
+  "title": "Jetpack Compose UI 1.7.8 업데이트 상세 분석",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose-UI-178-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EC%83%81%EC%84%B8-%EB%B6%84%EC%84%9D",
+  "date": "2025-02-15",
+  "category": "Updates",
+  "summary": "2025년 2월 12일에 androidx.compose.ui:ui-*:1.7.8 버전이 출시되었습니다. 이번 업데이트에서는 주로 입력 변환과 관련된 버그 수정이 이루어졌습니다.📌 주요 변경 사항1.…"
+ },
+ {
+  "title": "Jetpack Compose 1.8.0-beta02 업데이트 상세 분석",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose-180-beta02-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EC%83%81%EC%84%B8-%EB%B6%84%EC%84%9D",
+  "date": "2025-02-14",
+  "category": "Updates",
+  "summary": "1. Jetpack Compose 1.8.0-beta02 개요출시일: 2025년 2월 12일라이브러리 그룹: androidx.compose.ui:ui-*최신 버전: 1.8.0-beta02이전 버전:…"
+ },
+ {
+  "title": "🌟 Jetpack Compose에서 BasicTextField 포커스 감지하기 🧐",
+  "url": "https://h4r3.tistory.com/entry/%F0%9F%8C%9F-Jetpack-Compose%EC%97%90%EC%84%9C-BasicTextField-%ED%8F%AC%EC%BB%A4%EC%8A%A4-%EA%B0%90%EC%A7%80%ED%95%98%EA%B8%B0-%F0%9F%A7%90",
+  "date": "2025-02-13",
+  "category": "",
+  "summary": "🎯 소개Jetpack Compose에서 BasicTextField를 사용할 때, 포커스 상태를 감지하는 것은 UI 업데이트 및 사용자 경험 향상에 중요한 요소예요! 😊 본 글에서는 FocusRequ…"
+ },
+ {
+  "title": "Jetpack Compose에서 TextField 및 BasicTextField 비밀번호 입력 처리 방법 (visualTransformation 설정하기)",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose%EC%97%90%EC%84%9C-TextField-%EB%B0%8F-BasicTextField-%EB%B9%84%EB%B0%80%EB%B2%88%ED%98%B8-%EC%9E%85%EB%A0%A5-%EC%B2%98%EB%A6%AC-%EB%B0%A9%EB%B2%95-visualTransformation-%EC%84%A4%EC%A0%95%ED%95%98%EA%B8%B0",
+  "date": "2025-02-12",
+  "category": "",
+  "summary": "개요Android Jetpack Compose에서 비밀번호 입력 필드를 구현할 때, 입력된 텍스트를 숨기기 위해 visualTransformation을 설정해야 합니다. 기본적으로 PasswordV…"
+ },
+ {
+  "title": "안드로이드 컴포즈 LocalDensity 🚀 가이드 🚀",
+  "url": "https://h4r3.tistory.com/entry/%EC%95%88%EB%93%9C%EB%A1%9C%EC%9D%B4%EB%93%9C-%EC%BB%B4%ED%8F%AC%EC%A6%88-LocalDensity-%F0%9F%9A%80-%EA%B0%80%EC%9D%B4%EB%93%9C-%F0%9F%9A%80",
+  "date": "2025-02-11",
+  "category": "",
+  "summary": "📌 LocalDensity가 뭔가요?안드로이드 개발하다 보면 dp, sp, 그리고 px 같은 단위를 자주 만나죠? 이 단위들은 디바이스 해상도에 따라 크기가 다르게 표현되는데요. Jetpack Co…"
+ },
+ {
+  "title": "Jetpack Compose에서 부드러운 스크롤 플링(Fling) 구현 방법",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose%EC%97%90%EC%84%9C-%EB%B6%80%EB%93%9C%EB%9F%AC%EC%9A%B4-%EC%8A%A4%ED%81%AC%EB%A1%A4-%ED%94%8C%EB%A7%81Fling-%EA%B5%AC%ED%98%84-%EB%B0%A9%EB%B2%95",
+  "date": "2025-02-10",
+  "category": "",
+  "summary": "2025.02.07 - [분류 전체보기] - Jetpack Compose에서 FlingBehavior로 부드러운 스크롤 제어하기 이전에 작성했던 글 대비애니메이션 기반 스크롤도 확인 해볼까요 Jet…"
+ },
+ {
+  "title": "Jetpack Compose에서 FlingBehavior로 부드러운 스크롤 제어하기",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose%EC%97%90%EC%84%9C-FlingBehavior%EB%A1%9C-%EB%B6%80%EB%93%9C%EB%9F%AC%EC%9A%B4-%EC%8A%A4%ED%81%AC%EB%A1%A4-%EC%A0%9C%EC%96%B4%ED%95%98%EA%B8%B0",
+  "date": "2025-02-09",
+  "category": "",
+  "summary": "Jetpack Compose에서는 스크롤 동작을 기본적으로 제공하지만, 사용자 경험(UX)을 개선하기 위해 스크롤 감속 속도, 부드러운 스크롤 효과 등을 커스터마이징해야 할 때가 있습니다. 이때 F…"
+ },
+ {
+  "title": "Jetpack Compose 오버 스크롤 효과 제거 방법 (LazyColumn & Column)",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose-%EC%98%A4%EB%B2%84-%EC%8A%A4%ED%81%AC%EB%A1%A4-%ED%9A%A8%EA%B3%BC-%EC%A0%9C%EA%B1%B0-%EB%B0%A9%EB%B2%95-LazyColumn-Column",
+  "date": "2025-02-07",
+  "category": "",
+  "summary": "Jetpack Compose에서 LazyColumn, Column 등 스크롤 가능한 컴포넌트는 기본적으로 오버 스크롤(Edge Glow) 효과가 적용됩니다. 이러한 오버 스크롤 효과는 앱의 디자인 …"
+ },
+ {
+  "title": "Android Jetpack Compose Scaffold 및 BottomAppBar 여백 없애는 방법",
+  "url": "https://h4r3.tistory.com/entry/Android-Jetpack-Compose-Scaffold-%EB%B0%8F-BottomAppBar-%EC%97%AC%EB%B0%B1-%EC%97%86%EC%95%A0%EB%8A%94-%EB%B0%A9%EB%B2%95",
+  "date": "2025-02-07",
+  "category": "",
+  "summary": "Scaffold란?Jetpack Compose에서 Scaffold는 앱의 기본 화면 레이아웃 구조를 제공하는 컴포넌트입니다. 앱 화면을 구성할 때 자주 사용되는 Material Design UI 요…"
+ },
+ {
+  "title": "🚀 Jetpack Compose에서 CompositionLocal을 활용한 Navigation 관리",
+  "url": "https://h4r3.tistory.com/entry/%F0%9F%9A%80-Jetpack-Compose%EC%97%90%EC%84%9C-CompositionLocal%EC%9D%84-%ED%99%9C%EC%9A%A9%ED%95%9C-Navigation-%EA%B4%80%EB%A6%AC",
+  "date": "2025-02-06",
+  "category": "",
+  "summary": "📚 목차CompositionLocal과 Navigation의 개요CompositionLocal 코드 예제코드 설명 및 동작 원리compositionLocalOf vs staticComposition…"
+ },
+ {
+  "title": "안드로이드 컴포즈(Compose)에서 Graphics Layers로 GPU 하드웨어 가속 최적화하기",
+  "url": "https://h4r3.tistory.com/entry/%EC%95%88%EB%93%9C%EB%A1%9C%EC%9D%B4%EB%93%9C-%EC%BB%B4%ED%8F%AC%EC%A6%88Compose%EC%97%90%EC%84%9C-Graphics-Layers%EB%A1%9C-GPU-%ED%95%98%EB%93%9C%EC%9B%A8%EC%96%B4-%EA%B0%80%EC%86%8D-%EC%B5%9C%EC%A0%81%ED%99%94%ED%95%98%EA%B8%B0",
+  "date": "2025-02-05",
+  "category": "",
+  "summary": "현대 모바일 애플리케이션에서는 복잡한 그래픽 연산이 빈번하게 발생합니다. 이에 따라 효율적인 그래픽 처리가 성능 최적화의 핵심 요소로 자리 잡고 있습니다. 안드로이드 컴포즈(Compose)는 GPU…"
+ },
+ {
+  "title": "Android Compose Canvas 가이드: drawBehind, drawWithContent, drawWithCache, graphicsLayer 등 Modifier 활용법",
+  "url": "https://h4r3.tistory.com/entry/Android-Compose-Canvas-%EA%B0%80%EC%9D%B4%EB%93%9C-drawBehind-drawWithContent-drawWithCache-graphicsLayer-%EB%93%B1-Modifier-%ED%99%9C%EC%9A%A9%EB%B2%95",
+  "date": "2025-02-04",
+  "category": "",
+  "summary": "아래 글에서는 Android Compose 환경에서 Canvas 및 관련 Modifier들을 활용하여 커스텀 드로잉과 UI 효과를 구현하는 방법에 대해 종합적으로 알아봅니다.이 가이드는 Canvas…"
+ },
+ {
+  "title": "Android Compose 버튼: 상태별 아이콘 변경 가이드",
+  "url": "https://h4r3.tistory.com/entry/Android-Compose-%EB%B2%84%ED%8A%BC-%EC%83%81%ED%83%9C%EB%B3%84-%EC%95%84%EC%9D%B4%EC%BD%98-%EB%B3%80%EA%B2%BD-%EA%B0%80%EC%9D%B4%EB%93%9C",
+  "date": "2025-02-03",
+  "category": "",
+  "summary": "Android Compose에서 버튼의 enabled, pressed, disabled 상태에 따라 다채로운 아이콘을 표시하는 방법을 상세히 안내합니다. interactionSource, Butto…"
+ },
+ {
+  "title": "안드로이드 Graphics Layers: 작동 원리, 이점 및 성능 최적화 기법",
+  "url": "https://h4r3.tistory.com/entry/%EC%95%88%EB%93%9C%EB%A1%9C%EC%9D%B4%EB%93%9C-Graphics-Layers-%EC%9E%91%EB%8F%99-%EC%9B%90%EB%A6%AC-%EC%9D%B4%EC%A0%90-%EB%B0%8F-%EC%84%B1%EB%8A%A5-%EC%B5%9C%EC%A0%81%ED%99%94-%EA%B8%B0%EB%B2%95",
+  "date": "2025-02-02",
+  "category": "",
+  "summary": "Graphics Layers는 안드로이드 UI에서 성능을 최적화하고 효율성을 높이기 위해 사용하는 중요한 구성 요소입니다. 안드로이드에서 Graphics Layer는 화면을 렌더링할 때 하드웨어 가…"
+ },
+ {
+  "title": "안드로이드 Jetpack Compose Graphics Layers: 설명과 활용 방법",
+  "url": "https://h4r3.tistory.com/entry/%EC%95%88%EB%93%9C%EB%A1%9C%EC%9D%B4%EB%93%9C-Jetpack-Compose-Graphics-Layers-%EC%84%A4%EB%AA%85%EA%B3%BC-%ED%99%9C%EC%9A%A9-%EB%B0%A9%EB%B2%95",
+  "date": "2025-02-01",
+  "category": "",
+  "summary": "Jetpack Compose는 안드로이드 개발 환경에서 선언형 UI를 제공하며, 고성능 그래픽 작업을 가능하게 합니다. 그중 Graphics Layers는 복잡한 UI 렌더링을 최적화하고 애니메이션…"
+ },
+ {
+  "title": "Jetpack Compose: 주요 사용 기업 및 Compose로 개발된 앱 목록",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose-%EC%A3%BC%EC%9A%94-%EC%82%AC%EC%9A%A9-%EA%B8%B0%EC%97%85-%EB%B0%8F-Compose%EB%A1%9C-%EA%B0%9C%EB%B0%9C%EB%90%9C-%EC%95%B1-%EB%AA%A9%EB%A1%9D",
+  "date": "2025-01-31",
+  "category": "",
+  "summary": "1. Jetpack Compose 사용 비율 및 선호도Jetpack Compose는 Android 앱 개발을 위한 선언형 UI 툴킷으로, 많은 기업들이 이를 채택하고 있습니다. Compose는 간결…"
+ },
+ {
+  "title": "다양한 스티키 헤더 종류와 사용 방법: 안드로이드 스티키 헤더 구현 해보기",
+  "url": "https://h4r3.tistory.com/entry/%EB%8B%A4%EC%96%91%ED%95%9C-%EC%8A%A4%ED%8B%B0%ED%82%A4-%ED%97%A4%EB%8D%94-%EC%A2%85%EB%A5%98%EC%99%80-%EC%82%AC%EC%9A%A9-%EB%B0%A9%EB%B2%95-%EC%95%88%EB%93%9C%EB%A1%9C%EC%9D%B4%EB%93%9C-%EC%8A%A4%ED%8B%B0%ED%82%A4-%ED%97%A4%EB%8D%94-%EA%B5%AC%ED%98%84-%ED%95%B4%EB%B3%B4%EA%B8%B0",
+  "date": "2025-01-30",
+  "category": "",
+  "summary": "**스티키 헤더(Sticky Header)**는 긴 리스트에서 섹션의 제목을 스크롤 시에도 화면 상단에 고정시켜 사용자가 콘텐츠를 쉽게 파악할 수 있도록 돕는 UI 컴포넌트입니다. 스티키 헤더는 다…"
+ },
+ {
+  "title": "안드로이드 스티키 헤더(Sticky Header) 구현 방법",
+  "url": "https://h4r3.tistory.com/entry/%EC%95%88%EB%93%9C%EB%A1%9C%EC%9D%B4%EB%93%9C-%EC%8A%A4%ED%8B%B0%ED%82%A4-%ED%97%A4%EB%8D%94Sticky-Header-%EA%B5%AC%ED%98%84-%EB%B0%A9%EB%B2%95",
+  "date": "2025-01-29",
+  "category": "",
+  "summary": "안드로이드에서 **스티키 헤더(Sticky Header)**는 리스트 항목을 스크롤할 때 특정 헤더가 화면 상단에 고정되도록 하는 기능을 말합니다. 긴 리스트에서 섹션별로 구분되는 항목을 쉽게 구분…"
+ },
+ {
+  "title": "안드로이드 컴포즈 LazyColumn과 LazyRow 중첩 사용법: 최적화된 성능으로 스크롤 리스트 만들기",
+  "url": "https://h4r3.tistory.com/entry/%EC%95%88%EB%93%9C%EB%A1%9C%EC%9D%B4%EB%93%9C-%EC%BB%B4%ED%8F%AC%EC%A6%88-LazyColumn%EA%B3%BC-LazyRow-%EC%A4%91%EC%B2%A9-%EC%82%AC%EC%9A%A9%EB%B2%95-%EC%B5%9C%EC%A0%81%ED%99%94%EB%90%9C-%EC%84%B1%EB%8A%A5%EC%9C%BC%EB%A1%9C-%EC%8A%A4%ED%81%AC%EB%A1%A4-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EB%A7%8C%EB%93%A4%EA%B8%B0",
+  "date": "2025-01-28",
+  "category": "",
+  "summary": "안드로이드 컴포즈에서 LazyColumn과 LazyRow는 각각 수직 및 수평 스크롤 리스트를 만들 때 유용한 컴포저블입니다. 하지만 때로는 이들을 중첩하여 사용해야 하는 경우가 있습니다. 이 글에…"
+ },
+ {
+  "title": "Jetpack Compose NestedScroll 상세 설명 및 사용 예시",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose-NestedScroll-%EC%83%81%EC%84%B8-%EC%84%A4%EB%AA%85-%EB%B0%8F-%EC%82%AC%EC%9A%A9-%EC%98%88%EC%8B%9C",
+  "date": "2025-01-27",
+  "category": "",
+  "summary": "NestedScroll 개요NestedScroll은 Jetpack Compose에서 부모와 자식 스크롤 구성 요소가 원활하게 상호작용할 수 있도록 도와주는 기능입니다. 여러 스크롤 가능한 요소가 중…"
+ },
+ {
+  "title": "Jetpack Compose LazyColumn 스크롤 제어 방법 (scrollBy 함수 활용)",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose-LazyColumn-%EC%8A%A4%ED%81%AC%EB%A1%A4-%EC%A0%9C%EC%96%B4-%EB%B0%A9%EB%B2%95-scrollBy-%ED%95%A8%EC%88%98-%ED%99%9C%EC%9A%A9",
+  "date": "2025-01-26",
+  "category": "",
+  "summary": "LazyColumn 스크롤 제어 개요Jetpack Compose에서 LazyColumn의 스크롤을 제어할 때, Modifier.scrollable을 사용하면 스크롤 상태를 직접 조작할 수 있습니다.…"
+ },
+ {
+  "title": "안드로이드 컴포즈(Compose) 드롭다운(SelectBox) 및 팝업 윈도우 가이드",
+  "url": "https://h4r3.tistory.com/entry/%EC%95%88%EB%93%9C%EB%A1%9C%EC%9D%B4%EB%93%9C-%EC%BB%B4%ED%8F%AC%EC%A6%88Compose-%EB%93%9C%EB%A1%AD%EB%8B%A4%EC%9A%B4SelectBox-%EB%B0%8F-%ED%8C%9D%EC%97%85-%EC%9C%88%EB%8F%84%EC%9A%B0-%EA%B0%80%EC%9D%B4%EB%93%9C",
+  "date": "2025-01-25",
+  "category": "",
+  "summary": "안드로이드 앱 개발에서 사용자 입력을 효율적으로 처리하려면 드롭다운(SelectBox) 및 팝업 윈도우(Window Popup) 기능이 필요합니다. Jetpack Compose에서는 간단한 방식으로…"
+ },
+ {
+  "title": "Android \"Invalid resource ID 0x00000000\" 오류 해결 방법 🔨",
+  "url": "https://h4r3.tistory.com/entry/Android-Invalid-resource-ID-0x00000000-%EC%98%A4%EB%A5%98-%ED%95%B4%EA%B2%B0-%EB%B0%A9%EB%B2%95",
+  "date": "2025-01-24",
+  "category": "Error",
+  "summary": "오류 원인Android 개발 시 다음 코드를 사용하면 Invalid resource ID 0x00000000 오류가 발생할 수 있습니다:val Transparent = Color(0x00000000…"
+ },
+ {
+  "title": "Jetpack Compose UI 컴포넌트 목록 📋",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose-UI-%EC%BB%B4%ED%8F%AC%EB%84%8C%ED%8A%B8-%EB%AA%A9%EB%A1%9D-%F0%9F%93%8B",
+  "date": "2025-01-23",
+  "category": "",
+  "summary": "Jetpack Compose는 최신 Android UI 툴킷으로, 다양한 UI 컴포넌트를 제공합니다. 이번 글에서는 Jetpack Compose의 주요 UI 컴포넌트를 그룹별로 정리하여, 개발자가 …"
+ },
+ {
+  "title": "Jetpack Compose 1.8.0-alpha08 업데이트 상세 분석",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose-180-alpha08-%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8-%EC%83%81%EC%84%B8-%EB%B6%84%EC%84%9D",
+  "date": "2025-01-22",
+  "category": "Updates",
+  "summary": "2025년 1월 15일 출시된 Jetpack Compose 1.8.0-alpha08 버전에서는 TextAutoSize, 제스처 동작 변경, 클립보드 인터페이스 추가 등의 중요한 개선 사항이 포함되었…"
+ },
+ {
+  "title": "Jetpack Compose 생명주기",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose-%EC%83%9D%EB%AA%85%EC%A3%BC%EA%B8%B0",
+  "date": "2025-01-21",
+  "category": "",
+  "summary": "Jetpack Compose는 Android의 최신 UI 툴킷으로, 선언형 UI 패러다임을 채택하여 전통적인 XML 기반 View 시스템과 차별화됩니다. 본 가이드에서는 Jetpack Compose…"
+ },
+ {
+  "title": "SubcomposeLayout 내부 요소 정렬 방법",
+  "url": "https://h4r3.tistory.com/entry/SubcomposeLayout-%EB%82%B4%EB%B6%80-%EC%9A%94%EC%86%8C-%EC%A0%95%EB%A0%AC-%EB%B0%A9%EB%B2%95",
+  "date": "2025-01-20",
+  "category": "",
+  "summary": "SubcomposeLayout 안에서 요소를 정렬하려면 자식 요소의 측정 결과 (Placeable)를 활용하여 위치를 지정해야 합니다. layout() 블록 내부에서 place(x, y) 함수를 사…"
+ },
+ {
+  "title": "Jetpack Compose Button 관련 위젯: Button, IconButton, FloatingActionButton 등",
+  "url": "https://h4r3.tistory.com/entry/2",
+  "date": "2025-01-20",
+  "category": "",
+  "summary": "Jetpack Compose Button 위젯 활용법Compose에서는 다양한 버튼 위젯을 제공하여 사용자가 인터랙션을 할 수 있게 해줍니다. 가장 기본적인 Button부터, 아이콘만 표시되는 Ic…"
+ },
+ {
+  "title": "Jetpack Compose 상호작용 위젯: Checkbox, Switch, RadioButton, Slider 등",
+  "url": "https://h4r3.tistory.com/entry/5",
+  "date": "2025-01-20",
+  "category": "",
+  "summary": "Jetpack Compose 상호작용 위젯 활용법Compose는 다양한 상호작용을 처리하는 위젯들을 제공합니다. Checkbox, Switch, RadioButton, Slider는 주로 사용자의 …"
+ },
+ {
+  "title": "Jetpack Compose Layout 위젯: Row, Column, Box 등",
+  "url": "https://h4r3.tistory.com/entry/3",
+  "date": "2025-01-20",
+  "category": "",
+  "summary": "Jetpack Compose Layout 위젯 활용법Compose에서는 레이아웃을 구성할 수 있는 다양한 위젯들이 있습니다. Row와 Column을 사용하여 자식 요소를 가로 또는 세로로 배치할 수…"
+ },
+ {
+  "title": "Jetpack Compose Text 관련 위젯: Text, BasicText, TextField 등",
+  "url": "https://h4r3.tistory.com/entry/1-Jetpack-Compose-Text-%EA%B4%80%EB%A0%A8-%EC%9C%84%EC%A0%AF-Text-BasicText-TextField-%EB%93%B1",
+  "date": "2025-01-20",
+  "category": "",
+  "summary": "Jetpack Compose Text 위젯 활용법Jetpack Compose에서 Text는 가장 기본적인 UI 요소입니다. 하지만 사용자의 입력을 받을 때는 TextField와 같은 위젯을 활용해야…"
+ },
+ {
+  "title": "Jetpack Compose Image 위젯: Image, ImageVector, Icon 등",
+  "url": "https://h4r3.tistory.com/entry/4",
+  "date": "2025-01-20",
+  "category": "",
+  "summary": "Jetpack Compose Image 위젯 활용법Compose에서는 이미지를 처리할 때 사용할 수 있는 다양한 위젯들이 있습니다. Image는 일반적인 이미지를 표시할 때 사용하고, ImageVe…"
+ },
+ {
+  "title": "Jetpack Compose 상태 관리 위젯: remember, mutableStateOf 등",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose-%EC%83%81%ED%83%9C-%EA%B4%80%EB%A6%AC-%EC%9C%84%EC%A0%AF-remember-mutableStateOf-%EB%93%B1",
+  "date": "2025-01-20",
+  "category": "",
+  "summary": "Jetpack Compose 상태 관리 위젯 활용법Compose에서는 UI의 상태를 관리하기 위해 remember와 mutableStateOf를 사용합니다. 이들을 사용하면 상태 변경에 따라 UI가…"
+ },
+ {
+  "title": "Jetpack Compose에서 자주 사용하는 비슷한 위젯들",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose%EC%97%90%EC%84%9C-%EC%9E%90%EC%A3%BC-%EC%82%AC%EC%9A%A9%ED%95%98%EB%8A%94-%EB%B9%84%EC%8A%B7%ED%95%9C-%EC%9C%84%EC%A0%AF%EB%93%A4",
+  "date": "2025-01-19",
+  "category": "",
+  "summary": "Jetpack Compose는 UI를 구성하는 데 유용한 다양한 컴포저블 위젯을 제공합니다. 이들 위젯은 기본적인 레이아웃을 구성하거나 상호작용을 처리하는 데 사용되며, 각 위젯은 서로 비슷한 목적…"
+ },
+ {
+  "title": "Jetpack Compose에서 Text와 InputText 위젯 사용법",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose%EC%97%90%EC%84%9C-Text%EC%99%80-InputText-%EC%9C%84%EC%A0%AF-%EC%82%AC%EC%9A%A9%EB%B2%95",
+  "date": "2025-01-19",
+  "category": "",
+  "summary": "Jetpack Compose는 Android 애플리케이션의 UI를 선언적 방식으로 구축할 수 있게 해주는 최신 툴킷입니다. Compose를 사용하면 UI 요소들을 컴포저블 함수로 정의하고 관리할 수…"
+ },
+ {
+  "title": "Jetpack Compose에서 사용하는 Row, Column, Box 위젯",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose%EC%97%90%EC%84%9C-%EC%82%AC%EC%9A%A9%ED%95%98%EB%8A%94-Row-Column-Box-%EC%9C%84%EC%A0%AF",
+  "date": "2025-01-19",
+  "category": "",
+  "summary": "Jetpack Compose는 안드로이드 UI를 간편하게 작성할 수 있게 해주는 최신 UI 툴킷입니다. Compose는 선언적 UI 방식을 채택하여 앱의 UI를 코드로 작성할 수 있게 해주며, 다양…"
+ },
+ {
+  "title": "Jetpack Compose에서 사용하는 ~Effect() 함수",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose%EC%97%90%EC%84%9C-%EC%82%AC%EC%9A%A9%ED%95%98%EB%8A%94-Effect-%ED%95%A8%EC%88%98",
+  "date": "2025-01-19",
+  "category": "",
+  "summary": "Jetpack Compose는 현대적인 안드로이드 UI 개발을 위한 선언적 UI 툴킷입니다. Compose에서는 UI 요소와 상태를 선언적으로 구성하고, 이들을 동적으로 갱신할 수 있도록 다양한 E…"
+ },
+ {
+  "title": "Jetpack Compose 처음 프로젝트에 적용할 때 알아야 할 설정과 필수 항목들",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose-%EC%B2%98%EC%9D%8C-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%EC%97%90-%EC%A0%81%EC%9A%A9%ED%95%A0-%EB%95%8C-%EC%95%8C%EC%95%84%EC%95%BC-%ED%95%A0-%EC%84%A4%EC%A0%95%EA%B3%BC-%ED%95%84%EC%88%98-%ED%95%AD%EB%AA%A9%EB%93%A4",
+  "date": "2025-01-19",
+  "category": "",
+  "summary": "Jetpack Compose는 Android 개발의 최신 UI 툴킷으로, 앱을 더욱 효율적이고 직관적으로 만들 수 있습니다. 새로운 프로젝트에서 Compose를 처음 사용할 때는 몇 가지 필수적인 …"
+ },
+ {
+  "title": "Jetpack Compose 처음 접할 때 알아야 할 핵심 항목",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose-%EC%B2%98%EC%9D%8C-%EC%A0%91%ED%95%A0-%EB%95%8C-%EC%95%8C%EC%95%84%EC%95%BC-%ED%95%A0-%ED%95%B5%EC%8B%AC-%ED%95%AD%EB%AA%A9",
+  "date": "2025-01-19",
+  "category": "",
+  "summary": "Jetpack Compose는 Android 앱 개발을 위한 최신 UI 툴킷으로, 기존의 XML 기반 레이아웃을 대체하는 선언적 UI 방식을 제공합니다. 이 글에서는 Jetpack Compose를 …"
+ },
+ {
+  "title": "Jetpack Compose Box 위젯: 다양한 UI 요소들을 겹쳐서 배치하는 방법",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose-Box-%EC%9C%84%EC%A0%AF-%EB%8B%A4%EC%96%91%ED%95%9C-UI-%EC%9A%94%EC%86%8C%EB%93%A4%EC%9D%84-%EA%B2%B9%EC%B3%90%EC%84%9C-%EB%B0%B0%EC%B9%98%ED%95%98%EB%8A%94-%EB%B0%A9%EB%B2%95",
+  "date": "2025-01-19",
+  "category": "",
+  "summary": "Jetpack Compose에서 Box 위젯은 여러 UI 요소들을 겹쳐서 배치할 수 있는 유용한 컴포저블입니다. Box 위젯은 정렬, 오버레이, 배경 설정 등 다양한 방식으로 UI 레이아웃을 만들 …"
+ },
+ {
+  "title": "Jetpack Compose 다이얼로그: 쉽게 구현하는 사용자 인터페이스",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose-%EB%8B%A4%EC%9D%B4%EC%96%BC%EB%A1%9C%EA%B7%B8-%EC%89%BD%EA%B2%8C-%EA%B5%AC%ED%98%84%ED%95%98%EB%8A%94-%EC%82%AC%EC%9A%A9%EC%9E%90-%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4",
+  "date": "2025-01-19",
+  "category": "",
+  "summary": "Jetpack Compose에서 **다이얼로그(Dialog)**는 사용자와의 상호작용을 위한 중요한 UI 요소입니다. 다이얼로그는 주로 알림, 확인, 경고, 사용자 입력 등을 처리할 때 사용되며, …"
+ },
+ {
+  "title": "Jetpack Compose Surface: UI 구성 요소의 기본 블록과 활용 방법",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose-Surface-UI-%EA%B5%AC%EC%84%B1-%EC%9A%94%EC%86%8C%EC%9D%98-%EA%B8%B0%EB%B3%B8-%EB%B8%94%EB%A1%9D%EA%B3%BC-%ED%99%9C%EC%9A%A9-%EB%B0%A9%EB%B2%95",
+  "date": "2025-01-19",
+  "category": "",
+  "summary": "Jetpack Compose의 Surface는 UI의 시각적인 기본적인 부분을 설정하는 중요한 컴포저블입니다. 이 컴포저블은 사용자 인터페이스(UI)의 배경, 그림자, 테두리, 클릭 가능성 등을 설…"
+ },
+ {
+  "title": "Jetpack Compose의 Modifier: 필수 개념과 실용적인 예제",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose%EC%9D%98-Modifier-%ED%95%84%EC%88%98-%EA%B0%9C%EB%85%90%EA%B3%BC-%EC%8B%A4%EC%9A%A9%EC%A0%81%EC%9D%B8-%EC%98%88%EC%A0%9C",
+  "date": "2025-01-19",
+  "category": "",
+  "summary": "Jetpack Compose에서 Modifier는 UI 요소의 크기, 배치, 동작 및 상호작용을 제어하는 핵심 구성 요소입니다. 모든 Compose 컴포저블에 적용할 수 있으며, 유연하고 직관적인 …"
+ },
+ {
+  "title": "ConstraintLayout 사용 방법",
+  "url": "https://h4r3.tistory.com/entry/ConstraintLayout-%EC%82%AC%EC%9A%A9-%EB%B0%A9%EB%B2%95",
+  "date": "2025-01-19",
+  "category": "",
+  "summary": "Jetpack Compose의 ConstraintLayout은 복잡한 레이아웃을 구현하기 위한 강력한 도구입니다. 기존 View 시스템에서 ConstraintLayout을 사용했던 경험이 있다면 C…"
+ },
+ {
+  "title": "Jetpack Compose: includeFontPadding 매개변수로 텍스트 정렬 최적화하기",
+  "url": "https://h4r3.tistory.com/entry/Jetpack-Compose-includeFontPadding-%EB%A7%A4%EA%B0%9C%EB%B3%80%EC%88%98%EB%A1%9C-%ED%85%8D%EC%8A%A4%ED%8A%B8-%EC%A0%95%EB%A0%AC-%EC%B5%9C%EC%A0%81%ED%99%94%ED%95%98%EA%B8%B0",
+  "date": "2025-01-19",
+  "category": "",
+  "summary": "Jetpack Compose: includeFontPadding 매개변수로 텍스트 정렬 최적화하기Jetpack Compose의 includeFontPadding 매개변수는 텍스트 컴포넌트의 레이아웃…"
+ },
+ {
+  "title": "SubcomposeLayout",
+  "url": "https://h4r3.tistory.com/entry/SubcomposeLayout",
+  "date": "2025-01-19",
+  "category": "",
+  "summary": "SubcomposeLayout란?SubcomposeLayout은 Jetpack Compose에서 제공하는 고급 레이아웃 API로, 레이아웃의 일부 요소를 먼저 측정하고, 이 정보를 바탕으로 다른 요…"
+ },
+ {
+  "title": ".layout{}",
+  "url": "https://h4r3.tistory.com/entry/layout",
+  "date": "2025-01-19",
+  "category": "",
+  "summary": "layout {}은 Jetpack Compose에서 Modifier.layout {}를 활용하는 커스텀 레이아웃의 정의 방식입니다.이를 통해 개발자는 ConstraintLayout과 같은 고급 레이…"
+ },
+ {
+  "title": "ConstraintLayout",
+  "url": "https://h4r3.tistory.com/entry/ConstraintLayout",
+  "date": "2025-01-19",
+  "category": "",
+  "summary": "ConstraintLayout in Jetpack ComposeConstraintLayout은 Jetpack Compose에서 UI 요소의 배치와 제약 조건을 설정할 수 있는 강력한 레이아웃 도구입…"
+ }
+]

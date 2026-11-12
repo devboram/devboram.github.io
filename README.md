@@ -1,6 +1,6 @@
 # devboram.github.io
 
-boram 의 작업노트 — GitHub Pages 가 빌드하는 Jekyll 정적 사이트. 수용 기준·결정 기록은 `TODO.md`.
+버그 잡는 개발자 log — GitHub Pages 가 빌드하는 Jekyll 정적 사이트. 수용 기준·결정 기록은 `TODO.md`.
 
 ## 로컬 실행
 
@@ -17,9 +17,9 @@ bundle exec jekyll serve
 
 ## 콘텐츠 추가
 
-- 새 글: `_posts/YYYY-MM-DD-슬러그.md` 파일 하나. front matter 에 `title`·`description`·`summary`·`tags`·`minutes`(선택 `avatar` = 캐릭터 키, 기본 bunny), 본문은 Markdown. 홈 카드·퀘스트 로그·이전/다음 내비는 자동.
-- 아직 안 쓴 글: `_drafts/` (빌드 제외).
-- 프로젝트: `_data/projects.yml` 에 항목 추가 — 홈 카드와 프로젝트 페이지가 같이 읽는다.
+- 새 글: 글은 티스토리(h4r3.tistory.com)에 쓴다. `python3 -I tools/tistory_posts.py` 가 공개 글 목록을 `_data/tistory.json` 으로 받아 오고, 홈·사냥 일지·3D 스테이지가 그 파일을 읽는다.
+- 버그: `_data/bugs.yml` — 버그 도감(/bugs.html)과 3D 스테이지 퀴즈가 같이 읽는다.
+- 사냥 장비: `_data/projects.yml` 에 항목 추가 — 홈 카드·인벤토리 페이지·3D 스테이지 전시(앞 3개)가 같이 읽는다.
 - 메뉴: `_data/nav.yml` — 헤더 메뉴와 홈 타이틀 메뉴가 같이 읽는다(`cmd` = 게임 커맨드 이름).
 - 캐릭터·아이템: `_data/characters.yml`, 소개 페이지 능력치: `_data/player_stats.yml`. 컨셉 변천 기록은 `_data/concept_history.yml`(`/concept.html`).
 - 페이지 상단 배너: `{% include page-banner.html bg="<이름>" icon="<스프라이트>" title="..." %}`, 배경은 `assets/pixel/bg/<이름>.jpg`.
