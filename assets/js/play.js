@@ -16,6 +16,8 @@ const canvas = stage.querySelector('.play-canvas');
 const hintEl = stage.querySelector('.play-hint');
 const dialogEl = stage.querySelector('.play-dialog');
 const bookEl = stage.querySelector('.play-book');
+const bookArtEl = bookEl.querySelector('.play-book-art');
+bookArtEl.addEventListener('error', () => { bookArtEl.hidden = true; });
 const hudEl = stage.querySelector('.play-hud');
 const speedEl = stage.querySelector('.play-speed');
 const zoneEl = stage.querySelector('.play-zone');
@@ -160,7 +162,13 @@ const RARE_SET = new Set(Object.values(RARE));
 const dex = new Set((() => { try { return JSON.parse(localStorage.getItem('play-dex') || '[]'); } catch (e) { return []; } })());
 function saveDex() { try { localStorage.setItem('play-dex', JSON.stringify([...dex])); } catch (e) { /* 저장 못 해도 게임은 된다 */ } }
 // 버그 도감: 문제를 맞혀 채집한 버그('caught')와 틀려서 놓친 버그('missed')를 기기에 남긴다. 문제는 _data/bugs.yml
-const BUGS = (data.bugs || []).map((b) => ({ ...b, q: b.q.replace(/`/g, ''), why: b.why.replace(/`/g, ''), hint: (b.hint || '').replace(/`/g, '') }));
+// 버그 그림(assets/chars/bugs/<key>.png, tools/art/cut_bugs.py)은 art 에 둔다. 그림을 못 받으면 art.map.image 가 비어 있고, 그때는 빛나는 도형으로 보인다
+const BUGS = (data.bugs || []).map((b) => {
+  const t = new THREE.TextureLoader().load(`/assets/chars/bugs/${b.key}.png`, undefined, undefined, () => {});
+  t.colorSpace = THREE.SRGBColorSpace;
+  return { ...b, q: b.q.replace(/`/g, ''), why: b.why.replace(/`/g, ''), hint: (b.hint || '').replace(/`/g, ''), art: new THREE.SpriteMaterial({ map: t, transparent: true, alphaTest: 0.3 }) };
+});
+let lastBug = null;  // 방금 낸 문제의 버그
 const bugLog = (() => { try { return JSON.parse(localStorage.getItem('play-bugs') || '{}'); } catch (e) { return {}; } })();
 // 아이템: 드라이브에서 하나 주울 때마다 1개. 문제의 힌트를 보거나 틀렸을 때 다시 푸는 데 1개씩 쓴다
 let items = (() => { try { return Number(localStorage.getItem('play-items')) || 0; } catch (e) { return 0; } })();
@@ -376,7 +384,7 @@ const me = data.cast.find((c) => c.key === 'bunny');
 // ===== 층: 옥상(RF) + 실내 층(play-floors.js). 걷기·대화·엘리베이터는 층 공통 — 지금 있는 층이 place =====
 const roofLift = liftDoor(canvasTexture, CYAN, GOLD); roofLift.position.set(3.8, 0, -ROOF.d / 2 + 0.3); scene.add(roofLift);
 // 동료는 각자 맡은 층에 있다(5F 미누 · 4F 모니 · 3F 큐링 · B1 글리치 킹). 옥상은 소품을 살펴보는 허브
-const floorCtx = { canvasTexture, colors: { PINK, CYAN, GOLD, VIOLET, LAV }, data, skyline: skylineTexs[0], dex, drive: () => switchMode('drive'), quiz: (onCatch, onMiss) => askBug(onCatch, onMiss), bugDex: () => openBugDex(), goto: (key) => gotoFloor(FLOORS.find((f) => f.key === key)) };
+const floorCtx = { canvasTexture, colors: { PINK, CYAN, GOLD, VIOLET, LAV }, data, skyline: skylineTexs[0], dex, drive: () => switchMode('drive'), quiz: (onCatch, onMiss, b) => askBug(onCatch, onMiss, b), nextBug: (avoid) => pickBug(avoid), bugArts: BUGS.map((b) => b.art), bugDex: () => openBugDex(), caughtBugs: () => BUGS.map((b) => bugLog[b.key] === 'caught'), goto: (key) => gotoFloor(FLOORS.find((f) => f.key === key)) };
 const FLOORS = [
   { key: 'RF', name: 'RF 달빛 옥상', music: 'roof', scene, w: ROOF.w, d: ROOF.d, spawn: [3.8, -3.6], npcs: [], things: [
     { pos: [7.2, -ROOF.d / 2 + 0.3], hint: '드라이브 하러 가기', act: () => switchMode('drive') },
@@ -1404,7 +1412,7 @@ let actx = null, master = null, engine = null, muted = false, musicGain = null, 
 const tracks = {};  // 한 번 받은 곡은 다시 받지 않는다
 try { muted = localStorage.getItem('play-mute') === '1'; } catch (e) { /* 저장소를 못 써도 소리는 난다 */ }
 function audioOn() {  // 브라우저 정책상 첫 입력 뒤에만 켤 수 있다
-  if (actx) { if (actx.state === 'suspended' && !document.hidden) actx.resume(); return; }
+  if (actx) { if (actx.state !== 'running' && !document.hidden) actx.resume(); return; }  // iOS 는 백그라운드에서 'interrupted' 가 된다
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!AC) return;
   actx = new AC(); master = actx.createGain(); master.gain.value = muted ? 0 : TUNE.sound.master; master.connect(actx.destination);
@@ -1458,6 +1466,8 @@ function toggleMute() {
   if (mode === 'drive') say(muted ? '소리 끔 (M)' : '소리 켬 (M)', 1.2);
 }
 document.addEventListener('visibilitychange', () => { if (actx) document.hidden ? actx.suspend() : actx.resume(); });  // 탭을 떠나면 소리도 멈춘다
+// 돌아왔는데 브라우저가 자동 재개를 막았으면(iOS), 다음 터치·키 입력 때 다시 켠다. 조작판 단추가 아닌 곳을 눌러도 켜진다
+for (const type of ['pageshow', 'focus', 'pointerdown', 'touchend']) addEventListener(type, () => { if (actx && actx.state !== 'running' && !document.hidden) actx.resume(); });
 
 // 입력: 키보드 + 화면 콘솔
 const held = new Set();
@@ -1481,7 +1491,7 @@ for (const btn of document.querySelectorAll('.pad-btn')) {
 }
 
 let dialogOpen = false, dialogAction = null, dialogCancel = null, twirlT = -1, mode = 'roof', switching = false;
-let menu = null, talkTo = null, inBattle = false, battleTrack = 'battle', floorBannerUntil = 0;  // 열려 있는 목록(엘리베이터·문제·도감, 없으면 null), 지금 말을 걸거나 살펴보는 상대의 자리, 버그 문제를 푸는 중인지와 이번 전투 음악, 층 이름 배너를 내리는 시각
+let menu = null, talkTo = null, inBattle = false, battleTrack = 'battle', floorBannerUntil = 0;  // 열려 있는 목록(엘리베이터·문제·도감, 없으면 null), 지금 말을 걸거나 살펴보는 상대의 자리, 버그 문제를 푸는 중인지와 이번 전투 음악, 방금 낸 문제, 층 이름 배너를 내리는 시각
 const liftPrev = new Set();
 function switchMode(next) {
   if (switching) return;
@@ -1519,6 +1529,8 @@ function drawMenu() {
   if (!menu.book) return showDialog(title, [head, ...body].filter(Boolean).join('\n'));
   const page = menu.book(sel), set = (cls, text) => { bookEl.querySelector(cls).textContent = text; };  // 펼친 책: 왼쪽 목록, 오른쪽은 고른 줄의 내용
   set('.play-book-title', title); set('.play-book-list', body.join('\n')); set('.play-book-name', page.name); set('.play-book-text', page.text);
+  bookArtEl.hidden = !page.art; bookArtEl.classList.toggle('is-unknown', !!page.unknown);  // 버그 그림: 못 만난 버그는 실루엣, 그림을 못 받으면 숨긴다(onerror)
+  if (page.art && bookArtEl.getAttribute('src') !== page.art) bookArtEl.src = page.art;
   bookEl.hidden = false; dialogOpen = true;
 }
 function openMenu(title, rows, pick, sel = 0, head = '') { menu = { title, head, rows, sel, pick }; drawMenu(); }  // ▲▼ 로 고르고 A 로 pick(고른 순서)
@@ -1551,13 +1563,19 @@ function tickCatch(dt) {
   beam.material.opacity = 1 - k;
   if (k >= 1) { place.scene.remove(beam, orb); catchFx = null; }
 }
-// 버그 문제: 아직 못 잡은 버그 가운데 하나가 나온다. 맞히면 채집(onCatch), 틀리면 도망가고(onMiss) 오답노트에 남는다.
+// 다음에 나올 버그: 아직 못 잡은 버그부터, 다 잡았으면 전체에서 무작위. 방금 나온 것과 avoid(지금 들판에 떠 있는 종)는 피한다
+function pickBug(avoid = []) {
+  const fresh = BUGS.filter((x) => bugLog[x.key] !== 'caught'), base = fresh.length ? fresh : BUGS;
+  const pool = base.filter((x) => x !== lastBug && !avoid.includes(x)), loose = base.filter((x) => !avoid.includes(x));
+  return pick(pool.length ? pool : loose.length ? loose : BUGS);
+}
+// 버그 문제: b 를 주면 그 버그의 문제, 없으면 아직 못 잡은 버그 가운데 하나가 나온다. 맞히면 채집(onCatch), 틀리면 도망가고(onMiss) 오답노트에 남는다.
 // 아이템이 있으면 1개로 힌트를 보거나, 틀린 뒤 1개로 같은 문제를 다시 풀 수 있다
 function askBug(onCatch, onMiss, b = null, hinted = false, target = talkTo?.clone()) {
   if (!BUGS.length) return onCatch?.(null);
   if (!inBattle) battleTrack = pick(['battle', 'battle2', 'battle3']);  // 버그를 만날 때마다 전투 음악 셋 중 하나
   inBattle = true;
-  if (!b) { const fresh = BUGS.filter((x) => bugLog[x.key] !== 'caught'); b = pick(fresh.length ? fresh : BUGS); }
+  b = lastBug = b || pickBug();
   const canHint = !hinted && items > 0 && b.hint;
   openMenu(`${b.name} 출현! — ▲▼ 고르기 · A 답하기`, canHint ? [...b.choices, `힌트 보기 — 아이템 1개 (보유 ${items})`] : b.choices, (k) => {
     if (canHint && k === b.choices.length) { addItems(-1); return askBug(onCatch, onMiss, b, true, target); }
@@ -1576,9 +1594,9 @@ function openBugDex() {  // 5F 기록실: 도감을 펼친다. 만난 버그의 
     title: `버그 도감 · 채집 ${count('caught')}/${BUGS.length} · 놓침 ${count('missed')}`, sel: 0,
     rows: BUGS.map((b, k) => `No.${String(k + 1).padStart(2, '0')} ${bugLog[b.key] ? b.name : '???'}${bugLog[b.key] === 'missed' ? ' ✗' : ''}`),
     book: (k) => {
-      const b = BUGS[k], st = bugLog[b.key];
-      return st ? { name: `${b.name}${st === 'missed' ? ' — 오답노트' : ''}`, text: `${b.desc}\n\nQ. ${b.q}\n정답: ${b.choices[b.answer]}\n\n${b.why}` }
-        : { name: '???', text: '아직 만나지 못한 버그예요.\n밖에서 찾아보세요.' };
+      const b = BUGS[k], st = bugLog[b.key], art = `/assets/chars/bugs/${b.key}.png`;
+      return st ? { art, name: `${b.name}${st === 'missed' ? ' — 오답노트' : ''}`, text: `${b.desc}\n\nQ. ${b.q}\n정답: ${b.choices[b.answer]}\n\n${b.why}` }
+        : { art, unknown: true, name: '???', text: '아직 만나지 못한 버그예요.\n밖에서 찾아보세요.' };
     },
   };
   drawMenu();
@@ -1587,7 +1605,8 @@ function gotoFloor(f) {
   if (switching) return;
   switching = true; wipeEl.classList.add('is-on'); sfx('turn');
   setTimeout(() => {
-    place = f; f.enter?.(); f.scene.add(bunny, sparkPts); bunny.position.set(f.spawn[0], 0, f.spawn[1]);
+    const at = f.arrive?.[place.key] ?? f.spawn;  // 걸어서 들어온 문이 있으면 그 문 앞, 아니면 엘리베이터 앞
+    place = f; f.enter?.(); f.scene.add(bunny, sparkPts); bunny.position.set(at[0], 0, at[1]);
     pixelPass.scene = f.scene; bloom.strength = f.glow ?? TUNE.view.glow.roof;  // 실내는 번짐을 줄여 흰 캐릭터가 날아가지 않게
     camPos.set(bunny.position.x * 0.6, 4.8, bunny.position.z + 11); camLook.set(bunny.position.x * 0.8, 1.6, bunny.position.z - 4);
     zoneEl.textContent = f.name; zoneEl.hidden = false; floorBannerUntil = clock.elapsedTime + 2.2;
@@ -1665,7 +1684,7 @@ function tick() {
     if (v.lengthSq()) {
       v.normalize().multiplyScalar(5 * dt);
       bunny.position.x = THREE.MathUtils.clamp(bunny.position.x + v.x, -place.w / 2 + 0.8, place.w / 2 - 0.8);
-      bunny.position.z = THREE.MathUtils.clamp(bunny.position.z + v.y, -place.d / 2 + 0.8, place.d / 2 - 0.8);
+      bunny.position.z = THREE.MathUtils.clamp(bunny.position.z + v.y, -place.d / 2 + (place.backPad ?? 0.8), place.d / 2 - 0.8);
       bunny.position.y = Math.abs(Math.sin(t * 12)) * 0.12;
     } else bunny.position.y = 0;
   }

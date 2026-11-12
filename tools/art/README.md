@@ -10,6 +10,7 @@
 | `gen_scene.py` | 홈 장면 `scene-night.png`(480×150) + 배경 타일 `stars`·`stardust`·`heartline` | `cd tools/art && python3 -I gen_scene.py ../../assets/pixel` |
 | `cut_sheets.py` | ChatGPT 배경 6분할 → `assets/pixel/bg/*.jpg`, 소품·치비 시트 → `assets/chars/sheets/` | `python3 -I tools/art/cut_sheets.py <원본 폴더>` |
 | `cut_chibi.py` | 치비 시트 5×3 → `assets/chars/chibi/<키>_<front·joy·doze>.png` (흰 배경 제거) | `python3 -I tools/art/cut_chibi.py` |
+| `cut_bugs.py` | 버그 시트 8×5(초록 배경) → `assets/chars/bugs/<키>.png` 40장(128×128 투명). 칸 순서 = `_data/bugs.yml` | `python3 -I tools/art/cut_bugs.py <원본 폴더>` |
 | `make_strip.py` | 초록(#00FF00) 배경 프레임 시트 → 투명 가로 스트립(칸 위치 보존) | `python3 -I tools/art/make_strip.py <원본.png> <출력.png> <프레임 수> <높이> [행 수]` → WebP 로 변환해 `assets/chars/anim/` |
 | `cors_server.py` | CORS 헤더 있는 정적 서버(giscus 테마 로컬 확인용) | `python3 -I tools/art/cors_server.py 4011 _site` |
 

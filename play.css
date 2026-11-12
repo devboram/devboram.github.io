@@ -27,12 +27,15 @@
 .play-book p { margin: 0; }
 .play-book-title, .play-book-name { font-family: var(--font-pixel); font-weight: 700; font-size: 15px; color: var(--pink-700); padding-bottom: 6px; border-bottom: 2px solid #c9b78a; }
 .play-book-list, .play-book-text { margin-top: 8px !important; font-size: 14px; line-height: 1.75; white-space: pre-line; }
+.play-book-art { align-self: center; width: 96px; height: 96px; margin-top: 8px; object-fit: contain; image-rendering: pixelated; }
+.play-book-art.is-unknown { filter: brightness(0); opacity: 0.35; }
 .play-book-close { margin-top: auto !important; font-family: var(--font-pixel-sm); font-size: 13px; color: #7a6a44; text-align: right; }
 @media (max-width: 600px) {
   .play-book { inset: 3% 2%; }
   .play-book-page { padding: 6px 8px; }
   .play-book-title, .play-book-name { font-size: 11px; padding-bottom: 2px; }
   .play-book-list, .play-book-text { margin-top: 3px !important; font-size: 10px; line-height: 1.5; }
+  .play-book-art { width: 44px; height: 44px; margin-top: 2px; }
   .play-book-close { font-size: 10px; }
 }
 .play-fallback { display: none; position: absolute; inset: auto 16px 16px 16px; margin: 0; padding: 12px; background: var(--night-950); }
@@ -61,12 +64,15 @@
   .play-keys { display: none; }
 }
 @media (max-width: 600px) {
-  .play-stage { aspect-ratio: 4 / 3; }
+  .play-stage { aspect-ratio: 4 / 5; }  /* 세로로 길게: 대화창이 아래를 덮어도 캐릭터가 보이게 */
   .pad { padding: 14px 16px; }
   .pad-dpad { grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(3, 48px); }
   .pad-btn { width: 48px; height: 48px; }
   .pad-a, .pad-b { width: 58px; height: 58px; }
-  .play-dialog { left: 8px; right: 8px; bottom: 8px; padding: 10px 36px; }
+  .play-dialog { left: 8px; right: 8px; bottom: 8px; padding: 8px 34px; }
+  .play-dialog-name { font-size: 12px; }
+  .play-dialog-text { margin-top: 2px !important; font-size: 13px; line-height: 1.5; }
+  .play-dialog-close { display: none; }  /* 아래 조작판에 B 단추가 있다 */
 }
 @media (prefers-reduced-motion: reduce) { .play-hint { animation: none; } }
 /* 드라이브 HUD · 화면 전환(픽셀 페이드) */

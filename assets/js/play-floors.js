@@ -217,7 +217,7 @@ function control({ canvasTexture, colors, data }) {
 }
 
 // 3F 실험실 — 큐링의 QA 실험실. 방 안에 숨은 반짝이 버그 6마리를 A 로 채집한다
-function lab({ canvasTexture, colors, quiz }) {
+function lab({ canvasTexture, colors, quiz, caughtBugs, bugArts }) {
   const { PINK, CYAN, GOLD, VIOLET } = colors;
   const GREEN = 0x7cf29c;
   const w = 16, d = 10, back = -d / 2;
@@ -238,7 +238,28 @@ function lab({ canvasTexture, colors, quiz }) {
   [[1, PINK], [1.6, CYAN], [2.2, GOLD]].forEach(([x, c], i) => { cyl(scene, 0.16, 0.4 + i * 0.12, x, 1.3 + i * 0.06, back + 0.9, glow(c)); cyl(scene, 0.06, 0.25, x, 1.65 + i * 0.12, back + 0.9, std(0xdff6ff)); });
   const jar = cyl(scene, 0.45, 0.9, 3.3, 1.55, back + 0.9, new THREE.MeshBasicMaterial({ color: 0xb8fbff, transparent: true, opacity: 0.25 }), 10);
   cyl(scene, 0.48, 0.08, 3.3, 2.04, back + 0.9, std(0x3a6078), 10);
-  things.push({ pos: [2.2, back + 2], hint: '실험대 살펴보기', act: ({ showDialog }) => showDialog('실험대', `채집통에 반짝이 버그 ${caught}마리.\n플라스크에는 테스트 케이스가 보글보글.`) });
+  // 표본판: 실험대 위 벽에 채집한 버그가 종류마다 한 칸씩 빛난다(어디서 잡았든). 못 잡은 칸은 어둡다
+  const got = caughtBugs(), COLS = 10, ROWS = Math.ceil(got.length / COLS) || 1;
+  box(scene, 4, ROWS * 0.4 + 0.3, 0.1, 2.2, 2.55 + ROWS * 0.2, back + 0.08, std(0x1c3248));
+  sign(canvasTexture, scene, 'SPECIMENS', GREEN, 2.6, 2.2, 2.95 + ROWS * 0.4, back + 0.05);
+  const DARK = new THREE.Color(0x2a4860), specimens = got.map((_, i) => {
+    const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.13), new THREE.MeshBasicMaterial({ color: DARK }));
+    m.position.set(0.58 + (i % COLS) * 0.36, 2.55 + (ROWS - 1 - Math.floor(i / COLS)) * 0.4 + 0.2, back + 0.2); scene.add(m);
+    return m;
+  });
+  // 칸마다 그 종의 그림. 못 잡은 칸은 어두운 실루엣. 그림을 못 받은 칸은 빛나는 도형 그대로
+  const arts = specimens.map((m, i) => {
+    const spr = new THREE.Sprite(bugArts[i].clone()); spr.scale.set(0.36, 0.36, 1); spr.position.copy(m.position); spr.visible = false; scene.add(spr);
+    return spr;
+  });
+  const showSpecimens = () => caughtBugs().forEach((on, i) => {
+    const has = !!arts[i].material.map.image;
+    arts[i].visible = has; specimens[i].visible = !has;
+    arts[i].material.color.set(on ? 0xffffff : 0x0c1826);
+    specimens[i].material.color.set(on ? [GREEN, CYAN, GOLD, PINK, VIOLET][i % 5] : DARK);
+  });
+  showSpecimens();
+  things.push({ pos: [2.2, back + 2], hint: '실험대 살펴보기', act: ({ showDialog }) => showDialog('실험대', `표본판에 채집한 버그 ${caughtBugs().filter(Boolean).length}/${got.length}종.\n채집통에는 이 방에서 잡은 반짝이 버그 ${caught}마리.`) });
   // 큐링이 좋아하는 꽃 화분(Kenney 모델)
   [['flower_purpleA', -7.2, 3.6], ['flower_redA', -6.4, 4.1], ['flower_yellowA', 6.6, 3.8], ['plant_bush', 7.2, 2.6]].forEach(([f, x, z]) => { box(scene, 0.7, 0.4, 0.7, x, 0.2, z, std(0x3a6078)); model(scene, `nature/${f}`, 1.1, x, z); });
 
@@ -249,7 +270,7 @@ function lab({ canvasTexture, colors, quiz }) {
     const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.22), glow([PINK, GOLD, VIOLET][i % 3]));
     m.position.set(x, 0.9, z); scene.add(m);
     const th = { pos: [x, z], hint: '반짝이 버그 잡기', act: ({ showDialog }) => quiz((bug) => {  // 문제를 맞혀야 잡힌다
-      caught++; th.pos = [999, 999];  // 잡힌 버그는 더 안 잡히게 멀리 치운다
+      caught++; th.pos = [999, 999]; showSpecimens();  // 잡힌 버그는 더 안 잡히게 멀리 치운다
       m.position.set(3.3 + (caught % 3 - 1) * 0.15, 1.25 + Math.floor((caught - 1) / 3) * 0.3 + (caught % 2) * 0.12, back + 0.9); m.scale.setScalar(0.45);
       const why = bug ? `${bug.why}\n` : '';
       showDialog(`${bug ? `${bug.name} 채집!` : '채집!'} ${caught}/${SPOTS.length}`, why + (caught === SPOTS.length
@@ -266,7 +287,8 @@ function lab({ canvasTexture, colors, quiz }) {
   return {
     key: '3F', name: '3F 실험실', music: 'lab', scene, w, d, glow: 0.3,
     spawn: [liftX, back + 1.7], lift: [liftX, back + 0.3],
-    enter() {  // 전부 잡은 뒤 다시 오면 버그가 제자리에 돌아와 있다
+    enter() {  // 표본판을 새로 고친다. 전부 잡은 뒤 다시 오면 버그가 제자리에 돌아와 있다
+      showSpecimens();
       if (caught < SPOTS.length) return;
       caught = 0;
       for (const b of bugs) { b.m.position.set(b.home[0], 0.9, b.home[1]); b.m.scale.setScalar(1); b.th.pos = [...b.home]; }
@@ -380,6 +402,7 @@ function garage({ canvasTexture, colors, drive, goto }) {
   return {
     key: '1F', name: '1F 차고', music: 'garage', scene, w, d, glow: 0.3,
     spawn: [liftX, back + 1.7], lift: [liftX, back + 0.3],
+    arrive: { FIELD: [doorX + 1.7, -1.5] },  // 들판에서 돌아오면 들판 문 앞에 선다
     npcs: [],
     things,
   };
@@ -470,7 +493,7 @@ export function roofProps(scene, { canvasTexture, colors, data }, roof) {
 }
 
 // 건물 밖 들판: 걸어 다니며 버그를 찾는다. 문제를 맞히면 채집, 틀리면 버그가 다른 곳으로 도망간다
-function field({ canvasTexture, colors, skyline, quiz, goto }) {
+function field({ canvasTexture, colors, skyline, quiz, nextBug, goto }) {
   const { CYAN, GOLD } = colors, GREEN = 0x7dff9a;
   const w = 30, d = 18, back = -d / 2, rnd = seeded(77);
   const scene = new THREE.Scene();
@@ -506,39 +529,41 @@ function field({ canvasTexture, colors, skyline, quiz, goto }) {
   const things = [{ pos: [doorX - 0.9, 0], hint: '차고로 돌아가기', act: () => goto('1F') }];
   label(canvasTexture, scene, 'BUG FIELD', GREEN, 0, 4.6, back - 0.4);
 
-  // 버그: 풀밭 위를 날아다닌다. 얼굴 없이 빛나는 몸통 + 날개 한 쌍
-  const N = 8, spot = () => [(rnd() - 0.5) * (w - 6) - 1.5, (rnd() - 0.5) * (d - 4)];
-  let left = N;
+  // 버그: 풀밭 위를 날아다닌다. 나타날 때 종류(kind)가 정해지고 그 종의 그림으로 보이며, 그 종의 문제가 나온다.
+  // 그림을 못 받은 종은 얼굴 없이 빛나는 몸통 + 날개 한 쌍
+  const N = 8, BACK = 5, spot = () => [(rnd() - 0.5) * (w - 6) - 1.5, (rnd() - 0.5) * (d - 4)];  // BACK: 잡힌 자리에 새 버그가 날아오기까지(초)
+  let got = 0, now = 0;
   const bugs = Array.from({ length: N }, (_, i) => {
-    const m = new THREE.Group(), color = [GREEN, CYAN, GOLD][i % 3];
-    const body = new THREE.Mesh(new THREE.OctahedronGeometry(0.24), glow(color)); body.scale.set(1, 0.7, 1.4); m.add(body);
-    for (const sx of [-1, 1]) { const wing = box(m, 0.34, 0.02, 0.22, sx * 0.26, 0.1, 0, glow(0xf6f3ff)); wing.rotation.z = sx * 0.5; }
+    const m = new THREE.Group(), shape = new THREE.Group(), color = [GREEN, CYAN, GOLD][i % 3];
+    const body = new THREE.Mesh(new THREE.OctahedronGeometry(0.24), glow(color)); body.scale.set(1, 0.7, 1.4); shape.add(body);
+    for (const sx of [-1, 1]) { const wing = box(shape, 0.34, 0.02, 0.22, sx * 0.26, 0.1, 0, glow(0xf6f3ff)); wing.rotation.z = sx * 0.5; }
+    const spr = new THREE.Sprite(); spr.scale.set(1.5, 1.5, 1); m.add(shape, spr);
     scene.add(m);
-    const b = { m, home: spot(), alive: true };
+    const b = { m, shape, spr, home: spot(), alive: true };
     b.th = { pos: [...b.home], hint: '버그 잡기', act: ({ showDialog }) => quiz((bug) => {
-      b.alive = false; m.visible = false; b.th.pos = [999, 999]; left -= 1;  // 잡힌 버그는 더 안 잡히게 멀리 치운다
-      showDialog(`${bug ? `${bug.name} 채집!` : '채집!'}`, `${bug ? `${bug.why}\n` : ''}${left ? `들판에 버그가 ${left}마리 남았다.` : '들판의 버그를 전부 잡았다! (다시 나오면 새 버그가 날아와 있어요.)'}`);
+      b.alive = false; m.visible = false; b.th.pos = [999, 999]; b.backAt = now + BACK; got += 1;  // 잡힌 버그는 치워 두었다가 잠시 뒤 새 버그로 돌아온다
+      showDialog(`${bug ? `${bug.name} 채집!` : '채집!'}`, `${bug ? `${bug.why}\n` : ''}이번 나들이에서 ${got}마리째. 버그는 계속 날아온다.`);
     }, () => {  // 틀리면 멀리 달아난다
       let to = spot(); for (let k = 0; k < 8 && Math.hypot(to[0] - b.home[0], to[1] - b.home[1]) < 7; k++) to = spot();
       b.home = to;
-    }) };
+    }, b.kind) };
     things.push(b.th);
     return b;
   });
+  const assign = (b) => { b.kind = nextBug(bugs.filter((o) => o !== b && o.alive).map((o) => o.kind)); if (b.kind) b.spr.material = b.kind.art; };  // 떠 있는 다른 버그와 겹치지 않는 종으로
+  bugs.forEach(assign);
 
   return {
     key: 'FIELD', name: '버그 들판', music: 'roof', scene, w, d, glow: 0.5, noLift: true,
     spawn: [doorX - 1.8, 0],
-    enter() {  // 전부 잡은 뒤 다시 오면 새 버그가 날아와 있다
-      if (left) return;
-      left = N;
-      for (const b of bugs) { b.alive = true; b.m.visible = true; b.home = spot(); }
-    },
-    tick(t) {  // 제자리 근처를 맴돈다. 잡는 자리(th.pos)도 따라 움직인다
+    enter() { got = 0; },  // 나갔다 오면 채집 수를 다시 센다
+    tick(t) {  // 제자리 근처를 맴돈다. 잡는 자리(th.pos)도 따라 움직인다. 잡힌 버그는 BACK 초 뒤 다른 자리에 새로 나타난다
+      now = t;
       bugs.forEach((b, i) => {
-        if (!b.alive) return;
+        if (!b.alive) { if (t < b.backAt) return; b.alive = true; b.m.visible = true; b.home = spot(); assign(b); }
+        const has = !!b.kind?.art.map.image; b.spr.visible = has; b.shape.visible = !has;
         const x = b.home[0] + Math.sin(t * 0.7 + i * 2) * 0.8, z = b.home[1] + Math.cos(t * 0.5 + i) * 0.5;
-        b.m.position.set(x, 0.8 + Math.sin(t * 3 + i) * 0.15, z); b.m.rotation.y = t * 1.5 + i;
+        b.m.position.set(x, 0.8 + Math.sin(t * 3 + i) * 0.15, z); b.shape.rotation.y = t * 1.5 + i;
         b.th.pos = [x, z];
       });
     },
@@ -548,5 +573,9 @@ function field({ canvasTexture, colors, skyline, quiz, goto }) {
 }
 
 export function buildFloors(ctx) {
-  return [archive(ctx), control(ctx), lab(ctx), gallery(ctx), garage(ctx), lair(ctx), field(ctx)];
+  // 실내는 뒷벽에 가구가 붙어 있다. 토끼 그림은 카메라를 향해 뒤로 기울기 때문에 가구에 바짝 붙으면 윗부분이 가구에 잘린다.
+  // 그래서 뒷벽에서 backPad(m) 안으로는 못 들어가게 하고, 내리는 자리도 그 밖으로 맞춘다
+  const indoor = [archive(ctx), control(ctx), lab(ctx), gallery(ctx), garage(ctx), lair(ctx)].map((f) => (
+    { ...f, backPad: 2, spawn: [f.spawn[0], Math.max(f.spawn[1], -f.d / 2 + 2)] }));
+  return [...indoor, field(ctx)];
 }
